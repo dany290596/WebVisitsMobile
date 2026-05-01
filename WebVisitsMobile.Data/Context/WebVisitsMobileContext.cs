@@ -1,0 +1,35 @@
+﻿using Microsoft.EntityFrameworkCore;
+using WebVisitsMobile.Domain.Entities.Administracion.Aplicacion;
+using WebVisitsMobile.Domain.Entities.Administracion.Modulo;
+using WebVisitsMobile.Domain.Entities.Administracion.Perfil;
+using WebVisitsMobile.Domain.Entities.Administracion.Seccion;
+using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
+using WebVisitsMobile.Domain.Entities.Configuracion;
+using WebVisitsMobile.Domain.Entities.Empresa;
+using WebVisitsMobile.Domain.Entities.HID;
+using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
+
+namespace WebVisitsMobile.Data.Context
+{
+    public class WebVisitsMobileContext : DbContext
+    {
+        public WebVisitsMobileContext(DbContextOptions<WebVisitsMobileContext> options) : base(options) { }
+
+        public virtual DbSet<Usuario> Usuario { get; set; } = null!;
+        public virtual DbSet<Perfil> Perfil { get; set; }
+        public virtual DbSet<Aplicacion> Aplicacion { get; set; }
+        public virtual DbSet<Modulo> Modulo { get; set; }
+        public virtual DbSet<Seccion> Seccion { get; set; }
+        public virtual DbSet<PerfilPermisoSeccion> PerfilPermisoSeccion { get; set; }
+        public virtual DbSet<TipoUsuario> TipoUsuario { get; set; }
+        public virtual DbSet<EmpresaCliente> EmpresaCliente { get; set; }
+        public virtual DbSet<Sesion> Sesion { get; set; }
+        public virtual DbSet<LicenciaHID> LicenciaHID { get; set; } = null!;
+        public virtual DbSet<DipositivosHid> DipositivosHid { get; set; } = null!;
+        public virtual DbSet<CredencialHid> CredencialHid { get; set; } = null!;
+        public virtual DbSet<LicenciaHidUser> LicenciaHidUser { get; set; } = null!;
+        public virtual DbSet<Tarea> Tarea { get; set; } = null!;
+        public virtual DbSet<TipoTarea> TipoTarea { get; set; } = null!;
+        public virtual DbSet<Configuraciones> Configuraciones { get; set; }
+    }
+}
