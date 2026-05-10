@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
@@ -12,7 +11,6 @@ using WebVisitsMobile.Services.Responses;
 
 namespace WebVisitsMobile.Controllers.HID
 {
-    [Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     [ApiController]
@@ -53,15 +51,6 @@ namespace WebVisitsMobile.Controllers.HID
                 var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
                 if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
-                Token token = _accesorService.GetTokenData();
-                if (token == null)
-                {
-                    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso", 401, null));
-                }
-
-                var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-                if (validarSesion == null) { return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta", tipoError = 3 }); }
-
                 var data = await _dipositivosHIDService.GetAll(filters, empresaId);
                 var dataDTO = _mapper.Map<IEnumerable<DipositivosHIDRespDTO>>(data);
 
@@ -92,15 +81,6 @@ namespace WebVisitsMobile.Controllers.HID
                 var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
                 if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
-                Token token = _accesorService.GetTokenData();
-                if (token == null)
-                {
-                    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso", 401, null));
-                }
-
-                var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-                if (validarSesion == null) { return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta", tipoError = 3 }); }
-
                 var data = await _dipositivosHIDService.GetById(id, empresaId);
                 var dataDTO = _mapper.Map<DipositivosHIDRespDTO>(data);
                 var response = new ApiResponse<DipositivosHIDRespDTO>(true, "Consulta ejecutada", 200, dataDTO);
@@ -113,8 +93,8 @@ namespace WebVisitsMobile.Controllers.HID
             }
         }
 
-        [HttpPatch("Inactivate/{id}")]
-        public async Task<IActionResult> Inactivate([Required] Guid id)
+        [HttpPatch("Inactivate")]
+        public async Task<IActionResult> Inactivate([Required] Guid id, [Required] Guid usuarioBajaId)
         {
             if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
             {
@@ -123,19 +103,7 @@ namespace WebVisitsMobile.Controllers.HID
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
-            Token token = _accesorService.GetTokenData();
-            if (token == null)
-            {
-                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso", 401, null));
-            }
-
-            var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-            if (validarSesion == null)
-            {
-                return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta", tipoError = 3 });
-            }
-
-            var result = await _dipositivosHIDService.Inactivate(id, token.UsuarioId);
+            var result = await _dipositivosHIDService.Inactivate(id, usuarioBajaId);
             if (!result)
             {
                 return StatusCode(400, new ApiResponse<bool>(false, "No fue posible inactivar el registro.", 400, false));
@@ -145,8 +113,8 @@ namespace WebVisitsMobile.Controllers.HID
             return StatusCode(200, response);
         }
 
-        [HttpPatch("Reactivate/{id}")]
-        public async Task<IActionResult> Reactivate([Required] Guid id)
+        [HttpPatch("Reactivate")]
+        public async Task<IActionResult> Reactivate([Required] Guid id, [Required] Guid usuarioReactivadorId)
         {
             if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
             {
@@ -155,16 +123,7 @@ namespace WebVisitsMobile.Controllers.HID
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
-            Token token = _accesorService.GetTokenData();
-            if (token == null)
-            {
-                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso", 401, null));
-            }
-
-            var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-            if (validarSesion == null) { return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta", tipoError = 3 }); }
-
-            var result = await _dipositivosHIDService.Reactivate(id, token.UsuarioId);
+            var result = await _dipositivosHIDService.Reactivate(id, usuarioReactivadorId);
             if (!result)
             {
                 return StatusCode(400, new ApiResponse<bool>(false, "No fue posible reactivar el registro.", 400, false));

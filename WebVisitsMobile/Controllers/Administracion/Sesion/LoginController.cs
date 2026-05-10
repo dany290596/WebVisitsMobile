@@ -54,6 +54,16 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
                     );
                     return StatusCode(403, respuestaVencido);
                 }
+                if (validation.Item2.Estado == 2)
+                {
+                    var respuestaVencido = new ApiResponse<string>(
+                        false,
+                        "No puedes iniciar sesión porque tu cuenta se encuentra deshabilitada. Contacta al administrador del sistema.",
+                        408,
+                        ""
+                    );
+                    return StatusCode(403, respuestaVencido);
+                }
                 string ipAddress = _httpContextAccessor.HttpContext!.Connection.RemoteIpAddress!.ToString();
                 Domain.Entities.Administracion.Sesion.Sesion sesion = new Domain.Entities.Administracion.Sesion.Sesion();
                 sesion.PerfilId = validation.Item2.PerfilId;

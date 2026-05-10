@@ -5,34 +5,46 @@ namespace WebVisitsMobile.Models.HID.UserHID
     public class UserHIDReqDTO
     {
         [Required(ErrorMessageResourceName = "MESSAGE_REQUIRED")]
+        [Display(Name = "LicenciaId")]
         public Guid LicenciaId { get; set; }
 
         [Required(ErrorMessageResourceName = "MESSAGE_REQUIRED")]
+        [Display(Name = "Nombre")]
         public string Nombre { get; set; }
 
-        [Required(ErrorMessageResourceName = "MESSAGE_REQUIRED")]
+        [Required]
         [EmailAddress(ErrorMessage = "El Correo electrónico no es válido.")]
+        [Display(Name = "Email")]
         public string Email { get; set; }
 
-        public int? UserId { get; set; }
+        [Display(Name = "Site")]
         public string? Site { get; set; }
+
+        [Display(Name = "Alert")]
         public string? Alert { get; set; }
+
+        [Display(Name = "LicenseCount")]
         public int? LicenseCount { get; set; }
 
+        [Display(Name = "Telefono")]
         public string? Telefono { get; set; }
 
-        public DateTime? InvitacionFecha { get; set; }
-        public DateTime? InvitacionExpirationDate { get; set; }
-        public string? InvitacionActividad { get; set; }
-        public int? InvitacionId { get; set; }
-        public string? InvitacionDetalle { get; set; }
-        public int? Status { get; set; }
-
-        [Required(ErrorMessageResourceName = "MESSAGE_REQUIRED")]
+        [Required]
+        [Display(Name = "Apellidos")]
         public string? Apellidos { get; set; }
 
-        public DateTime FechaInicio { get; set; }
-        public DateTime FechaFin { get; set; }
+        [Required]
+        [Display(Name = "FechaInicio")]
+        public DateTime? FechaInicio { get; set; }
+
+        [Required]
+        [Display(Name = "FechaFin")]
+        public DateTime? FechaFin { get; set; }
+
+        [Display(Name = "ExternalId")]
+        public Guid? ExternalId { get; set; }
+
+        public int? TipoCredencial { get; set; }
 
         public Guid UsuarioCreadorId { get; set; }
     }

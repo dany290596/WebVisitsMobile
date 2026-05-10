@@ -8,10 +8,11 @@ namespace WebVisitsMobile.Services.Interfaces.Configuracion
     public interface IConfiguracionService
     {
         Task<bool> Create(Configuraciones setting, Guid currentUserId);
-        Task<bool> Update(Configuraciones setting, Guid currentUserId);
+        Task<bool> Update(Configuraciones setting, Guid currentUserId, Guid clientCompanyId);
         Task<bool> Reactivate(Guid id, Guid currentUserId);
         Task<bool> Inactivate(Guid id, Guid currentUserId);
         Task<PagedList<Configuraciones>> GetAll(ConfiguracionesQueryFilter filters);
+        Task<Configuraciones> GetById(Guid settingId, Guid clientCompanyId);
         Task<Configuraciones> GetById(Guid settingId);
         Task<Configuraciones> GetByTypeSettingAndCompanyId(Guid typeSetting, Guid clientCompanyId);
         Task<bool> Update(List<ConfiguracionesListReqDTO> data);

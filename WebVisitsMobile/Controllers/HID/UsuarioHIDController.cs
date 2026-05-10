@@ -131,7 +131,7 @@ namespace WebVisitsMobile.Controllers.HID
         }
 
         [HttpPut]
-        public async Task<IActionResult> Update(Guid id, UserHIDReqDTO data)
+        public async Task<IActionResult> Update(Guid id, UserHIDEditDTO data)
         {
             var mapper = _mapper.Map<LicenciaHidUser>(data);
             mapper.Id = id;
@@ -166,6 +166,41 @@ namespace WebVisitsMobile.Controllers.HID
                 "Consulta ejecutada",
                 200,
                 users
+            );
+
+            return StatusCode(200, response);
+        }
+
+        [HttpGet("GetByIdExpired/{id}")]
+        public async Task<IActionResult> GetUserByIdExpired([FromRoute][Required] Guid id)
+        {
+            var user = await _licenciaUserHIDService.GetByIdExpired(id);
+            if (user == null)
+            {
+                return StatusCode(404, new ApiResponse<string>(
+                    false,
+                    $"El usuario con el ID {id} no fue encontrado.",
+                    404,
+                    null
+                ));
+            }
+
+            var licenciaEstado = await _licenciaUserHIDService.GetExpired(id);
+            if (licenciaEstado == null)
+            {
+                return StatusCode(404, new ApiResponse<string>(
+                    false,
+                    $"No se encontró al usuario asociado al identificador '{id}'.",
+                    404,
+                    null
+                ));
+            }
+
+            var response = new ApiResponse<UserHIDExpired>(
+                true,
+                "Consulta ejecutada",
+                200,
+                licenciaEstado
             );
 
             return StatusCode(200, response);

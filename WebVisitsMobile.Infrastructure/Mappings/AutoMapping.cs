@@ -4,6 +4,7 @@ using WebVisitsMobile.Domain.Entities.Administracion.Modulo;
 using WebVisitsMobile.Domain.Entities.Administracion.Perfil;
 using WebVisitsMobile.Domain.Entities.Administracion.Seccion;
 using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
+using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Domain.Entities.Empresa;
 using WebVisitsMobile.Domain.Entities.HID;
 using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
@@ -14,6 +15,7 @@ using WebVisitsMobile.Models.Administracion.Perfil.PerfilPermisoSeccion;
 using WebVisitsMobile.Models.Administracion.Seccion.Seccion;
 using WebVisitsMobile.Models.Administracion.Sesion.TipoUsuario;
 using WebVisitsMobile.Models.Administracion.Sesion.Usuario;
+using WebVisitsMobile.Models.Configuracion.Configuraciones;
 using WebVisitsMobile.Models.Empresa.EmpresaCliente;
 using WebVisitsMobile.Models.HID.CredencialHID;
 using WebVisitsMobile.Models.HID.DipositivosHID;
@@ -67,6 +69,7 @@ namespace WebVisitsMobile.Infrastructure.Mappings
 
             CreateMap<LicenciaHidUser, UserHIDRespDTO>().ReverseMap();
             CreateMap<LicenciaHidUser, UserHIDReqDTO>().ReverseMap();
+            CreateMap<LicenciaHidUser, UserHIDEditDTO>().ReverseMap();
 
             CreateMap<EmpresaCliente, EmpresaClienteRespDTO>().ReverseMap();
             CreateMap<EmpresaCliente, EmpresaClienteReqDTO>().ReverseMap();
@@ -88,6 +91,9 @@ namespace WebVisitsMobile.Infrastructure.Mappings
 
             CreateMap<Tarea, TareaRespDTO>().ReverseMap();
             CreateMap<Tarea, TareaReqDTO>().ReverseMap();
+
+            CreateMap<Configuraciones, ConfiguracionesRespDTO>().ReverseMap();
+            CreateMap<Configuraciones, ConfiguracionesReqDTO>().ReverseMap();
         }
     }
 }

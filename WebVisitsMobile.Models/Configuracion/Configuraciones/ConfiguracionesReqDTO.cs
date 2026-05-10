@@ -13,7 +13,6 @@ namespace WebVisitsMobile.Models.Configuracion.Configuraciones
         public byte? lectura { get; set; }
         public Guid EmpresaClienteId { get; set; }
         public Guid TipoConfiguracion { get; set; }
-
-        public virtual EmpresaClienteReqDTO EmpresaCliente { get; set; } = null!;
+        public Guid UsuarioCreadorId { get; set; }
     }
 }

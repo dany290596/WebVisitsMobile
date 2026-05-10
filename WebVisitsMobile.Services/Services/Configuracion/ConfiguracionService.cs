@@ -69,12 +69,33 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             return pageSettings;
         }
 
+        public async Task<Configuraciones> GetById(Guid settingId, Guid clientCompanyId)
+        {
+            try
+            {
+                Configuraciones setting = await _unitOfWork.ConfiguracionesRepository.GetSetting(s => s.Id == settingId && s.EmpresaClienteId == clientCompanyId);
+                if (setting != null)
+                {
+                    return setting;
+                }
+                return new Configuraciones();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public async Task<Configuraciones> GetById(Guid settingId)
         {
             try
             {
                 Configuraciones setting = await _unitOfWork.ConfiguracionesRepository.GetById(settingId);
-                return setting;
+                if (setting != null)
+                {
+                    return setting;
+                }
+                return new Configuraciones();
             }
             catch (Exception ex)
             {
@@ -118,7 +139,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             return booOk;
         }
 
-        public async Task<bool> Update(Configuraciones setting, Guid currentUserId)
+        public async Task<bool> Update(Configuraciones setting, Guid currentUserId, Guid clientCompanyId)
         {
             try
             {
@@ -133,7 +154,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 settingUpdate.Valor3 = setting.Valor3;
                 settingUpdate.editable = setting.editable;
                 settingUpdate.lectura = setting.lectura;
-                settingUpdate.EmpresaClienteId = setting.EmpresaClienteId;
+                settingUpdate.EmpresaClienteId = clientCompanyId;
                 settingUpdate.FechaModificacion = DateTime.Now;
                 settingUpdate.UsuarioModificadorId = currentUserId;
 

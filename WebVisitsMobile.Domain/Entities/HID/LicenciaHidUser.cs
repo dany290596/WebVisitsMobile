@@ -25,10 +25,11 @@ namespace WebVisitsMobile.Domain.Entities.HID
         public DateTime? FechaFin { get; set; }
         public Guid? ExternalId { get; set; }
         public Guid? EmpresaClienteId { get; set; }
+        public int? TipoCredencial { get; set; }
 
         public virtual LicenciaHID LicenciaHID { get; set; } = null!;
 
-        // ✅ Relación con CredencialHid
+
         public virtual ICollection<CredencialHid> Credenciales { get; set; } = new List<CredencialHid>();
     }
 }

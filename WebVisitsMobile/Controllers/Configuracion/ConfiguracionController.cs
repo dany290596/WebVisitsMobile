@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
+using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Infrastructure.Interfaces;
+using WebVisitsMobile.Models.Administracion.Perfil.Perfil;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
@@ -39,7 +41,7 @@ namespace WebVisitsMobile.Controllers.Configuracion
             _empresaClienteService = empresaClienteService;
         }
 
-        [HttpGet("company/{companyId}")]
+        [HttpGet("Company/{companyId}")]
         public async Task<IActionResult> GetSettingByClientCompanyId(Guid companyId)
         {
             var existClientCompany = await _empresaClienteService.GetById(companyId);
@@ -72,6 +74,78 @@ namespace WebVisitsMobile.Controllers.Configuracion
                 200,
                 setting
             );
+
+            return StatusCode(200, response);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            try
+            {
+                if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+                {
+                    return BadRequest("El header de la empresa es inválido.");
+                }
+                var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+                if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+                var data = await _configuracionService.GetById(id, empresaId);
+                var dataDTO = _mapper.Map<ConfiguracionesRespDTO>(data);
+                var response = new ApiResponse<ConfiguracionesRespDTO>(true, "Consulta ejecutada", 200, dataDTO);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(ConfiguracionesReqDTO data)
+        {
+            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+            {
+                return BadRequest("El header de la empresa es inválido.");
+            }
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+            var mapper = _mapper.Map<Configuraciones>(data);
+
+            bool book = await _configuracionService.Create(mapper, empresaId);
+            if (!book)
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "ocurrió un error.", 500, null));
+            }
+
+            ConfiguracionesRespDTO dto = _mapper.Map<ConfiguracionesRespDTO>(mapper);
+
+            var response = new ApiResponse<ConfiguracionesRespDTO>(book, "El registro se creó correctamente.", 200, dto);
+
+            return StatusCode(200, response);
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Update(Guid id, ConfiguracionesReqDTO data)
+        {
+            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+            {
+                return BadRequest("El header de la empresa es inválido.");
+            }
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+            var mapper = _mapper.Map<Configuraciones>(data);
+            mapper.Id = id;
+            var result = await _configuracionService.Update(mapper, data.UsuarioCreadorId, empresaId);
+            if (!result)
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "ocurrió un error.", 500, null));
+
+            }
+            var response = new ApiResponse<bool>(true, "Se actualizó correctamente.", 200, result);
 
             return StatusCode(200, response);
         }

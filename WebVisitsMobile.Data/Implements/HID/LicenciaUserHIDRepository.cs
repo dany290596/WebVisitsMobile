@@ -19,6 +19,13 @@ namespace WebVisitsMobile.Data.Implements.HID
 
         public LicenciaUserHIDRepository(WebVisitsMobileContext context) : base(context) { }
 
+        public async Task<LicenciaHidUser> GetUserHID(Expression<Func<LicenciaHidUser, bool>> predicate)
+        {
+            return await _context.LicenciaHidUser
+                .Include(l => l.LicenciaHID)
+                .FirstOrDefaultAsync(predicate);
+        }
+
         public async Task<IEnumerable<LicenciaHidUser>> GetAllUserHID()
         {
             return await _context.LicenciaHidUser
@@ -170,12 +177,6 @@ namespace WebVisitsMobile.Data.Implements.HID
                 return null;
 
             return user;
-        }
-
-        public async Task<LicenciaHidUser> GetUserHID(Expression<Func<LicenciaHidUser, bool>> predicate)
-        {
-            return await _context.LicenciaHidUser.
-                FirstOrDefaultAsync(predicate);
         }
     }
 }
