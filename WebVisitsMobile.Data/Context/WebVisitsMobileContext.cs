@@ -8,6 +8,7 @@ using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Domain.Entities.Empresa;
 using WebVisitsMobile.Domain.Entities.HID;
 using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
+using WebVisitsMobile.Domain.Entities.Ubicacion;
 
 namespace WebVisitsMobile.Data.Context
 {
@@ -31,5 +32,12 @@ namespace WebVisitsMobile.Data.Context
         public virtual DbSet<Tarea> Tarea { get; set; } = null!;
         public virtual DbSet<TipoTarea> TipoTarea { get; set; } = null!;
         public virtual DbSet<Configuraciones> Configuraciones { get; set; }
+        public virtual DbSet<TipoCredencial> TipoCredencial { get; set; } = null!;
+        public virtual DbSet<UsuarioHidTipoCredencial> UsuarioHidTipoCredencial { get; set; }
+        public virtual DbSet<PlantillaCredencial> PlantillaCredencial { get; set; }
+
+        public virtual DbSet<Pais> Pais { get; set; }
+        public virtual DbSet<Ciudad> Ciudad { get; set; }
+        public virtual DbSet<PaisEstado> PaisEstado { get; set; }
     }
 }

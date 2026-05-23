@@ -3,15 +3,18 @@ using WebVisitsMobile.Services.QueryFilters.Administracion.Modulo;
 using WebVisitsMobile.Services.QueryFilters.Administracion.Perfil;
 using WebVisitsMobile.Services.QueryFilters.Administracion.Seccion;
 using WebVisitsMobile.Services.QueryFilters.Administracion.Sesion;
+using WebVisitsMobile.Services.QueryFilters.Common;
 using WebVisitsMobile.Services.QueryFilters.Configuracion;
 using WebVisitsMobile.Services.QueryFilters.Empresa;
 using WebVisitsMobile.Services.QueryFilters.HID;
 using WebVisitsMobile.Services.QueryFilters.Organizacion.Tarea;
+using WebVisitsMobile.Services.QueryFilters.Ubicacion;
 
 namespace WebVisitsMobile.Infrastructure.Interfaces
 {
     public interface IUriService
     {
+        Uri GetCommonPaginationUri(BaseQueryFilter filter, string actionUrl);
         Uri GetUserPaginationUri(UsuarioQueryFilter filter, string actionUrl);
         Uri GetProfilePaginationUri(PerfilQueryFilter filter, string actionUrl);
         Uri GetClientCompanyPaginationUri(EmpresaClienteQueryFilter filter, string actionUrl);
@@ -26,5 +29,11 @@ namespace WebVisitsMobile.Infrastructure.Interfaces
         Uri GetModulePaginationUri(ModuloQueryFilter filter, string actionUrl);
         Uri GetSectionPaginationUri(SeccionQueryFilter filter, string actionUrl);
         Uri GetTypeUserPaginationUri(TipoUsuarioQueryFilter filter, string actionUrl);
+        Uri GetUserHidTypeCredentialUri(UsuarioHidTipoCredencialQueryFilter filter, string actionUrl);
+        Uri GetTypeCredentialUri(TipoCredencialQueryFilter filter, string actionUrl);
+        Uri GetTemplateCredentialUri(PlantillaCredencialQueryFilter filter, string actionUrl);
+        Uri GetCityUri(CiudadQueryFilter filter, string actionUrl);
+        Uri GetCountryUri(PaisQueryFilter filter, string actionUrl);
+        Uri GetStateUri(PaisEstadoQueryFilter filter, string actionUrl);
     }
 }

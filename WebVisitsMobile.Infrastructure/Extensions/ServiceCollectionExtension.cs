@@ -22,6 +22,7 @@ using WebVisitsMobile.Services.Interfaces.Empresa;
 using WebVisitsMobile.Services.Interfaces.HID;
 using WebVisitsMobile.Services.Interfaces.Organizacion.Email;
 using WebVisitsMobile.Services.Interfaces.Organizacion.Tarea;
+using WebVisitsMobile.Services.Interfaces.Ubicacion;
 using WebVisitsMobile.Services.Services.Administracion.Aplicacion;
 using WebVisitsMobile.Services.Services.Administracion.Modulo;
 using WebVisitsMobile.Services.Services.Administracion.Perfil;
@@ -32,6 +33,7 @@ using WebVisitsMobile.Services.Services.Empresa;
 using WebVisitsMobile.Services.Services.HID;
 using WebVisitsMobile.Services.Services.Organizacion.Email;
 using WebVisitsMobile.Services.Services.Organizacion.Tarea;
+using WebVisitsMobile.Services.Services.Ubicacion;
 
 namespace WebVisitsMobile.Infrastructure.Extensions
 {
@@ -79,6 +81,12 @@ namespace WebVisitsMobile.Infrastructure.Extensions
             services.AddTransient<IConfiguracionService, ConfiguracionService>();
             services.AddTransient<IWebhookEventService, WebhookEventService>();
             services.AddTransient<IHIDService, HIDService>();
+            services.AddTransient<ITipoCredencialService, TipoCredencialService>();
+            services.AddTransient<IUsuarioHidTipoCredencialService, UsuarioHidTipoCredencialService>();
+            services.AddTransient<IPlantillaCredencialService, PlantillaCredencialService>();
+            services.AddTransient<IPaisService, PaisService>();
+            services.AddTransient<IPaisEstadoService, PaisEstadoService>();
+            services.AddTransient<ICiudadService, CiudadService>();
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddTransient<IUnitOfWork, UnitOfWork>();
@@ -94,6 +102,9 @@ namespace WebVisitsMobile.Infrastructure.Extensions
 
                 return new UriService(absoluteUri);
             });
+
+            services.AddSingleton<TaskEventService>();
+            services.AddHostedService<SSECleanupService>();
 
             return services;
         }
@@ -123,7 +134,7 @@ namespace WebVisitsMobile.Infrastructure.Extensions
 
         public static IServiceCollection AddSwagger(this IServiceCollection services, string xmlFileName)
         {
-            string[] pagesApplication = { "Autenticación", "Cliente", "Sesión", "HID Origo", "Parametrización", "Organización", "Configuración" };
+            string[] pagesApplication = { "Autenticación", "Cliente", "Sesión", "HID Origo", "Parametrización", "Organización", "Configuración", "Ubicación" };
 
             services.AddSwaggerGen(c =>
             {

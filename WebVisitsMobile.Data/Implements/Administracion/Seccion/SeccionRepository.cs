@@ -25,6 +25,7 @@ namespace WebVisitsMobile.Data.Implements.Administracion.Seccion
 
             return await query
                 .GroupBy(s => new { s.Modulo.Id, s.Modulo.Nombre, s.Modulo.Imagen })
+                
                 .Select(g => new SeccionesPorModulo
                 {
                     ModuloId = g.Key.Id,
@@ -57,6 +58,7 @@ namespace WebVisitsMobile.Data.Implements.Administracion.Seccion
                             .FirstOrDefault()
                     }).ToList()
                 })
+                .OrderByDescending(u => u.ModuloNombre)
                 .ToListAsync();
         }
 

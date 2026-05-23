@@ -22,12 +22,15 @@ namespace WebVisitsMobile.Controllers.HID
         private readonly IAccesorService _accesorService;
         private readonly IPlataformaService _plataformaService;
         private readonly ILicenciaUserHIDService _licenciaUserHIDService;
+        private readonly IUsuarioHidTipoCredencialService _usuarioHidTipoCredencialService;
+
         public UsuarioHIDController(
             IMapper mapper,
             IUriService uriService,
             IAccesorService accesorService,
             IPlataformaService plataformaService,
-            ILicenciaUserHIDService licenciaUserHIDService
+            ILicenciaUserHIDService licenciaUserHIDService,
+            IUsuarioHidTipoCredencialService usuarioHidTipoCredencial
             )
         {
             _mapper = mapper;
@@ -35,6 +38,7 @@ namespace WebVisitsMobile.Controllers.HID
             _accesorService = accesorService;
             _plataformaService = plataformaService;
             _licenciaUserHIDService = licenciaUserHIDService;
+            _usuarioHidTipoCredencialService = usuarioHidTipoCredencial;
         }
 
         [HttpGet]
@@ -68,6 +72,10 @@ namespace WebVisitsMobile.Controllers.HID
             try
             {
                 var data = await _licenciaUserHIDService.GetById(id);
+                if (data == null)
+                {
+                    return StatusCode(400, new ApiResponse<UserHIDRespDTO>(false, "El registro no existe.", 400, null));
+                }
                 var dataDTO = _mapper.Map<UserHIDRespDTO>(data);
                 var response = new ApiResponse<UserHIDRespDTO>(true, "Consulta ejecutada", 200, dataDTO);
 
@@ -79,6 +87,28 @@ namespace WebVisitsMobile.Controllers.HID
             }
         }
 
+        [HttpGet("Photo/{id}")]
+        public async Task<IActionResult> GetByPhoto(Guid id)
+        {
+            try
+            {
+                var data = await _licenciaUserHIDService.GetByPhoto(id);
+                if (data == null)
+                {
+                    return StatusCode(400, new ApiResponse<UserHIDRespDTO>(false, "El registro no existe.", 400, null));
+                }
+                var dataDTO = _mapper.Map<UserHIDRespDTO>(data);
+                var response = new ApiResponse<UserHIDRespDTO>(true, "Consulta ejecutada", 200, dataDTO);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        /*
         [HttpPatch("Inactivate")]
         public async Task<IActionResult> Inactivate([Required] Guid id, [Required] Guid usuarioBajaId)
         {
@@ -104,6 +134,7 @@ namespace WebVisitsMobile.Controllers.HID
 
             return StatusCode(200, response);
         }
+        */
 
         [HttpPost]
         public async Task<IActionResult> Create(UserHIDReqDTO data)
@@ -204,6 +235,112 @@ namespace WebVisitsMobile.Controllers.HID
             );
 
             return StatusCode(200, response);
+        }
+
+
+        [HttpPatch("InactivateCredentialUser")]
+        public async Task<IActionResult> InactivateCredentialUser([Required] Guid id, [Required] Guid usuarioBajaId)
+        {
+            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+            {
+                return BadRequest("El header de la empresa es inválido.");
+            }
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+            var userTipoCredencial = await _usuarioHidTipoCredencialService.GetUserHidTypeCredential(id);
+            if (userTipoCredencial == null)
+            {
+                return StatusCode(400, new ApiResponse<UserHIDRespDTO>(false, "El registro no existe.", 400, null));
+            }
+
+            if (userTipoCredencial.TipoCredencialId == new Guid("2B3C4D5E-6F70-8901-BCDE-F12345678901"))
+            {
+                var result = await _licenciaUserHIDService.InactivateWithWalletAndTask(userTipoCredencial.LicenciaHidUserId, usuarioBajaId, empresaId);
+                if (result == true)
+                {
+                    await _usuarioHidTipoCredencialService.Inactivate(id, usuarioBajaId);
+                }
+                var response = result
+                ? new ApiResponse<bool>(true, "El usuario ha sido inactivado correctamente.", 200, true)
+                : new ApiResponse<bool>(false, "Ocurrió un error al intentar inactivar al usuario o la tarea asociada.", 400, false);
+
+                return StatusCode(response.Codigo, response);
+            }
+
+            if (userTipoCredencial.TipoCredencialId == new Guid("1A2B3C4D-5E6F-7890-ABCD-EF1234567890"))
+            {
+                if (userTipoCredencial.LicenciaHidUserId == Guid.Empty || userTipoCredencial.LicenciaHidUser.UserId <= 0 || userTipoCredencial.LicenciaHidUser.UserId == null)
+                {
+                    var result = await _licenciaUserHIDService.InactivateWithHIDAndTask(userTipoCredencial.LicenciaHidUserId, usuarioBajaId, empresaId);
+                    if (result == true)
+                    {
+                        await _usuarioHidTipoCredencialService.Inactivate(id, usuarioBajaId);
+                    }
+                    var response = result
+                    ? new ApiResponse<bool>(true, "El usuario ha sido inactivado correctamente.", 200, true)
+                    : new ApiResponse<bool>(false, "Ocurrió un error al intentar inactivar al usuario o la tarea asociada.", 400, false);
+
+                    return StatusCode(response.Codigo, response);
+                }
+
+                try
+                {
+                    var result = await _licenciaUserHIDService.InactivateWithHID(userTipoCredencial.LicenciaHidUserId, empresaId, usuarioBajaId);
+                    if (!result)
+                    {
+                        var response = new ApiResponse<string>(false, "No se pudo inactivar el usuario. Verifica los datos o intenta nuevamente.", 400, null);
+                        return StatusCode(response.Codigo, response);
+                    }
+                    else
+                    {
+                        await _usuarioHidTipoCredencialService.Inactivate(id, usuarioBajaId);
+                        var response = new ApiResponse<bool>(true, "El usuario ha sido inactivado correctamente.", 200, result);
+                        return StatusCode(response.Codigo, response);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var response = new ApiResponse<string>(false, "Se produjo un error inesperado al procesar la solicitud.", 500, null);
+                    return StatusCode(response.Codigo, response);
+                }
+            }
+
+            return BadRequest("El tipo de credencial no es válido.");
+        }
+
+
+        [HttpPatch("ReactivateCredentialUser")]
+        public async Task<IActionResult> ReactivateCredentialUser([Required] Guid id, [Required] Guid usuarioReactivadorId)
+        {
+            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+            {
+                return BadRequest("El header de la empresa es inválido.");
+            }
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+            var userTipoCredencial = await _usuarioHidTipoCredencialService.GetUserHidTypeCredential(id);
+            if (userTipoCredencial == null)
+            {
+                return StatusCode(400, new ApiResponse<UserHIDRespDTO>(false, "El registro no existe.", 400, null));
+            }
+
+            if (userTipoCredencial.TipoCredencialId == new Guid("2B3C4D5E-6F70-8901-BCDE-F12345678901"))
+            {
+                var result = await _licenciaUserHIDService.ReactivateWithWalletAndTask(userTipoCredencial.LicenciaHidUserId, usuarioReactivadorId, empresaId);
+                if (result == true)
+                {
+                    await _usuarioHidTipoCredencialService.Reactivate(id, usuarioReactivadorId);
+                }
+                var response = result
+                ? new ApiResponse<bool>(true, "El usuario ha sido reactivado correctamente.", 200, true)
+                : new ApiResponse<bool>(false, "Ocurrió un error al intentar reactivar al usuario o la tarea asociada.", 400, false);
+
+                return StatusCode(response.Codigo, response);
+            }
+
+            return BadRequest("El tipo de credencial no es válido.");
         }
     }
 }

@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
-using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.HID.DipositivosHID;
 using WebVisitsMobile.Services.Interfaces.HID;

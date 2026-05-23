@@ -302,6 +302,10 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 ApiUrl = GetRequiredSetting(stringKeySettings, "9B02E35B-A069-4BF5-B9CA-337A59455347", nameof(AppSettingDTO.ApiUrl)),
                 CallbackAndEventUrl = GetRequiredSetting(stringKeySettings, "82481E61-4BF5-44CE-B222-3283F7BC02F9", nameof(AppSettingDTO.CallbackAndEventUrl)),
                 PremiumReportUrl = GetOptionalSetting(stringKeySettings, "84BA81E1-56C0-4BEE-A57F-D05C13BB544A"),
+                CredentialManagementURL= GetRequiredSetting(stringKeySettings, "5006A3E3-1E78-4341-9253-C2189A7C8974", nameof(AppSettingDTO.CredentialManagementURL)),
+                UsersURL = GetRequiredSetting(stringKeySettings, "5F9327BE-42D6-46B9-BF0E-DB7176371A20", nameof(AppSettingDTO.UsersURL)),
+                EventsURL = GetRequiredSetting(stringKeySettings, "9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9", nameof(AppSettingDTO.EventsURL)),
+                TransactionURL = GetRequiredSetting(stringKeySettings, "A90006CA-A3E8-4576-A8B0-25B1C5438D55", nameof(AppSettingDTO.TransactionURL)),
 
                 ContentType = GetRequiredSetting(stringKeySettings, "40E1A0B9-9144-490E-BF75-7663F3447118", nameof(AppSettingDTO.ContentType)),
                 AcceptType = GetOptionalSetting(stringKeySettings, "4B6BCEFA-20CA-48B9-92FA-5396C7C94202"),
@@ -456,6 +460,10 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 new() { TipoConfiguracion = Guid.Parse("9B02E35B-A069-4BF5-B9CA-337A59455347"), NombreParametro = "API URL", Valor1 = "", editable = 1, lectura = 0 },
                 new() { TipoConfiguracion = Guid.Parse("82481E61-4BF5-44CE-B222-3283F7BC02F9"), NombreParametro = "Callback and Event URL", Valor1 = "", Valor2 = "If callback is implemented", editable = 1, lectura = 0 },
                 new() { TipoConfiguracion = Guid.Parse("84BA81E1-56C0-4BEE-A57F-D05C13BB544A"), NombreParametro = "Premium Report URL", Valor1 = "", Valor2 = "If premium reports API is used", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("5006A3E3-1E78-4341-9253-C2189A7C8974"), NombreParametro = "Credential Management URL", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("5F9327BE-42D6-46B9-BF0E-DB7176371A20"), NombreParametro = "Users URL", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9"), NombreParametro = "Events URL", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("A90006CA-A3E8-4576-A8B0-25B1C5438D55"), NombreParametro = "Transaction URL", Valor1 = "", editable = 1, lectura = 0 },
 
                 // @CN03
                 new() { TipoConfiguracion = Guid.Parse("40E1A0B9-9144-490E-BF75-7663F3447118"), NombreParametro = "Content Type", Valor1 = "application/vnd.assaabloy.ma.credential-management-2.2+json", Valor2 = "Header requirement", editable = 1, lectura = 0 },
@@ -541,6 +549,38 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             catch (Exception ex)
             {
                 throw;
+            }
+        }
+
+        public async Task<bool> DeactivateAllSettingByCompany(Guid clientCompanyId, Guid currentUserId)
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+
+                var settings = await _unitOfWork.ConfiguracionesRepository
+                    .GetAllSettingQueryable()
+                    .Where(c => c.EmpresaClienteId == clientCompanyId && c.Estado == 1)
+                    .ToListAsync();
+
+                if (settings.Count == 0)
+                {
+                    return true;
+                }
+
+                foreach (var setting in settings)
+                {
+                    setting.Estado = 2; // Inactivo
+                    setting.FechaBaja = now;
+                    setting.UsuarioBajaId = currentUserId;
+                }
+
+                await _unitOfWork.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
             }
         }
     }

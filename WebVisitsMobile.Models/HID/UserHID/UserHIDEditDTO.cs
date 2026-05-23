@@ -28,5 +28,8 @@ namespace WebVisitsMobile.Models.HID.UserHID
         public string? Apellidos { get; set; }
 
         public Guid UsuarioCreadorId { get; set; }
+
+        public string? Imagen { get; set; }
+        public string? ExtensionImagen { get; set; }
     }
 }

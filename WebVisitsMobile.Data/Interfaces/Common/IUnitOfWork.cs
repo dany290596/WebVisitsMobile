@@ -7,6 +7,7 @@ using WebVisitsMobile.Data.Interfaces.Configuracion;
 using WebVisitsMobile.Data.Interfaces.Empresa;
 using WebVisitsMobile.Data.Interfaces.HID;
 using WebVisitsMobile.Data.Interfaces.Organizacion.Tarea;
+using WebVisitsMobile.Data.Interfaces.Ubicacion;
 
 namespace WebVisitsMobile.Data.Interfaces.Common
 {
@@ -28,6 +29,12 @@ namespace WebVisitsMobile.Data.Interfaces.Common
         ITareaRepository TareaRepository { get; }
         ITipoTareaRepository TipoTareaRepository { get; }
         IConfiguracionesRepository ConfiguracionesRepository { get; }
+        ITipoCredencialRepository TipoCredencialRepository { get; }
+        IUsuarioHidTipoCredencialRepository UsuarioHidTipoCredencialRepository { get; }
+        IPlantillaCredencialRepository PlantillaCredencialRepository { get; }
+        IPaisRepository PaisRepository { get; }
+        IPaisEstadoRepository PaisEstadoRepository { get; }
+        ICiudadRepository CiudadRepository { get; }
 
         void SaveChanges();
         Task SaveChangesAsync();

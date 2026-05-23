@@ -1,5 +1,7 @@
-﻿using WebVisitsMobile.Domain.EntitiesCustom;
+﻿using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
+using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Models.Organizacion.Tarea.Tarea;
+using WebVisitsMobile.Services.QueryFilters.Common;
 using WebVisitsMobile.Services.QueryFilters.Organizacion.Tarea;
 
 namespace WebVisitsMobile.Services.Interfaces.Organizacion.Tarea
@@ -13,5 +15,7 @@ namespace WebVisitsMobile.Services.Interfaces.Organizacion.Tarea
         Task<bool> Inactivate(Guid id, Guid currentUserId);
         Task<PagedList<Domain.Entities.Organizacion.Tarea.Tarea>> GetAll(TareaQueryFilter filters);
         Task<Domain.Entities.Organizacion.Tarea.Tarea> GetById(Guid task);
+        Task<PagedList<TareaHID<T>>> GetAllByUserWallet<T>(BaseQueryFilter filters, Guid typeTaskId);
+        Task<PagedList<TareaHID<TareaPlantilla>>> GetAllByTemplate(BaseQueryFilter filters);
     }
 }

@@ -16,10 +16,13 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<bool> Inactivate(Guid id, Guid currentUserId);
         Task<bool> InactivateById(Guid id, Guid userLowId);
         Task<bool> InactivateWithHIDAndTask(Guid id, Guid currentUserId, Guid clientCompanyId);
-        Task<bool> InactivateWithHID(UserHIDEliminarDTO data, Guid clientCompanyId, Guid currentUserId);
+        Task<bool> InactivateWithWalletAndTask(Guid id, Guid currentUserId, Guid clientCompanyId);
+        Task<bool> ReactivateWithWalletAndTask(Guid id, Guid currentUserId, Guid clientCompanyId);
+        Task<bool> InactivateWithHID(Guid id, Guid clientCompanyId, Guid currentUserId);
         Task<PagedList<LicenciaHidUser>> GetAll(LicenciaUserHIDQueryFilter filters);
         Task<PagedList<CommonDTO>> GetAllQuery(LicenciaUserHIDQueryFilter filters);
         Task<LicenciaHidUser> GetById(Guid licenseUserHIDId);
+        Task<LicenciaHidUser> GetByPhoto(Guid licenseUserHIDId);
         Task<LicenciaHidUser> GetByUserHIDId(int UserHIDId);
         Task<CodigoInvitacionEmailHIDDTO> SendInvitationCodeByEmailHID(CodigoInvitacionHIDDTO invitationRequest, Guid clientCompanyId, Guid currentUserId);
         Task<LicenciaHidUser?> ExistUserWVM(string email, Guid clientCompanyId);
@@ -27,5 +30,6 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<List<UserHIDExpired>> GetAllExpired();
         Task<UserHIDWithCredentialsDTO?> GetWithCredentials(Guid externalId);
         Task<LicenciaHidUser> GetByIdExpired(Guid licenseUserHIDId);
+        Task<bool> CreateTypeCredential(UserHIDTypeCredentialReqDTO licenseUserHID, Guid currentClientCompanyId, Guid currentUserId);
     }
 }

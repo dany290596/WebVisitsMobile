@@ -1,9 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Infrastructure.Interfaces;
-using WebVisitsMobile.Models.Administracion.Perfil.Perfil;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
@@ -148,6 +146,41 @@ namespace WebVisitsMobile.Controllers.Configuracion
             var response = new ApiResponse<bool>(true, "Se actualizó correctamente.", 200, result);
 
             return StatusCode(200, response);
+        }
+
+
+        [HttpGet("GroupByCompany", Name = "GetSettingsByCompany")]
+        public async Task<IActionResult> GetSettingsGroupByCompany()
+        {
+            try
+            {
+                var setting = await _configuracionService.GetSettingsGroupByCompany();
+                if (setting == null)
+                {
+                    return StatusCode(503, new ApiResponse<string>(
+                        false,
+                        "No fue posible obtener la información solicitada desde la base de datos. El resultado obtenido fue nulo.",
+                        503,
+                        null
+                    ));
+                }
+                if (!setting.Any())
+                {
+                    var emptyResponse = new ApiResponse<List<SettingsGroup>>(
+                                true,
+                                 "No se encontraron registros que coincidan con los criterios especificados.",
+                                200,
+                                new List<SettingsGroup>());
+                    return StatusCode(200, emptyResponse);
+                }
+
+                var response = new ApiResponse<List<SettingsGroup>>(true, "La operación se completó exitosamente.", 200, setting);
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "Se produjo un error interno al procesar la solicitud.", 500, null));
+            }
         }
     }
 }

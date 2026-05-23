@@ -4,10 +4,12 @@ using WebVisitsMobile.Services.QueryFilters.Administracion.Modulo;
 using WebVisitsMobile.Services.QueryFilters.Administracion.Perfil;
 using WebVisitsMobile.Services.QueryFilters.Administracion.Seccion;
 using WebVisitsMobile.Services.QueryFilters.Administracion.Sesion;
+using WebVisitsMobile.Services.QueryFilters.Common;
 using WebVisitsMobile.Services.QueryFilters.Configuracion;
 using WebVisitsMobile.Services.QueryFilters.Empresa;
 using WebVisitsMobile.Services.QueryFilters.HID;
 using WebVisitsMobile.Services.QueryFilters.Organizacion.Tarea;
+using WebVisitsMobile.Services.QueryFilters.Ubicacion;
 
 namespace WebVisitsMobile.Infrastructure.Services
 {
@@ -18,6 +20,12 @@ namespace WebVisitsMobile.Infrastructure.Services
         public UriService(string baseUri)
         {
             _baseUri = baseUri;
+        }
+
+        public Uri GetCommonPaginationUri(BaseQueryFilter filter, string actionUrl)
+        {
+            string baseUrl = $"{_baseUri}{actionUrl}";
+            return new Uri(baseUrl);
         }
 
         public Uri GetUserPaginationUri(UsuarioQueryFilter filter, string actionUrl)
@@ -99,6 +107,42 @@ namespace WebVisitsMobile.Infrastructure.Services
         }
 
         public Uri GetTypeUserPaginationUri(TipoUsuarioQueryFilter filter, string actionUrl)
+        {
+            string baseUrl = $"{_baseUri}{actionUrl}";
+            return new Uri(baseUrl);
+        }
+
+        public Uri GetUserHidTypeCredentialUri(UsuarioHidTipoCredencialQueryFilter filter, string actionUrl)
+        {
+            string baseUrl = $"{_baseUri}{actionUrl}";
+            return new Uri(baseUrl);
+        }
+
+        public Uri GetTypeCredentialUri(TipoCredencialQueryFilter filter, string actionUrl)
+        {
+            string baseUrl = $"{_baseUri}{actionUrl}";
+            return new Uri(baseUrl);
+        }
+
+        public Uri GetTemplateCredentialUri(PlantillaCredencialQueryFilter filter, string actionUrl)
+        {
+            string baseUrl = $"{_baseUri}{actionUrl}";
+            return new Uri(baseUrl);
+        }
+
+        public Uri GetCityUri(CiudadQueryFilter filter, string actionUrl)
+        {
+            string baseUrl = $"{_baseUri}{actionUrl}";
+            return new Uri(baseUrl);
+        }
+
+        public Uri GetCountryUri(PaisQueryFilter filter, string actionUrl)
+        {
+            string baseUrl = $"{_baseUri}{actionUrl}";
+            return new Uri(baseUrl);
+        }
+
+        public Uri GetStateUri(PaisEstadoQueryFilter filter, string actionUrl)
         {
             string baseUrl = $"{_baseUri}{actionUrl}";
             return new Uri(baseUrl);

@@ -1,9 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
 using WebVisitsMobile.Data.Interfaces.Common;
+using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
 using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Domain.Options;
 using WebVisitsMobile.Models.Organizacion.Tarea.Tarea;
 using WebVisitsMobile.Services.Interfaces.Organizacion.Tarea;
+using WebVisitsMobile.Services.QueryFilters.Common;
 using WebVisitsMobile.Services.QueryFilters.Organizacion.Tarea;
 
 namespace WebVisitsMobile.Services.Services.Organizacion.Tarea
@@ -134,6 +136,7 @@ namespace WebVisitsMobile.Services.Services.Organizacion.Tarea
                 if (taskUpdate == null) { return false; }
                 taskUpdate.Pendiente = task.Pendiente;
                 taskUpdate.ValorRetorno = task.ValorRetorno;
+                taskUpdate.Marca = task.Marca;
                 taskUpdate.FechaModificacion = DateTime.Now;
                 taskUpdate.UsuarioModificadorId = task.UsuarioModificadorId;
                 taskUpdate.Estado = 2;
@@ -196,6 +199,48 @@ namespace WebVisitsMobile.Services.Services.Organizacion.Tarea
             }
 
             return booOk;
+        }
+
+        public async Task<PagedList<TareaHID<T>>> GetAllByUserWallet<T>(BaseQueryFilter filters, Guid typeTaskId)
+        {
+            PagedList<TareaHID<T>> pagedTask = null;
+
+            try
+            {
+                filters.PageNumber = filters.PageNumber == 0 ? int.Parse(_paginationOptions.DefaultPageNumber) : filters.PageNumber;
+                filters.PageSize = filters.PageSize == 0 ? int.Parse(_paginationOptions.DefaultPageSize) : filters.PageSize;
+
+                var task = await _unitOfWork.TareaRepository.GetAllByUserWallet<T>(typeTaskId);
+
+                pagedTask = PagedList<TareaHID<T>>.Create(task, filters.PageNumber, filters.PageSize);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
+            return pagedTask;
+        }
+
+        public async Task<PagedList<TareaHID<TareaPlantilla>>> GetAllByTemplate(BaseQueryFilter filters)
+        {
+            PagedList<TareaHID<TareaPlantilla>> pagedTask = null;
+
+            try
+            {
+                filters.PageNumber = filters.PageNumber == 0 ? int.Parse(_paginationOptions.DefaultPageNumber) : filters.PageNumber;
+                filters.PageSize = filters.PageSize == 0 ? int.Parse(_paginationOptions.DefaultPageSize) : filters.PageSize;
+
+                var task = await _unitOfWork.TareaRepository.GetAllByTemplate();
+
+                pagedTask = PagedList<TareaHID<TareaPlantilla>>.Create(task, filters.PageNumber, filters.PageSize);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
+            return pagedTask;
         }
     }
 }

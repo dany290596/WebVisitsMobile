@@ -12,6 +12,10 @@
         public string ApiUrl { get; set; } = default!;
         public string CallbackAndEventUrl { get; set; } = default!;
         public string? PremiumReportUrl { get; set; } // Opcional
+        public string? CredentialManagementURL { get; set; } = default!;
+        public string? UsersURL { get; set; } = default!;
+        public string? EventsURL { get; set; } = default!;
+        public string? TransactionURL { get; set; } = default!;
 
         // CN03
         public string ContentType { get; set; } = default!;

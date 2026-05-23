@@ -50,7 +50,11 @@ namespace WebVisitsMobile.Data.Implements.Configuracion
                 "40E1A0B9-9144-490E-BF75-7663F3447118",
                 "788F90F3-0CE3-4E96-B4BA-38DA1CFE105B",
                 "FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6",
-                "C98EE139-92FB-4E71-94B7-AE258DD1929A"
+                "C98EE139-92FB-4E71-94B7-AE258DD1929A",
+                //"5006A3E3-1E78-4341-9253-C2189A7C8974",
+                //"5F9327BE-42D6-46B9-BF0E-DB7176371A20",
+                //"9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9",
+                //"A90006CA-A3E8-4576-A8B0-25B1C5438D55"
             };
 
             var result = new List<SettingsGroup>();
@@ -86,11 +90,16 @@ namespace WebVisitsMobile.Data.Implements.Configuracion
                     ApiUrl = stringKeySettings["9B02E35B-A069-4BF5-B9CA-337A59455347"],
                     CallbackAndEventUrl = stringKeySettings["82481E61-4BF5-44CE-B222-3283F7BC02F9"],
                     PremiumReportUrl = stringKeySettings.GetValueOrDefault("84BA81E1-56C0-4BEE-A57F-D05C13BB544A"),
+                    CredentialManagementURL = stringKeySettings["5006A3E3-1E78-4341-9253-C2189A7C8974"],
+                    UsersURL = stringKeySettings["5F9327BE-42D6-46B9-BF0E-DB7176371A20"],
+                    EventsURL = stringKeySettings["9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9"],
+                    TransactionURL = stringKeySettings["A90006CA-A3E8-4576-A8B0-25B1C5438D55"],
 
                     ContentType = stringKeySettings["40E1A0B9-9144-490E-BF75-7663F3447118"],
                     AcceptType = stringKeySettings.GetValueOrDefault("4B6BCEFA-20CA-48B9-92FA-5396C7C94202"),
                     ApplicationId = stringKeySettings["788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"],
                     ApplicationVersion = stringKeySettings["FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6"],
+
 
                     PartNumberField = stringKeySettings["C98EE139-92FB-4E71-94B7-AE258DD1929A"],
 

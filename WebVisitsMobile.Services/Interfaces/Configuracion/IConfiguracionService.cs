@@ -24,5 +24,6 @@ namespace WebVisitsMobile.Services.Interfaces.Configuracion
         Task<bool> ReactivateAllSettingsByCompany(Guid clientCompanyId, Guid currentUserId);
         Task<List<Configuraciones>> GetConfigurationTemplates();
         Task<List<SettingsGroup>> GetSettingsGroupByCompany();
+        Task<bool> DeactivateAllSettingByCompany(Guid clientCompanyId, Guid currentUserId);
     }
 }

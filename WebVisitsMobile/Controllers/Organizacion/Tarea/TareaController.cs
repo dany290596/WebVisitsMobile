@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
+using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.Organizacion.Tarea.Tarea;
 using WebVisitsMobile.Services.Interfaces.Organizacion.Tarea;
+using WebVisitsMobile.Services.QueryFilters.Common;
 using WebVisitsMobile.Services.QueryFilters.Organizacion.Tarea;
 using WebVisitsMobile.Services.Responses;
 
@@ -205,6 +207,102 @@ namespace WebVisitsMobile.Controllers.Organizacion.Tarea
             var response = new ApiResponse<bool>(true, "Se actualizó correctamente.", 200, result);
 
             return StatusCode(200, response);
+        }
+
+        [HttpGet("GetAllByUserWallet")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<TareaRespDTO>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetAllByUserWallet([FromQuery] BaseQueryFilter filters)
+        {
+            try
+            {
+                var data = await _tareaService.GetAllByUserWallet<TareaUsuarioHIDWallet>(filters, new Guid("FD82D317-F02C-4A26-86F4-23766E029BC0"));
+
+                string strUriPreviousPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+                string strUriNextPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+
+                var response = new ApiResponse<List<TareaHID<TareaUsuarioHIDWallet>>>(true, "Consulta exitosa.", 200, data.ToList());
+                response.CargarMetaData(data.TotalCount, data.PageSize, data.CurrentPage, data.TotalPages,
+                                        data.HasNextPage, data.HasPreviousPage, strUriNextPage, strUriPreviousPage);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("GetAllByUserWalletInactivate")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<TareaRespDTO>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetAllByUserWalletInactivate([FromQuery] BaseQueryFilter filters)
+        {
+            try
+            {
+                var data = await _tareaService.GetAllByUserWallet<TareaWalletInactivate>(filters, new Guid("8BB6A16A-E148-4952-97A7-76106F048E5D"));
+
+                string strUriPreviousPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+                string strUriNextPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+
+                var response = new ApiResponse<List<TareaHID<TareaWalletInactivate>>>(true, "Consulta exitosa.", 200, data.ToList());
+                response.CargarMetaData(data.TotalCount, data.PageSize, data.CurrentPage, data.TotalPages,
+                                        data.HasNextPage, data.HasPreviousPage, strUriNextPage, strUriPreviousPage);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("GetAllByUserWalletReactivate")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<TareaRespDTO>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetAllByUserWalletReactivate([FromQuery] BaseQueryFilter filters)
+        {
+            try
+            {
+                var data = await _tareaService.GetAllByUserWallet<TareaWalletReactivate>(filters, new Guid("1116C4E2-8B24-4EBD-A938-4123291956F5"));
+
+                string strUriPreviousPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+                string strUriNextPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+
+                var response = new ApiResponse<List<TareaHID<TareaWalletReactivate>>>(true, "Consulta exitosa.", 200, data.ToList());
+                response.CargarMetaData(data.TotalCount, data.PageSize, data.CurrentPage, data.TotalPages,
+                                        data.HasNextPage, data.HasPreviousPage, strUriNextPage, strUriPreviousPage);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("GetAllByTemplate")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<TareaRespDTO>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetAllByTemplate([FromQuery] BaseQueryFilter filters)
+        {
+            try
+            {
+                var data = await _tareaService.GetAllByTemplate(filters);
+
+                string strUriPreviousPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+                string strUriNextPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+
+                var response = new ApiResponse<List<TareaHID<TareaPlantilla>>>(true, "Consulta exitosa.", 200, data.ToList());
+                response.CargarMetaData(data.TotalCount, data.PageSize, data.CurrentPage, data.TotalPages,
+                                        data.HasNextPage, data.HasPreviousPage, strUriNextPage, strUriPreviousPage);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
     }
 }

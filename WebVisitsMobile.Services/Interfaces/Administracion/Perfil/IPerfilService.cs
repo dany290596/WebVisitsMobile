@@ -11,5 +11,6 @@ namespace WebVisitsMobile.Services.Interfaces.Administracion.Perfil
         Task<bool> Inactivate(Guid id, Guid currentUserId);
         Task<bool> Create(Domain.Entities.Administracion.Perfil.Perfil data, Guid currentUserId, Guid clientCompanyId);
         Task<bool> Update(Domain.Entities.Administracion.Perfil.Perfil data, Guid currentUserId, Guid clientCompanyId);
+        Task<Domain.Entities.Administracion.Perfil.Perfil> GetPerfilConPermisos(Guid id);
     }
 }

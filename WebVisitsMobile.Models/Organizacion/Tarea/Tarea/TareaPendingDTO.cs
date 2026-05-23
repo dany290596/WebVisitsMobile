@@ -4,6 +4,7 @@
     {
         public byte Pendiente { get; set; }
         public string? ValorRetorno { get; set; }
+        public int? Marca { get; set; }
         public Guid UsuarioModificadorId { get; set; }
     }
 }

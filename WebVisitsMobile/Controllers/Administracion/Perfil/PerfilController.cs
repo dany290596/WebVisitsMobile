@@ -245,5 +245,16 @@ namespace WebVisitsMobile.Controllers.Administracion.Perfil
 
             return StatusCode(200, response);
         }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetConPermisos(Guid id)
+        {
+            var perfil = await _perfilService.GetPerfilConPermisos(id);
+
+            var perfilDto = _mapper.Map<PerfilRespDTO>(perfil);
+            var response = new ApiResponse<PerfilRespDTO>(true, "Consulta ejecutada", 200, perfilDto);
+
+            return StatusCode(200, response);
+        }
     }
 }

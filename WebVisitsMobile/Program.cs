@@ -79,6 +79,7 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("Parametrización/swagger.json", "Parametrización");
         options.SwaggerEndpoint("Organización/swagger.json", "Organización");
         options.SwaggerEndpoint("Configuración/swagger.json", "Configuración");
+        options.SwaggerEndpoint("Ubicación/swagger.json", "Ubicación");
     });
 }
 else
@@ -109,6 +110,7 @@ else
         options.SwaggerEndpoint("Parametrización/swagger.json", "Parametrización");
         options.SwaggerEndpoint("Organización/swagger.json", "Organización");
         options.SwaggerEndpoint("Configuración/swagger.json", "Configuración");
+        options.SwaggerEndpoint("Ubicación/swagger.json", "Ubicación");
     });
 }
 

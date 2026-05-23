@@ -6,6 +6,7 @@ using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Domain.Options;
 using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
 using WebVisitsMobile.Services.QueryFilters.Administracion.Sesion;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebVisitsMobile.Services.Services.Administracion.Sesion
 {
@@ -117,14 +118,21 @@ namespace WebVisitsMobile.Services.Services.Administracion.Sesion
                 {
                     currentUser.IdAsociado = usuario.IdAsociado;
                 }
-                if (usuario.EmpresaClienteId != Guid.Empty)
-                {
-                    currentUser.EmpresaClienteId = usuario.EmpresaClienteId;
-                }
+
+                currentUser.EmpresaClienteId = clientCompanyId;
+
+
+                currentUser.FechaVencimiento = usuario.FechaVencimiento;
                 currentUser.PerfilId = usuario.PerfilId;
                 currentUser.TipoUsuarioId = usuario.TipoUsuarioId;
+                currentUser.Vence = usuario.Vence;
                 currentUser.FechaModificacion = DateTime.Now;
                 currentUser.UsuarioModificadorId = currentUserId;
+
+                if (!string.IsNullOrWhiteSpace(usuario.Contrasena))
+                {
+                    currentUser.Contrasena = usuario.Contrasena;
+                }
 
                 _unitOfWork.UsuarioRepository.Update(currentUser);
                 await _unitOfWork.SaveChangesAsync();
@@ -147,12 +155,13 @@ namespace WebVisitsMobile.Services.Services.Administracion.Sesion
             bool booOk = false;
             try
             {
-                Usuario user = await _unitOfWork.UsuarioRepository.GetById(id);
-                user.FechaBaja = DateTime.Now;
-                user.UsuarioBajaId = currentUserId;
-                user.Estado = 2;
+                Usuario data = await _unitOfWork.UsuarioRepository.GetById(id);
+                if (data == null) { return false; }
+                data.FechaBaja = DateTime.Now;
+                data.UsuarioBajaId = currentUserId;
+                data.Estado = 2;
 
-                _unitOfWork.UsuarioRepository.Update(user);
+                _unitOfWork.UsuarioRepository.Update(data);
                 await _unitOfWork.SaveChangesAsync();
 
                 booOk = true;
@@ -170,12 +179,13 @@ namespace WebVisitsMobile.Services.Services.Administracion.Sesion
             bool booOk = false;
             try
             {
-                Usuario user = await _unitOfWork.UsuarioRepository.GetById(id);
-                user.FechaReactivacion = DateTime.Now;
-                user.UsuarioReactivadorId = currentUserId;
-                user.Estado = 1;
+                Usuario data = await _unitOfWork.UsuarioRepository.GetById(id);
+                if (data == null) { return false; }
+                data.FechaReactivacion = DateTime.Now;
+                data.UsuarioReactivadorId = currentUserId;
+                data.Estado = 1;
 
-                _unitOfWork.UsuarioRepository.Update(user);
+                _unitOfWork.UsuarioRepository.Update(data);
                 await _unitOfWork.SaveChangesAsync();
 
                 booOk = true;

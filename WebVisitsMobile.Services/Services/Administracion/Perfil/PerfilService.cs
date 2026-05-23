@@ -92,6 +92,7 @@ namespace WebVisitsMobile.Services.Services.Administracion.Perfil
             try
             {
                 Domain.Entities.Administracion.Perfil.Perfil data = await _unitOfWork.PerfilRepository.GetById(id);
+                if (data == null) { return false; }
                 data.FechaBaja = DateTime.Now;
                 data.UsuarioBajaId = currentUserId;
                 data.Estado = 2;
@@ -115,6 +116,7 @@ namespace WebVisitsMobile.Services.Services.Administracion.Perfil
             try
             {
                 Domain.Entities.Administracion.Perfil.Perfil data = await _unitOfWork.PerfilRepository.GetById(id);
+                if (data == null) { return false; }
                 data.FechaReactivacion = DateTime.Now;
                 data.UsuarioReactivadorId = currentUserId;
                 data.Estado = 1;
@@ -202,6 +204,12 @@ namespace WebVisitsMobile.Services.Services.Administracion.Perfil
             {
                 return false;
             }
+        }
+
+        public async Task<Domain.Entities.Administracion.Perfil.Perfil> GetPerfilConPermisos(Guid id)
+        {
+            Domain.Entities.Administracion.Perfil.Perfil perfil = await _unitOfWork.PerfilRepository.GetByIdConPermisos(id);
+            return perfil;
         }
     }
 }

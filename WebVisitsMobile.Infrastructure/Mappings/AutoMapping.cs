@@ -8,6 +8,7 @@ using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Domain.Entities.Empresa;
 using WebVisitsMobile.Domain.Entities.HID;
 using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
+using WebVisitsMobile.Domain.Entities.Ubicacion;
 using WebVisitsMobile.Models.Administracion.Aplicacion.Aplicacion;
 using WebVisitsMobile.Models.Administracion.Modulo.Modulo;
 using WebVisitsMobile.Models.Administracion.Perfil.Perfil;
@@ -20,9 +21,15 @@ using WebVisitsMobile.Models.Empresa.EmpresaCliente;
 using WebVisitsMobile.Models.HID.CredencialHID;
 using WebVisitsMobile.Models.HID.DipositivosHID;
 using WebVisitsMobile.Models.HID.LicenciaHID;
+using WebVisitsMobile.Models.HID.PlantillaCredencial;
+using WebVisitsMobile.Models.HID.TipoCredencial;
 using WebVisitsMobile.Models.HID.UserHID;
+using WebVisitsMobile.Models.HID.UsuarioHidTipoCredencial;
 using WebVisitsMobile.Models.Organizacion.Tarea.Tarea;
 using WebVisitsMobile.Models.Organizacion.Tarea.TipoTarea;
+using WebVisitsMobile.Models.Ubicacion.Ciudad;
+using WebVisitsMobile.Models.Ubicacion.Pais;
+using WebVisitsMobile.Models.Ubicacion.PaisEstado;
 
 namespace WebVisitsMobile.Infrastructure.Mappings
 {
@@ -94,6 +101,24 @@ namespace WebVisitsMobile.Infrastructure.Mappings
 
             CreateMap<Configuraciones, ConfiguracionesRespDTO>().ReverseMap();
             CreateMap<Configuraciones, ConfiguracionesReqDTO>().ReverseMap();
+
+            CreateMap<TipoCredencial, TipoCredencialRespDTO>().ReverseMap();
+            CreateMap<TipoCredencial, TipoCredencialReqDTO>().ReverseMap();
+
+            CreateMap<UsuarioHidTipoCredencial, UsuarioHidTipoCredencialRespDTO>().ReverseMap();
+            CreateMap<UsuarioHidTipoCredencial, UsuarioHidTipoCredencialReqDTO>().ReverseMap();
+
+            CreateMap<PlantillaCredencial, PlantillaCredencialRespDTO>().ReverseMap();
+            CreateMap<PlantillaCredencial, PlantillaCredencialReqDTO>().ReverseMap();
+
+            CreateMap<Pais, PaisRespDTO>().ReverseMap();
+            CreateMap<Pais, PaisReqDTO>().ReverseMap();
+
+            CreateMap<PaisEstado, PaisEstadoRespDTO>().ReverseMap();
+            CreateMap<PaisEstado, PaisEstadoReqDTO>().ReverseMap();
+
+            CreateMap<Ciudad, CiudadRespDTO>().ReverseMap();
+            CreateMap<Ciudad, CiudadReqDTO>().ReverseMap();
         }
     }
 }

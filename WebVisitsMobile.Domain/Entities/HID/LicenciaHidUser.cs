@@ -5,6 +5,11 @@ namespace WebVisitsMobile.Domain.Entities.HID
 {
     public class LicenciaHidUser : BaseEntity
     {
+        public LicenciaHidUser()
+        {
+            UsuarioHidTipoCredencial = new HashSet<UsuarioHidTipoCredencial>();
+        }
+
         [ForeignKey("LicenciaHID")]
         public Guid LicenciaId { get; set; }
         public string Nombre { get; set; }
@@ -25,11 +30,20 @@ namespace WebVisitsMobile.Domain.Entities.HID
         public DateTime? FechaFin { get; set; }
         public Guid? ExternalId { get; set; }
         public Guid? EmpresaClienteId { get; set; }
-        public int? TipoCredencial { get; set; }
+        public string? Imagen { get; set; }
+        public string? ExtensionImagen { get; set; }
+
+        public Guid? PlantillaCredencialId { get; set; }
+        public int? Plataforma { get; set; }
+
+        [NotMapped]
+        public string? ImagenBase64 { get; set; }
 
         public virtual LicenciaHID LicenciaHID { get; set; } = null!;
+        public virtual PlantillaCredencial PlantillaCredencial { get; set; }
 
 
         public virtual ICollection<CredencialHid> Credenciales { get; set; } = new List<CredencialHid>();
+        public virtual ICollection<UsuarioHidTipoCredencial> UsuarioHidTipoCredencial { get; set; }
     }
 }

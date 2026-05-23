@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using WebVisitsMobile.Models.HID.UsuarioHidTipoCredencial;
 
 namespace WebVisitsMobile.Models.HID.UserHID
 {
@@ -44,8 +45,14 @@ namespace WebVisitsMobile.Models.HID.UserHID
         [Display(Name = "ExternalId")]
         public Guid? ExternalId { get; set; }
 
-        public int? TipoCredencial { get; set; }
+        public string? Imagen { get; set; }
+        public string? ExtensionImagen { get; set; }
+
+        public Guid? PlantillaCredencialId { get; set; }
+        public int? Plataforma { get; set; }
 
         public Guid UsuarioCreadorId { get; set; }
+
+        public virtual ICollection<UsuarioHidTipoCredencialReqDTO> UsuarioHidTipoCredencial { get; set; }
     }
 }

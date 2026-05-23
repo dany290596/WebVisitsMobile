@@ -1,4 +1,5 @@
-﻿using WebVisitsMobile.Models.Common;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using WebVisitsMobile.Models.Common;
 using WebVisitsMobile.Models.HID.LicenciaHID;
 
 namespace WebVisitsMobile.Models.HID.UserHID
@@ -25,6 +26,7 @@ namespace WebVisitsMobile.Models.HID.UserHID
             2 => "En proceso",
             3 => "Completado",
             7 => "Inactivo",
+            8 => "Activo",
             null => "Sin estado",
             _ => "Estado desconocido"
         };
@@ -34,6 +36,7 @@ namespace WebVisitsMobile.Models.HID.UserHID
             2 => "#1E90FF", // En proceso - Azul
             3 => "#32CD32", // Completado - Verde
             7 => "#FF0000", // Inactivo - Rojo
+            8 => "#32CD32",
             null => "#2f2f2f", // Sin estado - Gris claro
             _ => "#2f2f2f" // Estado desconocido - Gris brillante
         };
@@ -43,6 +46,8 @@ namespace WebVisitsMobile.Models.HID.UserHID
             "CANCELLED" => "#FF0000",    // Rojo - Cancelado
             "ACKNOWLEDGED" => "#32CD32", // Verde - Reconocido
             "DELETED" => "#FF0000",      // Gris oscuro - Eliminado
+            "INACTIVATE" => "#FF0000",      // Gris oscuro - Eliminado
+            "REACTIVATE" => "#32CD32",
             null => "#2f2f2f", // Sin estado - Gris claro
             _ => "#2f2f2f" // Estado desconocido - Gris brillante
         };
@@ -52,6 +57,8 @@ namespace WebVisitsMobile.Models.HID.UserHID
             "CANCELLED" => "Cancelado",
             "ACKNOWLEDGED" => "Reconocido",
             "DELETED" => "Eliminado",
+            "INACTIVATE" => "Inactivo",
+            "REACTIVATE" => "Activo",
             null => "Sin estado",
             _ => "Estado desconocido"
         };
@@ -71,6 +78,15 @@ namespace WebVisitsMobile.Models.HID.UserHID
                 return $"{nombreLimpio} {apellidosLimpio}".Trim();
             }
         }
+        public string? Imagen { get; set; }
+        public string? ExtensionImagen { get; set; }
+
+        public Guid? PlantillaCredencialId { get; set; }
+        public int? Plataforma { get; set; }
+
+        [NotMapped]
+        public string? ImagenBase64 { get; set; }
+
         public virtual LicenciaHIDRespDTO? LicenciaHID { get; set; } = null!;
     }
 }
