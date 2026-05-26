@@ -1,6 +1,10 @@
 ﻿using Microsoft.Extensions.Options;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using WebVisitsMobile.Data.Interfaces.Common;
 using WebVisitsMobile.Domain.Entities.HID;
+using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
 using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Domain.Options;
 using WebVisitsMobile.Services.Interfaces.HID;
@@ -15,7 +19,8 @@ namespace WebVisitsMobile.Services.Services.HID
 
         public CredencialHIDService(
             IUnitOfWork unitOfWork,
-            IOptions<PaginationOption> options)
+            IOptions<PaginationOption> options
+            )
         {
             _unitOfWork = unitOfWork;
             _paginationOptions = options.Value;
@@ -111,6 +116,35 @@ namespace WebVisitsMobile.Services.Services.HID
             return booOk;
         }
 
+        public async Task<bool> CreateForWallet(CredencialHid credentialHID, Guid clientCompanyId)
+        {
+            bool booOk = false;
+
+            try
+            {
+                if (credentialHID.Usuarioid == Guid.Empty || credentialHID.Usuarioid == null) { return false; }
+                LicenciaHidUser user = await _unitOfWork.LicenciaUserHIDRepository.GetById((Guid)credentialHID.Usuarioid);
+                if (user == null) { return false; }
+
+                credentialHID.Id = Guid.NewGuid();
+                credentialHID.UsuarioCreadorId = new Guid("739B4C8F-4DB1-4475-84D4-7644DCE00620");
+                credentialHID.FechaCreacion = DateTime.Now;
+                credentialHID.Estado = 1;
+
+                await _unitOfWork.CredencialHIDRepository.Add(credentialHID);
+                await _unitOfWork.SaveChangesAsync();
+
+                booOk = true;
+
+            }
+            catch (Exception ex)
+            {
+                booOk = false;
+            }
+
+            return booOk;
+        }
+
         public async Task<bool> Update(CredencialHid credentialHID, Guid currentUserId)
         {
             try
@@ -139,50 +173,212 @@ namespace WebVisitsMobile.Services.Services.HID
             }
         }
 
-        public async Task<bool> Inactivate(Guid id, Guid currentUserId)
+        public async Task<bool> Inactivate(Guid id, Guid clientCompanyId)
         {
-            bool booOk = false;
             try
             {
                 CredencialHid credentialHID = await _unitOfWork.CredencialHIDRepository.GetById(id);
-                credentialHID.FechaBaja = DateTime.Now;
-                credentialHID.UsuarioBajaId = currentUserId;
-                credentialHID.Estado = 2;
+                if (credentialHID == null) { return false; }
+                var user = await _unitOfWork.UsuarioHidTipoCredencialRepository.GetUserHidTypeCredential(u => u.LicenciaHidUserId == credentialHID.Usuarioid);
+                if (user == null) { return false; }
+                if (user.TipoCredencialId == new Guid("2B3C4D5E-6F70-8901-BCDE-F12345678901"))
+                {
 
-                _unitOfWork.CredencialHIDRepository.Update(credentialHID);
-                await _unitOfWork.SaveChangesAsync();
+                    credentialHID.FechaBaja = DateTime.Now;
+                    credentialHID.UsuarioBajaId = new Guid("739B4C8F-4DB1-4475-84D4-7644DCE00620");
+                    credentialHID.Estado = 2;
 
-                booOk = true;
+                    _unitOfWork.CredencialHIDRepository.Update(credentialHID);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    var taskById = await _unitOfWork.TipoTareaRepository.GetById(new Guid("CCE218E1-99E1-4D96-AD85-4F7D71A57F4B"));
+                    if (taskById != null)
+                    {
+                        var jsonOptions = new JsonSerializerOptions
+                        {
+                            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                            WriteIndented = false,
+                            ReferenceHandler = ReferenceHandler.IgnoreCycles
+                        };
+
+                        var valor = new
+                        {
+                            credentialHID.Id
+                        };
+
+                        Tarea task = new Tarea
+                        {
+                            TipoTareaId = taskById.Id,
+                            Fecha = DateTime.Now,
+                            Pendiente = 1,
+                            Status = 1,
+                            ValorEnvio = JsonSerializer.Serialize(valor, jsonOptions),
+                            ValorRetorno = "",
+                            //ReferenciaId = licenseUserHID.Id,
+                            Marca = 0,
+                            EmpresaClienteId = clientCompanyId,
+                            Id = Guid.NewGuid(),
+                            UsuarioCreadorId = new Guid("739B4C8F-4DB1-4475-84D4-7644DCE00620"),
+                            FechaCreacion = DateTime.Now,
+                            Estado = 1
+                        };
+
+                        await _unitOfWork.TareaRepository.Add(task);
+                        await _unitOfWork.SaveChangesAsync();
+                    }
+
+                    return true;
+                }
+
+                if (user.TipoCredencialId == new Guid("1A2B3C4D-5E6F-7890-ABCD-EF1234567890"))
+                {
+
+                }
+
+                return false;
             }
             catch (Exception ex)
             {
                 throw;
             }
-
-            return booOk;
         }
 
-        public async Task<bool> Reactivate(Guid id, Guid currentUserId)
+        public async Task<bool> Reactivate(Guid id, Guid clientCompanyId)
         {
-            bool booOk = false;
             try
             {
                 CredencialHid credentialHID = await _unitOfWork.CredencialHIDRepository.GetById(id);
-                credentialHID.FechaReactivacion = DateTime.Now;
-                credentialHID.UsuarioReactivadorId = currentUserId;
-                credentialHID.Estado = 1;
+                if (credentialHID == null) { return false; }
+                var user = await _unitOfWork.UsuarioHidTipoCredencialRepository.GetUserHidTypeCredential(u => u.LicenciaHidUserId == credentialHID.Usuarioid);
+                if (user == null) { return false; }
+                if (user.TipoCredencialId == new Guid("2B3C4D5E-6F70-8901-BCDE-F12345678901"))
+                {
+                    credentialHID.FechaReactivacion = DateTime.Now;
+                    credentialHID.UsuarioReactivadorId = new Guid("739B4C8F-4DB1-4475-84D4-7644DCE00620");
+                    credentialHID.Estado = 1;
 
-                _unitOfWork.CredencialHIDRepository.Update(credentialHID);
-                await _unitOfWork.SaveChangesAsync();
+                    _unitOfWork.CredencialHIDRepository.Update(credentialHID);
+                    await _unitOfWork.SaveChangesAsync();
 
-                booOk = true;
+                    var taskById = await _unitOfWork.TipoTareaRepository.GetById(new Guid("99EFE58C-5A7D-424A-AD03-54A9F5D6EA94"));
+                    if (taskById != null)
+                    {
+                        var jsonOptions = new JsonSerializerOptions
+                        {
+                            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                            WriteIndented = false,
+                            ReferenceHandler = ReferenceHandler.IgnoreCycles
+                        };
+
+                        var valor = new
+                        {
+                            credentialHID.Id
+                        };
+
+                        Tarea task = new Tarea
+                        {
+                            TipoTareaId = taskById.Id,
+                            Fecha = DateTime.Now,
+                            Pendiente = 1,
+                            Status = 1,
+                            ValorEnvio = JsonSerializer.Serialize(valor, jsonOptions),
+                            ValorRetorno = "",
+                            //ReferenciaId = licenseUserHID.Id,
+                            Marca = 0,
+                            EmpresaClienteId = clientCompanyId,
+                            Id = Guid.NewGuid(),
+                            UsuarioCreadorId = new Guid("739B4C8F-4DB1-4475-84D4-7644DCE00620"),
+                            FechaCreacion = DateTime.Now,
+                            Estado = 1
+                        };
+
+                        await _unitOfWork.TareaRepository.Add(task);
+                        await _unitOfWork.SaveChangesAsync();
+                    }
+
+                    return true;
+                }
+
+                if (user.TipoCredencialId == new Guid("1A2B3C4D-5E6F-7890-ABCD-EF1234567890"))
+                {
+                    return true;
+                }
+
+                return false;
             }
             catch (Exception ex)
             {
                 throw;
             }
+        }
 
-            return booOk;
+        public async Task<bool> Suspend(Guid id, Guid clientCompanyId)
+        {
+            try
+            {
+                CredencialHid credentialHID = await _unitOfWork.CredencialHIDRepository.GetById(id);
+                if (credentialHID == null) { return false; }
+                var user = await _unitOfWork.UsuarioHidTipoCredencialRepository.GetUserHidTypeCredential(u => u.LicenciaHidUserId == credentialHID.Usuarioid);
+                if (user == null) { return false; }
+                if (user.TipoCredencialId == new Guid("2B3C4D5E-6F70-8901-BCDE-F12345678901"))
+                {
+                    credentialHID.FechaReactivacion = DateTime.Now;
+                    credentialHID.UsuarioReactivadorId = new Guid("739B4C8F-4DB1-4475-84D4-7644DCE00620");
+                    credentialHID.Estado = 1;
+
+                    _unitOfWork.CredencialHIDRepository.Update(credentialHID);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    var taskById = await _unitOfWork.TipoTareaRepository.GetById(new Guid("7006FE62-BE92-4976-B83C-45DD276CCDF0"));
+                    if (taskById != null)
+                    {
+                        var jsonOptions = new JsonSerializerOptions
+                        {
+                            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                            WriteIndented = false,
+                            ReferenceHandler = ReferenceHandler.IgnoreCycles
+                        };
+
+                        var valor = new
+                        {
+                            credentialHID.Id
+                        };
+
+                        Tarea task = new Tarea
+                        {
+                            TipoTareaId = taskById.Id,
+                            Fecha = DateTime.Now,
+                            Pendiente = 1,
+                            Status = 1,
+                            ValorEnvio = JsonSerializer.Serialize(valor, jsonOptions),
+                            ValorRetorno = "",
+                            //ReferenciaId = licenseUserHID.Id,
+                            Marca = 0,
+                            EmpresaClienteId = clientCompanyId,
+                            Id = Guid.NewGuid(),
+                            UsuarioCreadorId = new Guid("739B4C8F-4DB1-4475-84D4-7644DCE00620"),
+                            FechaCreacion = DateTime.Now,
+                            Estado = 1
+                        };
+
+                        await _unitOfWork.TareaRepository.Add(task);
+                        await _unitOfWork.SaveChangesAsync();
+                    }
+
+                    return true;
+                }
+
+                if (user.TipoCredencialId == new Guid("1A2B3C4D-5E6F-7890-ABCD-EF1234567890"))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
     }
 }

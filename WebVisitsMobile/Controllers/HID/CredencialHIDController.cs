@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 using System.Net;
+using WebVisitsMobile.Domain.Entities.HID;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.HID.CredencialHID;
 using WebVisitsMobile.Services.Interfaces.HID;
@@ -92,8 +92,8 @@ namespace WebVisitsMobile.Controllers.HID
             }
         }
 
-        [HttpPatch("Inactivate")]
-        public async Task<IActionResult> Inactivate([Required] Guid id, [Required] Guid usuarioBajaId)
+        [HttpPatch("Inactivate/{id}")]
+        public async Task<IActionResult> Inactivate(Guid id)
         {
             if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
             {
@@ -102,7 +102,7 @@ namespace WebVisitsMobile.Controllers.HID
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
-            var result = await _credencialHIDService.Inactivate(id, usuarioBajaId);
+            var result = await _credencialHIDService.Inactivate(id, empresaId);
             if (!result)
             {
                 return StatusCode(400, new ApiResponse<bool>(false, "No fue posible inactivar el registro.", 400, false));
@@ -112,8 +112,8 @@ namespace WebVisitsMobile.Controllers.HID
             return StatusCode(200, response);
         }
 
-        [HttpPatch("Reactivate")]
-        public async Task<IActionResult> Reactivate([Required] Guid id, [Required] Guid usuarioReactivadorId)
+        [HttpPatch("Reactivate/{id}")]
+        public async Task<IActionResult> Reactivate(Guid id)
         {
             if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
             {
@@ -122,12 +122,57 @@ namespace WebVisitsMobile.Controllers.HID
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
-            var result = await _credencialHIDService.Reactivate(id, usuarioReactivadorId);
+            var result = await _credencialHIDService.Reactivate(id, empresaId);
             if (!result)
             {
                 return StatusCode(400, new ApiResponse<bool>(false, "No fue posible reactivar el registro.", 400, false));
             }
             var response = new ApiResponse<bool>(true, "El registro se reactivó correctamente.", 200, result);
+
+            return StatusCode(200, response);
+        }
+
+        [HttpPatch("Suspend/{id}")]
+        public async Task<IActionResult> Suspend(Guid id)
+        {
+            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+            {
+                return BadRequest("El header de la empresa es inválido.");
+            }
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+            var result = await _credencialHIDService.Suspend(id, empresaId);
+            if (!result)
+            {
+                return StatusCode(400, new ApiResponse<bool>(false, "No fue posible suspender el registro.", 400, false));
+            }
+            var response = new ApiResponse<bool>(true, "El registro se suspendio correctamente.", 200, result);
+
+            return StatusCode(200, response);
+        }
+
+        [HttpPost("CreateWalletCredential")]
+        public async Task<IActionResult> CreateForWallet(CredencialWalletReqDTO data)
+        {
+            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+            {
+                return BadRequest("El header de la empresa es inválido.");
+            }
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+            var mapper = _mapper.Map<CredencialHid>(data);
+
+            bool book = await _credencialHIDService.CreateForWallet(mapper, empresaId);
+            if (!book)
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "ocurrió un error.", 500, null));
+            }
+
+            CredencialHIDRespDTO dto = _mapper.Map<CredencialHIDRespDTO>(mapper);
+
+            var response = new ApiResponse<CredencialHIDRespDTO>(book, "El registro se creó correctamente.", 200, dto);
 
             return StatusCode(200, response);
         }

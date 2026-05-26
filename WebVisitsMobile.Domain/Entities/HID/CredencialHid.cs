@@ -14,6 +14,7 @@ namespace WebVisitsMobile.Domain.Entities.HID
         public string? Validity { get; set; }
         public int? Status { get; set; }
         public Guid? EmpresaClienteId { get; set; }
+        public Guid? ExternalId { get; set; }
 
         public virtual DipositivosHid DipositivosHid { get; set; } = null!;
         public virtual LicenciaHidUser LicenciaHidUser { get; set; } = null!;

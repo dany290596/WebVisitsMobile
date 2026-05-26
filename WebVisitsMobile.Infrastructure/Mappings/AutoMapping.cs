@@ -67,6 +67,7 @@ namespace WebVisitsMobile.Infrastructure.Mappings
 
             CreateMap<CredencialHid, CredencialHIDRespDTO>().ReverseMap();
             CreateMap<CredencialHid, CredencialHIDReqDTO>().ReverseMap();
+            CreateMap<CredencialHid, CredencialWalletReqDTO>().ReverseMap();
 
             CreateMap<DipositivosHid, DipositivosHIDRespDTO>().ReverseMap();
             CreateMap<DipositivosHid, DipositivosHIDReqDTO>().ReverseMap();
@@ -77,6 +78,7 @@ namespace WebVisitsMobile.Infrastructure.Mappings
             CreateMap<LicenciaHidUser, UserHIDRespDTO>().ReverseMap();
             CreateMap<LicenciaHidUser, UserHIDReqDTO>().ReverseMap();
             CreateMap<LicenciaHidUser, UserHIDEditDTO>().ReverseMap();
+            CreateMap<LicenciaHidUser, UserHIDInvitationReqDTO>().ReverseMap();
 
             CreateMap<EmpresaCliente, EmpresaClienteRespDTO>().ReverseMap();
             CreateMap<EmpresaCliente, EmpresaClienteReqDTO>().ReverseMap();

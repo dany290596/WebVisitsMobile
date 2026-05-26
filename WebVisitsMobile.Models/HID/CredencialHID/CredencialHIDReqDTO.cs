@@ -12,5 +12,7 @@ namespace WebVisitsMobile.Models.HID.CredencialHID
 
         [Required(ErrorMessageResourceName = "MESSAGE_REQUIRED")]
         public string? Validity { get; set; }
+
+        public Guid? ExternalId { get; set; }
     }
 }

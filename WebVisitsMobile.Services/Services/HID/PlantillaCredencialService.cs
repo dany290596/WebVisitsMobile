@@ -493,6 +493,7 @@ namespace WebVisitsMobile.Services.Services.HID
 
             // ---------- ACTUALIZAR OTROS CAMPOS ----------
             currentData.Nombre = data.Nombre;
+            currentData.AppleId = data.AppleId;
             currentData.FechaModificacion = DateTime.Now;
             currentData.UsuarioModificadorId = currentUserId;
 

@@ -177,6 +177,22 @@ namespace WebVisitsMobile.Controllers.HID
             return StatusCode(200, response);
         }
 
+        [HttpPut("Partial/{id}")]
+        public async Task<IActionResult> Update(Guid id, UserHIDInvitationReqDTO data)
+        {
+            var mapper = _mapper.Map<LicenciaHidUser>(data);
+            mapper.Id = id;
+            var result = await _licenciaUserHIDService.UpdatePartial(mapper);
+            if (result == null)
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "ocurrió un error.", 500, null));
+
+            }
+            var response = new ApiResponse<LicenciaHidUser>(true, "Se actualizó correctamente.", 200, result);
+
+            return StatusCode(200, response);
+        }
+
         [HttpGet("GetAllExpired")]
         public async Task<IActionResult> GetAllExpired()
         {

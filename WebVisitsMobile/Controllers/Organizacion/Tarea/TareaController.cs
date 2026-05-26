@@ -281,6 +281,78 @@ namespace WebVisitsMobile.Controllers.Organizacion.Tarea
             }
         }
 
+        [HttpGet("GetAllByCredentialInactivate")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<TareaRespDTO>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetAllByCredentialInactivate([FromQuery] BaseQueryFilter filters)
+        {
+            try
+            {
+                var data = await _tareaService.GetAllByUserWallet<TareaCommonRespDTO>(filters, new Guid("CCE218E1-99E1-4D96-AD85-4F7D71A57F4B"));
+
+                string strUriPreviousPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+                string strUriNextPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+
+                var response = new ApiResponse<List<TareaHID<TareaCommonRespDTO>>>(true, "Consulta exitosa.", 200, data.ToList());
+                response.CargarMetaData(data.TotalCount, data.PageSize, data.CurrentPage, data.TotalPages,
+                                        data.HasNextPage, data.HasPreviousPage, strUriNextPage, strUriPreviousPage);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("GetAllByCredentialReactivate")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<TareaRespDTO>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetAllByCredentialReactivate([FromQuery] BaseQueryFilter filters)
+        {
+            try
+            {
+                var data = await _tareaService.GetAllByUserWallet<TareaCommonRespDTO>(filters, new Guid("99EFE58C-5A7D-424A-AD03-54A9F5D6EA94"));
+
+                string strUriPreviousPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+                string strUriNextPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+
+                var response = new ApiResponse<List<TareaHID<TareaCommonRespDTO>>>(true, "Consulta exitosa.", 200, data.ToList());
+                response.CargarMetaData(data.TotalCount, data.PageSize, data.CurrentPage, data.TotalPages,
+                                        data.HasNextPage, data.HasPreviousPage, strUriNextPage, strUriPreviousPage);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        [HttpGet("GetAllByCredentialSuspend")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<TareaRespDTO>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetAllByCredentialSuspend([FromQuery] BaseQueryFilter filters)
+        {
+            try
+            {
+                var data = await _tareaService.GetAllByUserWallet<TareaCommonRespDTO>(filters, new Guid("7006FE62-BE92-4976-B83C-45DD276CCDF0"));
+
+                string strUriPreviousPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+                string strUriNextPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+
+                var response = new ApiResponse<List<TareaHID<TareaCommonRespDTO>>>(true, "Consulta exitosa.", 200, data.ToList());
+                response.CargarMetaData(data.TotalCount, data.PageSize, data.CurrentPage, data.TotalPages,
+                                        data.HasNextPage, data.HasPreviousPage, strUriNextPage, strUriPreviousPage);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         [HttpGet("GetAllByTemplate")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<TareaRespDTO>>))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]

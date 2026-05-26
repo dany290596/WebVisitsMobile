@@ -11,5 +11,6 @@ namespace WebVisitsMobile.Services.QueryFilters.HID
         public string? Validity { get; set; }
         public int? Status { get; set; }
         public Guid? EmpresaClienteId { get; set; }
+        public Guid? ExternalId { get; set; }
     }
 }

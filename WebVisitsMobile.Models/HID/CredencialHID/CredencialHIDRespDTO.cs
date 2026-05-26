@@ -13,7 +13,9 @@ namespace WebVisitsMobile.Models.HID.CredencialHID
         public string? Validity { get; set; }
         public int? Status { get; set; }
 
+        public Guid? ExternalId { get; set; }
+
         public DipositivosHIDRespDTO? DipositivosHID { get; set; }
-        public UserHIDRespDTO? LicenciaUserHID { get; set; }
+        public UserHIDRespDTO? LicenciaHidUser { get; set; }
     }
 }

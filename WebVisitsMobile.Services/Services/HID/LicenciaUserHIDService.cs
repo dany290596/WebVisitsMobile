@@ -573,6 +573,42 @@ namespace WebVisitsMobile.Services.Services.HID
             }
         }
 
+        public async Task<LicenciaHidUser?> UpdatePartial(LicenciaHidUser licenseUserHID)
+        {
+            try
+            {
+                LicenciaHidUser licenseUserHIDUpdate = await _unitOfWork.LicenciaUserHIDRepository.GetById(licenseUserHID.Id);
+                if (licenseUserHIDUpdate == null) { return null; }
+
+                if (licenseUserHID.UserId.HasValue && licenseUserHID.UserId.Value > 0)
+                    licenseUserHIDUpdate.UserId = licenseUserHID.UserId;
+
+                if (licenseUserHID.InvitacionFecha.HasValue)
+                    licenseUserHIDUpdate.InvitacionFecha = licenseUserHID.InvitacionFecha;
+
+                if (licenseUserHID.InvitacionExpirationDate.HasValue)
+                    licenseUserHIDUpdate.InvitacionExpirationDate = licenseUserHID.InvitacionExpirationDate;
+
+                if (!string.IsNullOrWhiteSpace(licenseUserHID.InvitacionDetalle))
+                    licenseUserHIDUpdate.InvitacionDetalle = licenseUserHID.InvitacionDetalle;
+
+                if (licenseUserHID.Status.HasValue && licenseUserHID.Status.Value > 0)
+                    licenseUserHIDUpdate.Status = licenseUserHID.Status;
+
+                licenseUserHIDUpdate.FechaModificacion = DateTime.Now;
+                //licenseUserHIDUpdate.UsuarioModificadorId = currentUserId;
+
+                _unitOfWork.LicenciaUserHIDRepository.Update(licenseUserHIDUpdate);
+                await _unitOfWork.SaveChangesAsync();
+
+                return licenseUserHIDUpdate;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
         public async Task<bool> UpdateWithAttributes(LicenciaHidUser licenseUserHID, Guid clientCompanyId, Guid currentUserId)
         {
             try
