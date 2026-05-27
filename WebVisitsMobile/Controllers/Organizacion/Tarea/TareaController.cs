@@ -353,6 +353,30 @@ namespace WebVisitsMobile.Controllers.Organizacion.Tarea
             }
         }
 
+        [HttpGet("GetAllByWalletCorreo")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<TareaRespDTO>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetAllByWalletCorreo([FromQuery] BaseQueryFilter filters)
+        {
+            try
+            {
+                var data = await _tareaService.GetAllByUserWallet<TareaWalletUpdate>(filters, new Guid("7E468AF2-6A24-4F95-9B99-F542E605855F"));
+
+                string strUriPreviousPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+                string strUriNextPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+
+                var response = new ApiResponse<List<TareaHID<TareaWalletUpdate>>>(true, "Consulta exitosa.", 200, data);
+                response.CargarMetaData(data.TotalCount, data.PageSize, data.CurrentPage, data.TotalPages,
+                                        data.HasNextPage, data.HasPreviousPage, strUriNextPage, strUriPreviousPage);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         [HttpGet("GetAllByTemplate")]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<TareaRespDTO>>))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]

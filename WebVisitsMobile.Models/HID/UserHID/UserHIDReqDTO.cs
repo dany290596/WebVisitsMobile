@@ -45,6 +45,8 @@ namespace WebVisitsMobile.Models.HID.UserHID
         [Display(Name = "ExternalId")]
         public Guid? ExternalId { get; set; }
 
+        public Guid? UsuarioWalletId { get; set; }
+
         public string? Imagen { get; set; }
         public string? ExtensionImagen { get; set; }
 

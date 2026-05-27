@@ -10,7 +10,7 @@ namespace WebVisitsMobile.Services.Interfaces.HID
     {
         Task<bool> Create(LicenciaHidUser licenseUserHID, Guid currentClientCompanyId, Guid currentUserId);
         Task<bool> Update(LicenciaHidUser licenseUserHID, Guid currentUserId);
-        Task<LicenciaHidUser?> UpdatePartial(LicenciaHidUser licenseUserHID);
+        Task<LicenciaHidUser?> UpdatePartial(LicenciaHidUser licenseUserHID, Guid clientCompanyId, Guid currentUserId);
         Task<bool> UpdateWithAttributes(LicenciaHidUser licenseUserHID, Guid clientCompanyId, Guid currentUserId);
         Task<bool> UpdateStatus(Guid userHIDId, string newInvitationActivity, int newStatus, Guid currentUserId);
         Task<bool> Reactivate(Guid id, Guid currentUserId);

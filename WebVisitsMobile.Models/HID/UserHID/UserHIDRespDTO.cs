@@ -10,6 +10,7 @@ namespace WebVisitsMobile.Models.HID.UserHID
         public string? Nombre { get; set; }
         public string? Email { get; set; }
         public int? UserId { get; set; }
+        public Guid? UsuarioWalletId { get; set; }
         public string? Site { get; set; }
         public string? Alert { get; set; }
         public int? LicenseCount { get; set; }

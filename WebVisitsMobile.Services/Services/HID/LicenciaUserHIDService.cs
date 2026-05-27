@@ -37,6 +37,7 @@ namespace WebVisitsMobile.Services.Services.HID
         private static readonly Guid HID_ADD = Guid.Parse("3D68F904-2A4A-40BD-BB62-09A95B7247F5");
         private static readonly Guid WALLET_ADD = Guid.Parse("FD82D317-F02C-4A26-86F4-23766E029BC0");
         private static readonly Guid WALLET_TEMPLATE = Guid.Parse("022047D9-2E61-44A5-ADE4-AEB2F69CDC17");
+        private static readonly Guid WALLET_CORREO = Guid.Parse("7E468AF2-6A24-4F95-9B99-F542E605855F");
 
         public enum InvitationStatus
         {
@@ -573,15 +574,15 @@ namespace WebVisitsMobile.Services.Services.HID
             }
         }
 
-        public async Task<LicenciaHidUser?> UpdatePartial(LicenciaHidUser licenseUserHID)
+        public async Task<LicenciaHidUser?> UpdatePartial(LicenciaHidUser licenseUserHID, Guid clientCompanyId, Guid currentUserId)
         {
             try
             {
                 LicenciaHidUser licenseUserHIDUpdate = await _unitOfWork.LicenciaUserHIDRepository.GetById(licenseUserHID.Id);
                 if (licenseUserHIDUpdate == null) { return null; }
 
-                if (licenseUserHID.UserId.HasValue && licenseUserHID.UserId.Value > 0)
-                    licenseUserHIDUpdate.UserId = licenseUserHID.UserId;
+                if (licenseUserHID.UsuarioWalletId != null && licenseUserHID.UsuarioWalletId != Guid.Empty)
+                    licenseUserHIDUpdate.UsuarioWalletId = licenseUserHID.UsuarioWalletId;
 
                 if (licenseUserHID.InvitacionFecha.HasValue)
                     licenseUserHIDUpdate.InvitacionFecha = licenseUserHID.InvitacionFecha;
@@ -596,10 +597,55 @@ namespace WebVisitsMobile.Services.Services.HID
                     licenseUserHIDUpdate.Status = licenseUserHID.Status;
 
                 licenseUserHIDUpdate.FechaModificacion = DateTime.Now;
-                //licenseUserHIDUpdate.UsuarioModificadorId = currentUserId;
+                licenseUserHIDUpdate.UsuarioModificadorId = currentUserId;
 
                 _unitOfWork.LicenciaUserHIDRepository.Update(licenseUserHIDUpdate);
                 await _unitOfWork.SaveChangesAsync();
+
+                var tipoTarea = await _unitOfWork.TipoTareaRepository.GetById(WALLET_CORREO);
+                if (tipoTarea != null)
+                {
+                    var jsonOptions = new JsonSerializerOptions
+                    {
+                        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                        WriteIndented = false,
+                        ReferenceHandler = ReferenceHandler.IgnoreCycles
+                    };
+
+                    var payload = new TareaWalletUpdateDTO
+                    {
+                        CorreoElectronico = licenseUserHIDUpdate.Email ?? string.Empty,
+                        FechaInicio = licenseUserHIDUpdate.FechaInicio,
+                        FechaFin = licenseUserHIDUpdate.FechaFin,
+                        Plataforma = licenseUserHIDUpdate.Plataforma,
+                        NombreCompleto = string.Join(" ", new[]
+                        {
+                            licenseUserHIDUpdate.Nombre,
+                            licenseUserHIDUpdate.Apellidos
+                        }.Where(x => !string.IsNullOrWhiteSpace(x))),
+                        CodigoInvitacion = licenseUserHIDUpdate.InvitacionDetalle
+                    };
+
+                    var tarea = new Tarea
+                    {
+                        Id = Guid.NewGuid(),
+                        TipoTareaId = WALLET_CORREO,
+                        Fecha = DateTime.Now,
+                        Pendiente = 1,
+                        Status = 1,
+                        ValorEnvio = JsonSerializer.Serialize(payload, jsonOptions),
+                        ValorRetorno = "",
+                        ReferenciaId = licenseUserHIDUpdate.Id,
+                        Marca = 0,
+                        EmpresaClienteId = clientCompanyId,
+                        UsuarioCreadorId = currentUserId,
+                        FechaCreacion = DateTime.Now,
+                        Estado = 1
+                    };
+
+                    await _unitOfWork.TareaRepository.Add(tarea);
+                    await _unitOfWork.SaveChangesAsync();
+                }
 
                 return licenseUserHIDUpdate;
             }

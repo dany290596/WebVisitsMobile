@@ -78,7 +78,7 @@ namespace WebVisitsMobile.Services.Services.Empresa
                 EmpresaCliente data = await _unitOfWork.EmpresaClienteRepository.GetById(id);
                 return data;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
 
                 throw;

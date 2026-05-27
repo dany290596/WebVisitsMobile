@@ -2,7 +2,7 @@
 {
     public class UserHIDInvitationReqDTO
     {
-        public int? UserId { get; set; }
+        public Guid? UsuarioWalletId { get; set; }
         public DateTime? InvitacionFecha { get; set; }
         public DateTime? InvitacionExpirationDate { get; set; }
         public string? InvitacionDetalle { get; set; }

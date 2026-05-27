@@ -180,13 +180,22 @@ namespace WebVisitsMobile.Controllers.HID
         [HttpPut("Partial/{id}")]
         public async Task<IActionResult> Update(Guid id, UserHIDInvitationReqDTO data)
         {
+
+            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+            {
+                return BadRequest("El header de la empresa es inválido.");
+            }
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+
+            var tokenData = _accesorService.GetTokenData();
             var mapper = _mapper.Map<LicenciaHidUser>(data);
             mapper.Id = id;
-            var result = await _licenciaUserHIDService.UpdatePartial(mapper);
+            var result = await _licenciaUserHIDService.UpdatePartial(mapper, empresaId, tokenData.UsuarioId);
             if (result == null)
             {
-                return StatusCode(500, new ApiResponse<string>(false, "ocurrió un error.", 500, null));
-
+                return StatusCode(500, new ApiResponse<string>(false, "ocurrió un error.", 500, string.Empty));
             }
             var response = new ApiResponse<LicenciaHidUser>(true, "Se actualizó correctamente.", 200, result);
 
