@@ -1532,6 +1532,18 @@ namespace WebVisitsMobile.Services.Services.HID
             }
         }
 
+        public async Task<List<LicenciaHidUser>> GetAllLicenciasExpiradas()
+        {
+            try
+            {
+                return await _unitOfWork.LicenciaUserHIDRepository.GetAllLicenciasExpiradas();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task<PagedList<CommonDTO>> GetAllQuery(LicenciaUserHIDQueryFilter filters)
         {
             PagedList<CommonDTO> pagedCredentialDevice = null;

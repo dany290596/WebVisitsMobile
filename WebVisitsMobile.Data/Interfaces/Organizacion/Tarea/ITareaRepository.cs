@@ -10,5 +10,6 @@ namespace WebVisitsMobile.Data.Interfaces.Organizacion.Tarea
         Task<Domain.Entities.Organizacion.Tarea.Tarea> GetTask(Expression<Func<Domain.Entities.Organizacion.Tarea.Tarea, bool>> predicate);
         Task<IEnumerable<TareaHID<T>>> GetAllByUserWallet<T>(Guid typeTaskId);
         Task<IEnumerable<TareaHID<TareaPlantilla>>> GetAllByTemplate();
+        Task<IEnumerable<TareaPlantillaCredencialInactivate>> GetAllByPlantillaCredencialInactivate();
     }
 }

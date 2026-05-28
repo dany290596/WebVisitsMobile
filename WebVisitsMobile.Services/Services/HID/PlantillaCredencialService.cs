@@ -177,18 +177,61 @@ namespace WebVisitsMobile.Services.Services.HID
             }
         }
 
-        public async Task<bool> Inactivate(Guid id, Guid currentUserId)
+        public async Task<bool> Inactivate(Guid id)
         {
             bool booOk = false;
             try
             {
+                // ── 1. Obtener y validar el registro ────────────────────────────────────────
                 PlantillaCredencial data = await _unitOfWork.PlantillaCredencialRepository.GetById(id);
                 if (data == null) { return false; }
-                data.FechaBaja = DateTime.Now;
-                data.UsuarioBajaId = currentUserId;
-                data.Estado = 2;
+
+                // ── 2. Marcar el registro como inactivo (auditoría completa) ─────────────────
+                data.FechaBaja       = DateTime.Now;
+                data.Estado          = 2;
 
                 _unitOfWork.PlantillaCredencialRepository.Update(data);
+
+                // ── 3. Generar tarea de inactivación ──────────────────────────────────────────
+                //       Solo se crea si ExternalId contiene un valor válido.
+                //       TipoTareaId : C8FC0425-E7C9-4CBD-9CD9-081FB72F549F
+                //       ValorEnvio  : PlantillaCredencial.ExternalId (serializado a JSON)
+                if (data.ExternalId.HasValue && data.ExternalId.Value != Guid.Empty)
+                {
+                    var tipoTareaId = new Guid("C8FC0425-E7C9-4CBD-9CD9-081FB72F549F");
+                    var typeTask    = await _unitOfWork.TipoTareaRepository.GetById(tipoTareaId);
+
+                    if (typeTask != null)
+                    {
+                        var jsonOptions = new JsonSerializerOptions
+                        {
+                            Encoder          = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                            WriteIndented    = false,
+                            ReferenceHandler = ReferenceHandler.IgnoreCycles
+                        };
+
+                        Tarea tareaInactivacion = new Tarea
+                        {
+                            Id               = Guid.NewGuid(),
+                            TipoTareaId      = typeTask.Id,
+                            Fecha            = DateTime.Now,
+                            Pendiente        = 1,
+                            Status           = 1,
+                            ValorEnvio       = data.ExternalId.ToString(),
+                            ValorRetorno     = "",
+                            ReferenciaId     = data.Id,
+                            EmpresaClienteId = data.EmpresaClienteId,
+                            Marca            = 0,
+                            UsuarioCreadorId = data.UsuarioCreadorId,
+                            FechaCreacion    = DateTime.Now,
+                            Estado           = 1
+                        };
+
+                        await _unitOfWork.TareaRepository.Add(tareaInactivacion);
+                    }
+                }
+
+                // ── 4. Persistir inactivación + tarea en una única transacción ──────────────
                 await _unitOfWork.SaveChangesAsync();
 
                 booOk = true;

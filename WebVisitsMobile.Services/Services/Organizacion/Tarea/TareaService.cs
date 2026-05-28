@@ -242,5 +242,26 @@ namespace WebVisitsMobile.Services.Services.Organizacion.Tarea
 
             return pagedTask;
         }
+
+        /// <summary>
+        /// Retorna las tareas pendientes del tipo "PlantillaCredencial Inactivate"
+        /// (TipoTareaId = C8FC0425-E7C9-4CBD-9CD9-081FB72F549F), paginadas.
+        /// </summary>
+        public async Task<PagedList<TareaPlantillaCredencialInactivate>> GetAllByPlantillaCredencialInactivate(BaseQueryFilter filters)
+        {
+            try
+            {
+                filters.PageNumber = filters.PageNumber == 0 ? int.Parse(_paginationOptions.DefaultPageNumber) : filters.PageNumber;
+                filters.PageSize   = filters.PageSize   == 0 ? int.Parse(_paginationOptions.DefaultPageSize)   : filters.PageSize;
+
+                var tareas = await _unitOfWork.TareaRepository.GetAllByPlantillaCredencialInactivate();
+
+                return PagedList<TareaPlantillaCredencialInactivate>.Create(tareas, filters.PageNumber, filters.PageSize);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
     }
 }

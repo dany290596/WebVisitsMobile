@@ -94,7 +94,7 @@ namespace WebVisitsMobile.Controllers.HID
         }
 
         [HttpPatch("Inactivate")]
-        public async Task<IActionResult> Inactivate([Required] Guid id, [Required] Guid usuarioBajaId)
+        public async Task<IActionResult> Inactivate([Required] Guid id)
         {
             if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
             {
@@ -103,7 +103,7 @@ namespace WebVisitsMobile.Controllers.HID
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
-            var result = await _plantillaCredencialService.Inactivate(id, usuarioBajaId);
+            var result = await _plantillaCredencialService.Inactivate(id);
             if (!result)
             {
                 return StatusCode(400, new ApiResponse<bool>(false, "No fue posible inactivar el registro.", 400, false));

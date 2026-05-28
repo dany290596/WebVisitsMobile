@@ -12,5 +12,6 @@ namespace WebVisitsMobile.Data.Interfaces.HID
         Task<UserHIDExpired> GetUserHIDExpired(Guid id);
         Task<LicenciaHidUser?> GetUserHIDWithCredential(Guid? externalId);
         Task<LicenciaHidUser> GetUserHID(Expression<Func<LicenciaHidUser, bool>> predicate);
+        Task<List<LicenciaHidUser>> GetAllLicenciasExpiradas();
     }
 }

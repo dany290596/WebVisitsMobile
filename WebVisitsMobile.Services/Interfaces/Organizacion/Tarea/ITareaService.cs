@@ -17,5 +17,6 @@ namespace WebVisitsMobile.Services.Interfaces.Organizacion.Tarea
         Task<Domain.Entities.Organizacion.Tarea.Tarea> GetById(Guid task);
         Task<PagedList<TareaHID<T>>> GetAllByUserWallet<T>(BaseQueryFilter filters, Guid typeTaskId);
         Task<PagedList<TareaHID<TareaPlantilla>>> GetAllByTemplate(BaseQueryFilter filters);
+        Task<PagedList<TareaPlantillaCredencialInactivate>> GetAllByPlantillaCredencialInactivate(BaseQueryFilter filters);
     }
 }

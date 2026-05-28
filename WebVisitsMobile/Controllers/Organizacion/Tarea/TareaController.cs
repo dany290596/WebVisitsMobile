@@ -400,5 +400,36 @@ namespace WebVisitsMobile.Controllers.Organizacion.Tarea
                 throw;
             }
         }
+
+        /// <summary>
+        /// GET /api/Tarea/GetAllByPlantillaCredencialInactivate
+        /// Retorna las tareas pendientes generadas al inactivar una PlantillaCredencial.
+        /// TipoTareaId fijo: C8FC0425-E7C9-4CBD-9CD9-081FB72F549F
+        /// Requiere paginación vía query-string: pageNumber, pageSize.
+        /// </summary>
+        [HttpGet("GetAllByPlantillaCredencialInactivate")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<TareaPlantillaCredencialInactivate>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetAllByPlantillaCredencialInactivate([FromQuery] BaseQueryFilter filters)
+        {
+            try
+            {
+                var data = await _tareaService.GetAllByPlantillaCredencialInactivate(filters);
+
+                string strUriPreviousPage = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+                string strUriNextPage     = _uriService.GetCommonPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+
+                var response = new ApiResponse<List<TareaPlantillaCredencialInactivate>>(
+                    true, "Consulta exitosa.", 200, data.ToList());
+                response.CargarMetaData(data.TotalCount, data.PageSize, data.CurrentPage, data.TotalPages,
+                                        data.HasNextPage, data.HasPreviousPage, strUriNextPage, strUriPreviousPage);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }

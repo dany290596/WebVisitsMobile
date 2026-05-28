@@ -178,5 +178,25 @@ namespace WebVisitsMobile.Data.Implements.HID
 
             return user;
         }
+
+        public async Task<List<LicenciaHidUser>> GetAllLicenciasExpiradas()
+        {
+            var ahora = DateTime.UtcNow;
+
+            return await _context.LicenciaHidUser
+                .Where(u => u.FechaFin.HasValue
+                         && u.FechaFin.Value < ahora
+                         && u.Plataforma != null)
+                .Select(u => new LicenciaHidUser
+                {
+                    Id            = u.Id,
+                    EmpresaClienteId = u.EmpresaClienteId,
+                    FechaFin      = u.FechaFin,
+                    Plataforma    = u.Plataforma,
+                    ExternalId    = u.ExternalId
+                })
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

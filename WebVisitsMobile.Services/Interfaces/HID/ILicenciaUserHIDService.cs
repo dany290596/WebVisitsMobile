@@ -32,5 +32,6 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<UserHIDWithCredentialsDTO?> GetWithCredentials(Guid externalId);
         Task<LicenciaHidUser> GetByIdExpired(Guid licenseUserHIDId);
         Task<bool> CreateTypeCredential(UserHIDTypeCredentialReqDTO licenseUserHID, Guid currentClientCompanyId, Guid currentUserId);
+        Task<List<LicenciaHidUser>> GetAllLicenciasExpiradas();
     }
 }

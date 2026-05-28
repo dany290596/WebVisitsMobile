@@ -335,6 +335,47 @@ namespace WebVisitsMobile.Controllers.HID
         }
 
 
+        /// <summary>
+        /// Obtiene las licencias HID cuya FechaFin ya expiró y tienen Plataforma asignada.
+        /// </summary>
+        [HttpGet("GetLicenciasExpiradas")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<LicenciaHidUserExpiradaRespDTO>>))]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
+        public async Task<IActionResult> GetLicenciasExpiradas()
+        {
+            try
+            {
+                var data = await _licenciaUserHIDService.GetAllLicenciasExpiradas();
+
+                if (data == null || !data.Any())
+                {
+                    return StatusCode(200, new ApiResponse<IEnumerable<LicenciaHidUserExpiradaRespDTO>>(
+                        true,
+                        "No se encontraron licencias expiradas con plataforma asignada.",
+                        200,
+                        Enumerable.Empty<LicenciaHidUserExpiradaRespDTO>()));
+                }
+
+                var dataDTO = data.Select(u => new LicenciaHidUserExpiradaRespDTO
+                {
+                    Id            = u.Id,
+                    EmpresaClienteId = u.EmpresaClienteId,
+                    FechaFin      = u.FechaFin,
+                    Plataforma    = u.Plataforma,
+                    ExternalId    = u.ExternalId
+                });
+
+                var response = new ApiResponse<IEnumerable<LicenciaHidUserExpiradaRespDTO>>(
+                    true, "Consulta exitosa", 200, dataDTO);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         [HttpPatch("ReactivateCredentialUser")]
         public async Task<IActionResult> ReactivateCredentialUser([Required] Guid id, [Required] Guid usuarioReactivadorId)
         {

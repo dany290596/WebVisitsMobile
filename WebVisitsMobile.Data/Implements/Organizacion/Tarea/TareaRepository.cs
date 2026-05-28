@@ -125,5 +125,32 @@ namespace WebVisitsMobile.Data.Implements.Organizacion.Tarea
                     : JsonSerializer.Deserialize<TareaPlantilla>(t.ValorEnvio)
             });
         }
+
+        /// <summary>
+        /// Retorna las tareas pendientes del tipo "PlantillaCredencial Inactivate"
+        /// (TipoTareaId = C8FC0425-E7C9-4CBD-9CD9-081FB72F549F).
+        /// ValorEnvio contiene el ExternalId (Guid) de la plantilla inactivada.
+        /// </summary>
+        public async Task<IEnumerable<TareaPlantillaCredencialInactivate>> GetAllByPlantillaCredencialInactivate()
+        {
+            var tipoTareaId = new Guid("C8FC0425-E7C9-4CBD-9CD9-081FB72F549F");
+
+            var tareas = await _context.Tarea
+                .Where(t => t.Pendiente == 1
+                         && t.Status    == 1
+                         && t.TipoTareaId == tipoTareaId)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return tareas.Select(t => new TareaPlantillaCredencialInactivate
+            {
+                Id            = t.Id,
+                TipoTareaId   = t.TipoTareaId,
+                ValorEnvio    = t.ValorEnvio,
+                Status        = t.Status,
+                Pendiente     = t.Pendiente,
+                FechaCreacion = t.FechaCreacion
+            });
+        }
     }
 }
