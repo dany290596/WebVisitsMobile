@@ -302,7 +302,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 ApiUrl = GetRequiredSetting(stringKeySettings, "9B02E35B-A069-4BF5-B9CA-337A59455347", nameof(AppSettingDTO.ApiUrl)),
                 CallbackAndEventUrl = GetRequiredSetting(stringKeySettings, "82481E61-4BF5-44CE-B222-3283F7BC02F9", nameof(AppSettingDTO.CallbackAndEventUrl)),
                 PremiumReportUrl = GetOptionalSetting(stringKeySettings, "84BA81E1-56C0-4BEE-A57F-D05C13BB544A"),
-                CredentialManagementURL= GetRequiredSetting(stringKeySettings, "5006A3E3-1E78-4341-9253-C2189A7C8974", nameof(AppSettingDTO.CredentialManagementURL)),
+                CredentialManagementURL = GetRequiredSetting(stringKeySettings, "5006A3E3-1E78-4341-9253-C2189A7C8974", nameof(AppSettingDTO.CredentialManagementURL)),
                 UsersURL = GetRequiredSetting(stringKeySettings, "5F9327BE-42D6-46B9-BF0E-DB7176371A20", nameof(AppSettingDTO.UsersURL)),
                 EventsURL = GetRequiredSetting(stringKeySettings, "9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9", nameof(AppSettingDTO.EventsURL)),
                 TransactionURL = GetRequiredSetting(stringKeySettings, "A90006CA-A3E8-4576-A8B0-25B1C5438D55", nameof(AppSettingDTO.TransactionURL)),
@@ -492,7 +492,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                     .ToListAsync();
 
                 if (settings == null || !settings.Any())
-                    return false; // No hay configuraciones para eliminar
+                    return true; // No hay configuraciones para eliminar
 
                 // Eliminar todas las configuraciones encontradas
                 _unitOfWork.ConfiguracionesRepository.DeleteRange(settings);
@@ -507,7 +507,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             }
         }
 
-        public async Task<bool> ReactivateAllSettingsByCompany(Guid empresaClienteId, Guid currentUserId)
+        public async Task<bool> ReactivateAllSettingsByCompany(Guid clientCompanyId, Guid currentUserId)
         {
             try
             {
@@ -515,7 +515,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
 
                 var settings = await _unitOfWork.ConfiguracionesRepository
                     .GetAllSettingQueryable()
-                    .Where(c => c.EmpresaClienteId == empresaClienteId && c.Estado == 1)
+                    .Where(c => c.EmpresaClienteId == clientCompanyId && c.Estado == 1)
                     .ToListAsync();
 
                 if (settings.Count == 0)
@@ -581,6 +581,23 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             catch (Exception ex)
             {
                 return false;
+            }
+        }
+
+        public async Task<SettingAccountEmail?> GetSettingOfAccountEmail()
+        {
+            try
+            {
+                var settings = await _unitOfWork.ConfiguracionesRepository.GetSettingOfAccountEmail();
+                if (settings == null)
+                {
+                    return null;
+                }
+                return settings;
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
     }

@@ -49,6 +49,15 @@ namespace WebVisitsMobile.Controllers.HID
             try
             {
                 var data = await _licenciaUserHIDService.GetAll(filters);
+                if (data == null || !data.Any())
+                {
+                    return StatusCode(200, new ApiResponse<IEnumerable<UserHIDRespDTO>>(
+                        true,
+                        "No se encontraron registros que coincidan con tu búsqueda",
+                        200,
+                        Enumerable.Empty<UserHIDRespDTO>()
+                    ));
+                }
                 var dataDTO = _mapper.Map<IEnumerable<UserHIDRespDTO>>(data);
 
                 string strUriPreviousPage = _uriService.GetLicenseUserHIDPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();

@@ -132,6 +132,29 @@ namespace WebVisitsMobile.Controllers.Empresa
             }
         }
 
+        [HttpGet("CredentialConfiguration/{id}")]
+        public async Task<IActionResult> GetCredentialConfiguration(Guid id)
+        {
+            try
+            {
+                if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+                {
+                    return BadRequest("El header de la empresa es inválido.");
+                }
+                var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+                if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+                var data = await _empresaClienteService.GetWithSetting(id);
+                var response = new ApiResponse<CompanyClientWithSetting>(true, "Consulta ejecutada", 200, data);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         [HttpPatch("Inactivate")]
         public async Task<IActionResult> Inactivate([Required] Guid id, [Required] Guid usuarioBajaId)
         {
@@ -205,38 +228,6 @@ namespace WebVisitsMobile.Controllers.Empresa
 
         //    return StatusCode(200, response);
         //}
-
-        [HttpPut]
-        public async Task<IActionResult> Update(Guid id, EmpresaClienteReqDTO data)
-        {
-            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
-            {
-                return BadRequest("El header de la empresa es inválido.");
-            }
-            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
-            if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
-
-            Token token = _accesorService.GetTokenData();
-            if (token == null)
-            {
-                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
-            }
-
-            var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-            if (validarSesion == null) { return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta.", tipoError = 3 }); }
-
-            var mapper = _mapper.Map<EmpresaCliente>(data);
-            mapper.Id = id;
-            var result = await _empresaClienteService.Update(mapper, token.UsuarioId);
-            if (!result)
-            {
-                return StatusCode(500, new ApiResponse<string>(false, "ocurrió un error.", 500, null));
-
-            }
-            var response = new ApiResponse<bool>(true, "Se actualizó correctamente.", 200, result);
-
-            return StatusCode(200, response);
-        }
 
         [HttpPost("TestConnection")]
         public async Task<IActionResult> TestConnection([FromBody] TestConnectionDTO data)
@@ -406,6 +397,42 @@ namespace WebVisitsMobile.Controllers.Empresa
                 // Obtener el servicio desde el scope interno para notificar error
                 var _taskEventService = scope.ServiceProvider.GetRequiredService<TaskEventService>();
                 await _taskEventService.NotifyErrorAsync(taskId, $"Error interno: {ex.Message}");
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] EmpresaClienteConfiguracionReqDTO model)
+        {
+            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+                return BadRequest("El header de la empresa es inválido.");
+
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null)
+                return BadRequest($"La empresa con el ID {empresaId} no existe.");
+
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+
+            var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
+            if (validarSesion == null)
+                return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesión activa con tu cuenta.", tipoError = 3 });
+
+            try
+            {
+                var empresa = _mapper.Map<EmpresaCliente>(model.Empresa);
+                empresa.Id = id;
+
+                bool resultado = await _empresaClienteService.UpdateWithHID(empresa, model.Configuraciones, token.UsuarioId);
+                if (!resultado)
+                    return StatusCode(500, new ApiResponse<bool>(false, "No se pudo actualizar el registro.", 500, false));
+
+                var response = new ApiResponse<bool>(true, "La empresa se actualizó correctamente.", 200, true);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "Error interno del servidor.", 500, null));
             }
         }
 

@@ -51,6 +51,15 @@ namespace WebVisitsMobile.Controllers.HID
                 if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
                 var data = await _credencialHIDService.GetAll(filters, empresaId);
+                if (data == null || !data.Any())
+                {
+                    return StatusCode(200, new ApiResponse<IEnumerable<CredencialHIDRespDTO>>(
+                        true,
+                        "No se encontraron registros que coincidan con tu búsqueda",
+                        200,
+                        Enumerable.Empty<CredencialHIDRespDTO>()
+                    ));
+                }
                 var dataDTO = _mapper.Map<IEnumerable<CredencialHIDRespDTO>>(data);
 
                 string strUriPreviousPage = _uriService.GetCredentialHIDPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();

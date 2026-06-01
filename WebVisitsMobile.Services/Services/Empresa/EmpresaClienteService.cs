@@ -225,6 +225,58 @@ namespace WebVisitsMobile.Services.Services.Empresa
             return booOk;
         }
 
+        public async Task<bool> UpdateWithHID(EmpresaCliente clientCompany, List<ConfiguracionesReqDTO>? settings, Guid usuarioActualId)
+        {
+            try
+            {
+                if (usuarioActualId == Guid.Empty) return false;
+
+                // Actualizar datos de la empresa
+                EmpresaCliente clientCompanyUpdate = await _unitOfWork.EmpresaClienteRepository.GetById(clientCompany.Id);
+                if (clientCompanyUpdate == null) return false;
+
+                clientCompanyUpdate.RazonSocial = clientCompany.RazonSocial;
+                clientCompanyUpdate.RFC = clientCompany.RFC;
+                clientCompanyUpdate.TelefonoEmpresa = clientCompany.TelefonoEmpresa;
+                clientCompanyUpdate.TelefonoMovil = clientCompany.TelefonoMovil;
+                clientCompanyUpdate.CorreoElectronico = clientCompany.CorreoElectronico;
+                clientCompanyUpdate.UsaCredencialesHID = clientCompany.UsaCredencialesHID;
+                clientCompanyUpdate.PaisId = clientCompany.PaisId;
+                clientCompanyUpdate.EstadoId = clientCompany.EstadoId;
+                clientCompanyUpdate.CiudadId = clientCompany.CiudadId;
+                clientCompanyUpdate.FechaModificacion = DateTime.UtcNow;
+                clientCompanyUpdate.UsuarioModificadorId = usuarioActualId;
+
+                _unitOfWork.EmpresaClienteRepository.Update(clientCompanyUpdate);
+                await _unitOfWork.SaveChangesAsync();
+
+                // Si desactivó HID → desactivar todas sus configuraciones
+                if (clientCompany.UsaCredencialesHID == 2)
+                {
+                    await _configuracionService.DeleteAllSettingsByCompany(clientCompany.Id);
+                    return true;
+                }
+
+                // Si activó HID con configuraciones → actualizar cada una
+                if (settings != null && settings.Any())
+                {
+                    var listUpdate = settings.Select(c => new ConfiguracionesListReqDTO
+                    {
+                        Id = c.Id,
+                        Valor1 = c.Valor1
+                    }).ToList();
+
+                    return await _configuracionService.Update(listUpdate);
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public async Task<bool> Update(EmpresaCliente clientCompany, Guid usuarioActualId)
         {
             try
@@ -260,14 +312,44 @@ namespace WebVisitsMobile.Services.Services.Empresa
 
         public async Task<EmpresaCliente?> GetByRFC(string rfc)
         {
-            EmpresaCliente clientCompany = await _unitOfWork.EmpresaClienteRepository.GetCompanyClient(l => l.RFC == rfc);
-            return clientCompany;
+            try
+            {
+                EmpresaCliente clientCompany = await _unitOfWork.EmpresaClienteRepository.GetCompanyClient(l => l.RFC == rfc);
+                return clientCompany;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
 
         public async Task<EmpresaCliente?> GetByRazonSocial(string socialReason)
         {
-            EmpresaCliente clientCompany = await _unitOfWork.EmpresaClienteRepository.GetCompanyClient(l => l.RazonSocial == socialReason);
-            return clientCompany;
+            try
+            {
+                EmpresaCliente clientCompany = await _unitOfWork.EmpresaClienteRepository.GetCompanyClient(l => l.RazonSocial == socialReason);
+                return clientCompany;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        public async Task<CompanyClientWithSetting> GetWithSetting(Guid companyClientId)
+        {
+            try
+            {
+                var data = await _unitOfWork.EmpresaClienteRepository.GetCompanyClientWithSetting(companyClientId);
+                return data;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
     }
 }

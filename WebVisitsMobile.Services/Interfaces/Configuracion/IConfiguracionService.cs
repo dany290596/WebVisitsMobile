@@ -25,5 +25,7 @@ namespace WebVisitsMobile.Services.Interfaces.Configuracion
         Task<List<Configuraciones>> GetConfigurationTemplates();
         Task<List<SettingsGroup>> GetSettingsGroupByCompany();
         Task<bool> DeactivateAllSettingByCompany(Guid clientCompanyId, Guid currentUserId);
+        Task<SettingAccountEmail?> GetSettingOfAccountEmail();
+        Task<bool> DeleteAllSettingsByCompany(Guid empresaClienteId);
     }
 }

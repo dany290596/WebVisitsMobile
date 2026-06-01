@@ -182,5 +182,20 @@ namespace WebVisitsMobile.Controllers.Configuracion
                 return StatusCode(500, new ApiResponse<string>(false, "Se produjo un error interno al procesar la solicitud.", 500, null));
             }
         }
+
+        [HttpGet("AccountEmail", Name = "GetSettingOfAccountEmail")]
+        public async Task<IActionResult> GetSettingOfAccountEmail()
+        {
+            try
+            {
+                var setting = await _configuracionService.GetSettingOfAccountEmail();
+                var response = new ApiResponse<SettingAccountEmail>(true, "La operación se completó exitosamente.", 200, setting);
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Se produjo un error interno al procesar la solicitud.");
+            }
+        }
     }
 }
