@@ -197,5 +197,25 @@ namespace WebVisitsMobile.Controllers.Configuracion
                 return StatusCode(500, "Se produjo un error interno al procesar la solicitud.");
             }
         }
+
+        [HttpGet("SettingsGrouped")]
+        public async Task<IActionResult> GetConfigurationTemplates()
+        {
+            var result = await _configuracionService.GetConfigurationTemplates();
+            if (result == null || !result.Any())
+                return StatusCode(404, new ApiResponse<Configuraciones>(false, "No se encontraron configuraciones.", 404, null));
+
+            return StatusCode(200, new ApiResponse<List<Configuraciones>>(true, "Configuración obtenida correctamente.", 200, result));
+        }
+
+        [HttpGet("SettingsGroupedType")]
+        public async Task<IActionResult> GetSettingsGroupedByType()
+        {
+            var result = await _configuracionService.GetSettingsGroupedByType();
+            if (result == null || !result.Any())
+                return StatusCode(404, new ApiResponse<SettingsGroupTap>(false, "No se encontraron configuraciones.", 404, null));
+
+            return StatusCode(200, new ApiResponse<List<SettingsGroupTap>>(true, "Configuración obtenida correctamente.", 200, result));
+        }
     }
 }
