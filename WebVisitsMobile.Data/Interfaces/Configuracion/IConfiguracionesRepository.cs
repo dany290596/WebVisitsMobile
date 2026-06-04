@@ -12,5 +12,6 @@ namespace WebVisitsMobile.Data.Interfaces.Configuracion
         Task<List<SettingsGroup>> GetSettingGroupByCompany();
         void DeleteRange(IEnumerable<Configuraciones> settings);
         IQueryable<Configuraciones> GetAllSettingQueryable();
+        Task<SettingAccountEmail> GetSettingOfAccountEmail();
     }
 }

@@ -14,5 +14,6 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<bool> Suspend(Guid id, Guid clientCompanyId);
         Task<PagedList<CredencialHid>> GetAll(CredencialHIDQueryFilter filters, Guid clientCompanyId);
         Task<CredencialHid> GetById(Guid credentialHIDId, Guid clientCompanyId);
+        Task<bool> UpdateStatus(Guid userId, int status);
     }
 }

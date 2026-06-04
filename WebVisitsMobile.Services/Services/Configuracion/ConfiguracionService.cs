@@ -103,11 +103,15 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             }
         }
 
-        public async Task<Configuraciones> GetByTypeSettingAndCompanyId(Guid typeSetting, Guid clientCompanyId)
+        public async Task<Configuraciones?> GetByTypeSettingAndCompanyId(Guid typeSetting, Guid clientCompanyId)
         {
             try
             {
                 Configuraciones setting = await _unitOfWork.ConfiguracionesRepository.GetSetting(s => s.TipoConfiguracion == typeSetting && s.EmpresaClienteId == clientCompanyId);
+                if (setting == null)
+                {
+                    return null;
+                }    
                 return setting;
             }
             catch (Exception ex)
@@ -302,7 +306,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 ApiUrl = GetRequiredSetting(stringKeySettings, "9B02E35B-A069-4BF5-B9CA-337A59455347", nameof(AppSettingDTO.ApiUrl)),
                 CallbackAndEventUrl = GetRequiredSetting(stringKeySettings, "82481E61-4BF5-44CE-B222-3283F7BC02F9", nameof(AppSettingDTO.CallbackAndEventUrl)),
                 PremiumReportUrl = GetOptionalSetting(stringKeySettings, "84BA81E1-56C0-4BEE-A57F-D05C13BB544A"),
-                CredentialManagementURL= GetRequiredSetting(stringKeySettings, "5006A3E3-1E78-4341-9253-C2189A7C8974", nameof(AppSettingDTO.CredentialManagementURL)),
+                CredentialManagementURL = GetRequiredSetting(stringKeySettings, "5006A3E3-1E78-4341-9253-C2189A7C8974", nameof(AppSettingDTO.CredentialManagementURL)),
                 UsersURL = GetRequiredSetting(stringKeySettings, "5F9327BE-42D6-46B9-BF0E-DB7176371A20", nameof(AppSettingDTO.UsersURL)),
                 EventsURL = GetRequiredSetting(stringKeySettings, "9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9", nameof(AppSettingDTO.EventsURL)),
                 TransactionURL = GetRequiredSetting(stringKeySettings, "A90006CA-A3E8-4576-A8B0-25B1C5438D55", nameof(AppSettingDTO.TransactionURL)),
@@ -411,15 +415,15 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             return true;
         }
 
-        public async Task<bool> CreateSettingsForCompany(List<ConfiguracionesReqDTO> settings, Guid empresaClienteId, Guid currentUserId)
+        public async Task<bool> CreateSettingsForCompany(List<ConfiguracionesReqDTO> settings, Guid clientCompanyId, Guid currentUserId)
         {
-            if (empresaClienteId == Guid.Empty)
+            if (clientCompanyId == Guid.Empty)
                 return false;
 
             if (currentUserId == Guid.Empty)
                 return false;
 
-            if (settings == null || settings.Count == 0)
+            if (settings == null || settings.Count() == 0)
                 return false;
 
             var now = DateTime.UtcNow;
@@ -434,7 +438,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 Valor3 = c.Valor3,
                 editable = c.editable,
                 lectura = c.lectura,
-                EmpresaClienteId = empresaClienteId,
+                EmpresaClienteId = clientCompanyId,
                 UsuarioCreadorId = currentUserId,
                 FechaCreacion = now,
                 Estado = 1
@@ -450,6 +454,35 @@ namespace WebVisitsMobile.Services.Services.Configuracion
         {
             return Task.FromResult(new List<Configuraciones>
             {
+                //// @CN01
+                //new() { TipoConfiguracion = Guid.Parse('742CE98B-684B-4A76-BA0D-CF62621FC3E7'), NombreParametro = 'Customer ID', Valor1 = '', Valor2 = '', Valor3 = '', Editable = 1, Lectura = 0, Estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('BB617929-5F49-4FDC-8C28-62435505B600'), NombreParametro = 'Client ID', Valor1 = '', Valor2 = '', Valor3 = '', Editable = 1, Lectura = 0, Estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('29625587-4A45-495A-B728-203608694C44'), NombreParametro = 'Client secret/Client certificate', Valor1 = '', Valor2 = '', Valor3 = '', Editable = 1, Lectura = 0, Estado = 1 },
+
+                //// Configuración de URLS
+                //new() { TipoConfiguracion = Guid.Parse('60ADEBFE-01B5-497A-828B-CF3801F37495'), NombreParametro = 'IDP authentication URL', valor1: 'https://api.cert.origo.hidglobal.com', valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('9B02E35B-A069-4BF5-B9CA-337A59455347'), NombreParametro = 'API URL', valor1: '', valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('82481E61-4BF5-44CE-B222-3283F7BC02F9'), NombreParametro = 'Callback and Event URL', valor1: '', valor2: 'If callback is implemented', valor3: '', editable: 1, lectura: 0, estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('84BA81E1-56C0-4BEE-A57F-D05C13BB544A'), NombreParametro = 'Premium Report URL', valor1: '', valor2: 'If premium reports API is used', valor3: '', editable: 1, lectura: 0, estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('5006A3E3-1E78-4341-9253-C2189A7C8974'), NombreParametro = "Credential Management URL", valor1: "", valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('5F9327BE-42D6-46B9-BF0E-DB7176371A20'), NombreParametro = "Users URL", valor1: "", valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9'), NombreParametro = "Events URL", valor1: "", valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('A90006CA-A3E8-4576-A8B0-25B1C5438D55'), NombreParametro = "Transaction URL", valor1: "", valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
+
+                //// Parámetros de API
+                //new() { TipoConfiguracion = Guid.Parse('40E1A0B9-9144-490E-BF75-7663F3447118'), NombreParametro = 'Content Type', valor1: 'application/vnd.assaabloy.ma.credential-management-2.2+json', valor2: 'Header requirement', valor3: '', editable: 1, lectura: 0, estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('4B6BCEFA-20CA-48B9-92FA-5396C7C94202'), NombreParametro = 'Accept Type', valor1: '##MANDATORY##', valor2: 'For .NET compatibility', valor3: '', editable: 1, lectura: 0, estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('788F90F3-0CE3-4E96-B4BA-38DA1CFE105B'), NombreParametro = 'Application ID', valor1: 'HID-CRCDEMEXICO-DEV', valor2: 'Format: HID-PARTNERNAME-SOLUTIONNAME', valor3: '', editable: 1, lectura: 0, estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6'), NombreParametro = 'Application Version', valor1: '##MANDATORY##', valor2: 'Versioning format', valor3: '', editable: 1, lectura: 0, estado =  1 },
+
+                //// Clave de producto
+                //new() { TipoConfiguracion = Guid.Parse('C98EE139-92FB-4E71-94B7-AE258DD1929A'), NombreParametro = 'Part number field', valor1: 'MID-SUB-CRD_FTPN_644745', valor2: 'Replaces hardcoded value', valor3: '', editable: 1, lectura: 0, estado = 1 },
+
+                //// Métodos de descubrimiento
+                //new() { TipoConfiguracion = Guid.Parse('D539FF01-17F0-4C29-9E17-668A5591ACE5'), NombreParametro = 'Auto detect Part number', valor1: '4924_644745', valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('18A0E41D-960E-4F52-9604-D0C773A87F9C'), NombreParametro = 'Select Part number', valor1: 'MID-SUB-CRD_FTPN_644745', valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
+                //new() { TipoConfiguracion = Guid.Parse('32DC2E87-E6A4-48D7-AF0E-B967ED2BBF49'), NombreParametro = 'Manual entry Part number', valor1: 'Enter value', valor2: 'HID Origo compatible', valor3: '', editable: 1, lectura: 0, estado = 1 },
+
                 // @CN01
                 new() { TipoConfiguracion = Guid.Parse("742CE98B-684B-4A76-BA0D-CF62621FC3E7"), NombreParametro = "Customer ID", Valor1 = "", editable = 1, lectura = 0 },
                 new() { TipoConfiguracion = Guid.Parse("BB617929-5F49-4FDC-8C28-62435505B600"), NombreParametro = "Client ID", Valor1 = "", editable = 1, lectura = 0 },
@@ -481,6 +514,64 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             });
         }
 
+        public async Task<List<SettingsGroupTap>> GetSettingsGroupedByType()
+        {
+            var templates = await GetConfigurationTemplates();
+            var templateDict = templates.ToDictionary(t => t.TipoConfiguracion, t => new ConfigSetting
+            {
+                TipoConfiguracion = t.TipoConfiguracion,
+                Nombre = t.NombreParametro,
+                Valor1 = t.Valor1
+            });
+
+            // Usar los GUIDs del template directamente
+            var cn01 = templates.Where(t => new[]
+            {
+                Guid.Parse("742CE98B-684B-4A76-BA0D-CF62621FC3E7"),
+                Guid.Parse("BB617929-5F49-4FDC-8C28-62435505B600"),
+                Guid.Parse("29625587-4A45-495A-B728-203608694C44")
+            }.Contains(t.TipoConfiguracion)).Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            var cn02 = templates.Where(t => new[]
+            {
+                Guid.Parse("60ADEBFE-01B5-497A-828B-CF3801F37495"),
+                Guid.Parse("9B02E35B-A069-4BF5-B9CA-337A59455347"),
+                Guid.Parse("82481E61-4BF5-44CE-B222-3283F7BC02F9"),
+                Guid.Parse("84BA81E1-56C0-4BEE-A57F-D05C13BB544A"),
+                Guid.Parse("5006A3E3-1E78-4341-9253-C2189A7C8974"),
+                Guid.Parse("5F9327BE-42D6-46B9-BF0E-DB7176371A20"),
+                Guid.Parse("9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9"),
+                Guid.Parse("A90006CA-A3E8-4576-A8B0-25B1C5438D55")
+            }.Contains(t.TipoConfiguracion)).Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            var cn03 = templates.Where(t => new[]
+            {
+                Guid.Parse("40E1A0B9-9144-490E-BF75-7663F3447118"),
+                Guid.Parse("4B6BCEFA-20CA-48B9-92FA-5396C7C94202"),
+                Guid.Parse("788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"),
+                Guid.Parse("FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6")
+            }.Contains(t.TipoConfiguracion)).Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            var cn04 = templates.Where(t => t.TipoConfiguracion == Guid.Parse("C98EE139-92FB-4E71-94B7-AE258DD1929A"))
+                .Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            var cn05 = templates.Where(t => new[]
+            {
+                Guid.Parse("D539FF01-17F0-4C29-9E17-668A5591ACE5"),
+                Guid.Parse("18A0E41D-960E-4F52-9604-D0C773A87F9C"),
+                Guid.Parse("32DC2E87-E6A4-48D7-AF0E-B967ED2BBF49")
+            }.Contains(t.TipoConfiguracion)).Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            return new List<SettingsGroupTap>
+            {
+                new() { Key = "authParams",  Label = "Parámetros de autenticación", Items = cn01 },
+                new() { Key = "urlConfig",   Label = "Configuración de URLS",       Items = cn02 },
+                new() { Key = "apiParams",   Label = "Parámetros de API",           Items = cn03 },
+                new() { Key = "productKey",  Label = "Clave de producto",           Items = cn04 },
+                new() { Key = "discovery",   Label = "Métodos de descubrimiento",   Items = cn05 }
+            };
+        }
+
         public async Task<bool> DeleteAllSettingsByCompany(Guid empresaClienteId)
         {
             try
@@ -492,7 +583,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                     .ToListAsync();
 
                 if (settings == null || !settings.Any())
-                    return false; // No hay configuraciones para eliminar
+                    return true; // No hay configuraciones para eliminar
 
                 // Eliminar todas las configuraciones encontradas
                 _unitOfWork.ConfiguracionesRepository.DeleteRange(settings);
@@ -507,7 +598,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             }
         }
 
-        public async Task<bool> ReactivateAllSettingsByCompany(Guid empresaClienteId, Guid currentUserId)
+        public async Task<bool> ReactivateAllSettingsByCompany(Guid clientCompanyId, Guid currentUserId)
         {
             try
             {
@@ -515,7 +606,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
 
                 var settings = await _unitOfWork.ConfiguracionesRepository
                     .GetAllSettingQueryable()
-                    .Where(c => c.EmpresaClienteId == empresaClienteId && c.Estado == 1)
+                    .Where(c => c.EmpresaClienteId == clientCompanyId && c.Estado == 1)
                     .ToListAsync();
 
                 if (settings.Count == 0)
@@ -581,6 +672,23 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             catch (Exception ex)
             {
                 return false;
+            }
+        }
+
+        public async Task<SettingAccountEmail?> GetSettingOfAccountEmail()
+        {
+            try
+            {
+                var settings = await _unitOfWork.ConfiguracionesRepository.GetSettingOfAccountEmail();
+                if (settings == null)
+                {
+                    return null;
+                }
+                return settings;
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
     }

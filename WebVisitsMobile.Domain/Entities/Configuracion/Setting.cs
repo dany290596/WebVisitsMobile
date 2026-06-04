@@ -1,8 +1,9 @@
-﻿namespace WebVisitsMobile.Models.Configuracion.Configuraciones
+﻿using WebVisitsMobile.Domain.Entities.Common;
+
+namespace WebVisitsMobile.Domain.Entities.Configuracion
 {
-    public class ConfiguracionesReqDTO
+    public class Setting : BaseEntity
     {
-        public Guid? Id { get; set; }
         public string NombreParametro { get; set; }
         public Guid? ValorGuid { get; set; }
         public string? Valor1 { get; set; }
@@ -12,6 +13,5 @@
         public byte? lectura { get; set; }
         public Guid EmpresaClienteId { get; set; }
         public Guid TipoConfiguracion { get; set; }
-        public Guid UsuarioCreadorId { get; set; }
     }
 }

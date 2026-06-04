@@ -4,7 +4,7 @@ namespace WebVisitsMobile.Models.Configuracion.Configuraciones
 {
     public class ConfiguracionesListReqDTO
     {
-        public Guid Id { get; set; }
+        public Guid? Id { get; set; }
         public string NombreParametro { get; set; }
         public Guid? ValorGuid { get; set; }
         public string? Valor1 { get; set; }

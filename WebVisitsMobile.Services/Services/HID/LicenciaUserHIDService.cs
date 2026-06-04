@@ -772,6 +772,27 @@ namespace WebVisitsMobile.Services.Services.HID
             }
         }
 
+        public async Task<bool> UpdateStatus(Guid userId, int status)
+        {
+            try
+            {
+                LicenciaHidUser data = await _unitOfWork.LicenciaUserHIDRepository.GetUserHID(u => u.UsuarioWalletId == userId);
+                if (data == null) { return false; }
+
+                data.Status = status;
+                data.FechaModificacion = DateTime.Now;
+
+                _unitOfWork.LicenciaUserHIDRepository.Update(data);
+                await _unitOfWork.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
         public async Task<bool> UpdateStatus(Guid userHIDId, string newInvitationActivity, int newStatus, Guid currentUserId)
         {
             try

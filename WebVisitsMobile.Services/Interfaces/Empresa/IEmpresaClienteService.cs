@@ -14,7 +14,9 @@ namespace WebVisitsMobile.Services.Interfaces.Empresa
         Task<bool> Reactivate(Guid id, Guid currentUserId);
         Task<bool> CreateWithHID(EmpresaCliente clientCompany, List<ConfiguracionesReqDTO>? settings, Guid usuarioActualId);
         Task<bool> Update(EmpresaCliente clientCompany, Guid usuarioActualId);
+        Task<bool> UpdateWithHID(EmpresaCliente clientCompany, List<ConfiguracionesReqDTO>? settings, Guid usuarioActualId);
         Task<EmpresaCliente?> GetByRFC(string rfc);
         Task<EmpresaCliente?> GetByRazonSocial(string socialReason);
+        Task<CompanyClientWithSetting> GetWithSetting(Guid companyClientId);
     }
 }

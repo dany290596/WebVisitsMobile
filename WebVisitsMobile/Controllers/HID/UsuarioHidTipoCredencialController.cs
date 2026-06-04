@@ -45,6 +45,15 @@ namespace WebVisitsMobile.Controllers.HID
             try
             {
                 var data = await _tipoCredencialService.GetAll(filters);
+                if (data == null || !data.Any())
+                {
+                    return StatusCode(200, new ApiResponse<IEnumerable<UsuarioHidTipoCredencialRespDTO>>(
+                        true,
+                        "No se encontraron registros que coincidan con tu búsqueda",
+                        200,
+                        Enumerable.Empty<UsuarioHidTipoCredencialRespDTO>()
+                    ));
+                }
                 var dataDTO = _mapper.Map<IEnumerable<UsuarioHidTipoCredencialRespDTO>>(data);
 
                 string strUriPreviousPage = _uriService.GetUserHidTypeCredentialUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();

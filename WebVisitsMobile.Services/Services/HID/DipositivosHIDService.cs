@@ -242,5 +242,26 @@ namespace WebVisitsMobile.Services.Services.HID
 
             return pagedDevice;
         }
+
+        public async Task<bool> UpdateStatus(Guid userId, int status)
+        {
+            try
+            {
+                DipositivosHid data = await _unitOfWork.DipositivosHIDRepository.GetDevice(u => u.LicenciaHidUser.UsuarioWalletId == userId);
+                if (data == null) { return false; }
+
+                data.Status = (byte?)status;
+                data.FechaModificacion = DateTime.Now;
+
+                _unitOfWork.DipositivosHIDRepository.Update(data);
+                await _unitOfWork.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }

@@ -14,5 +14,6 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<PagedList<DipositivosHid>> GetAll(DipositivosHIDQueryFilter filters, Guid clientCompanyId);
         Task<PagedList<CommonDTO>> GetAllQuery(DipositivosHIDQueryFilter filters);
         Task<DipositivosHid> GetById(Guid deviceHID, Guid clientCompanyId);
+        Task<bool> UpdateStatus(Guid userId, int status);
     }
 }

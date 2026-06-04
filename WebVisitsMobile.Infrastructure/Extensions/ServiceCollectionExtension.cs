@@ -87,6 +87,8 @@ namespace WebVisitsMobile.Infrastructure.Extensions
             services.AddTransient<IPaisService, PaisService>();
             services.AddTransient<IPaisEstadoService, PaisEstadoService>();
             services.AddTransient<ICiudadService, CiudadService>();
+            services.AddTransient<IEmailTemplateService, EmailTemplateService>();
+            services.AddTransient<IHIDOrigoEventService, HIDOrigoEventService>();
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddTransient<IUnitOfWork, UnitOfWork>();

@@ -56,9 +56,13 @@ namespace WebVisitsMobile.Data.Implements.Administracion.Seccion
                             .Where(p => p.PerfilId == perfilId)
                             .Select(p => p.FechaVencimiento)
                             .FirstOrDefault()
-                    }).ToList()
+                    })
+                    .OrderByDescending(u => u.Nombre)
+                    .ThenBy(u => u.Nombre)
+                    .ToList()
                 })
                 .OrderByDescending(u => u.ModuloNombre)
+                .ThenBy(u => u.ModuloNombre)
                 .ToListAsync();
         }
 

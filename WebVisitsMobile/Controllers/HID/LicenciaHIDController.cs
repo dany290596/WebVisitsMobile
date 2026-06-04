@@ -63,6 +63,15 @@ namespace WebVisitsMobile.Controllers.HID
                 if (validarSesion == null) { return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta", tipoError = 3 }); }
 
                 var data = await _licenciaHIDService.GetAll(filters, empresaId);
+                if (data == null || !data.Any())
+                {
+                    return StatusCode(200, new ApiResponse<IEnumerable<LicenciaHIDRespDTO>>(
+                        true,
+                        "No se encontraron registros que coincidan con tu búsqueda",
+                        200,
+                        Enumerable.Empty<LicenciaHIDRespDTO>()
+                    ));
+                }
                 var dataDTO = _mapper.Map<IEnumerable<LicenciaHIDRespDTO>>(data);
 
                 string strUriPreviousPage = _uriService.GetLicenseHIDPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
