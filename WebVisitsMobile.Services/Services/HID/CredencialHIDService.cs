@@ -382,5 +382,26 @@ namespace WebVisitsMobile.Services.Services.HID
                 throw;
             }
         }
+
+        public async Task<bool> UpdateStatus(Guid userId, int status)
+        {
+            try
+            {
+                CredencialHid data = await _unitOfWork.CredencialHIDRepository.GetCredentialHID(u => u.LicenciaHidUser.UsuarioWalletId == userId);
+                if (data == null) { return false; }
+
+                data.Status = status;
+                data.FechaModificacion = DateTime.Now;
+
+                _unitOfWork.CredencialHIDRepository.Update(data);
+                await _unitOfWork.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }

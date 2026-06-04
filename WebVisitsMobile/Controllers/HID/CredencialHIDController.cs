@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.HID;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.HID.CredencialHID;
@@ -50,6 +51,12 @@ namespace WebVisitsMobile.Controllers.HID
                 var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
                 if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
+                Token token = _accesorService.GetTokenData();
+                if (token == null)
+                {
+                    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+                }
+
                 var data = await _credencialHIDService.GetAll(filters, empresaId);
                 if (data == null || !data.Any())
                 {
@@ -89,6 +96,12 @@ namespace WebVisitsMobile.Controllers.HID
                 var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
                 if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
+                Token token = _accesorService.GetTokenData();
+                if (token == null)
+                {
+                    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+                }
+
                 var data = await _credencialHIDService.GetById(id, empresaId);
                 var dataDTO = _mapper.Map<CredencialHIDRespDTO>(data);
                 var response = new ApiResponse<CredencialHIDRespDTO>(true, "Consulta ejecutada", 200, dataDTO);
@@ -111,6 +124,12 @@ namespace WebVisitsMobile.Controllers.HID
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+            {
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+            }
+
             var result = await _credencialHIDService.Inactivate(id, empresaId);
             if (!result)
             {
@@ -130,6 +149,12 @@ namespace WebVisitsMobile.Controllers.HID
             }
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+            {
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+            }
 
             var result = await _credencialHIDService.Reactivate(id, empresaId);
             if (!result)
@@ -151,6 +176,12 @@ namespace WebVisitsMobile.Controllers.HID
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+            {
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+            }
+
             var result = await _credencialHIDService.Suspend(id, empresaId);
             if (!result)
             {
@@ -170,6 +201,12 @@ namespace WebVisitsMobile.Controllers.HID
             }
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+            {
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+            }
 
             var mapper = _mapper.Map<CredencialHid>(data);
 

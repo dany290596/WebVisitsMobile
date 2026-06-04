@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
+using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.HID;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.HID.PlantillaCredencial;
@@ -11,6 +13,7 @@ using WebVisitsMobile.Services.Responses;
 
 namespace WebVisitsMobile.Controllers.HID
 {
+    [Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     [ApiController]
@@ -51,6 +54,12 @@ namespace WebVisitsMobile.Controllers.HID
                 var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
                 if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
+                Token token = _accesorService.GetTokenData();
+                if (token == null)
+                {
+                    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+                }
+
                 var data = _plantillaCredencialService.GetAll(filters, empresaId);
                 var dataDTO = _mapper.Map<IEnumerable<PlantillaCredencialRespDTO>>(data);
 
@@ -81,6 +90,12 @@ namespace WebVisitsMobile.Controllers.HID
                 var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
                 if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
+                Token token = _accesorService.GetTokenData();
+                if (token == null)
+                {
+                    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+                }
+
                 var data = await _plantillaCredencialService.GetById(id, empresaId);
                 var dataDTO = _mapper.Map<PlantillaCredencialRespDTO>(data);
                 var response = new ApiResponse<PlantillaCredencialRespDTO>(true, "Consulta ejecutada", 200, dataDTO);
@@ -103,6 +118,12 @@ namespace WebVisitsMobile.Controllers.HID
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+            {
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+            }
+
             var result = await _plantillaCredencialService.Inactivate(id);
             if (!result)
             {
@@ -123,6 +144,12 @@ namespace WebVisitsMobile.Controllers.HID
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+            {
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+            }
+
             var result = await _plantillaCredencialService.Reactivate(id, usuarioReactivadorId);
             if (!result)
             {
@@ -142,6 +169,12 @@ namespace WebVisitsMobile.Controllers.HID
             }
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+            {
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+            }
 
             var mapper = _mapper.Map<PlantillaCredencial>(data);
             mapper.EmpresaClienteId = empresaId;
@@ -168,6 +201,12 @@ namespace WebVisitsMobile.Controllers.HID
             }
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+            {
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+            }
 
             var mapper = _mapper.Map<PlantillaCredencial>(data);
             mapper.Id = id;

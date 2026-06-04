@@ -1,6 +1,4 @@
-﻿using WebVisitsMobile.Models.Empresa.EmpresaCliente;
-
-namespace WebVisitsMobile.Models.Configuracion.Configuraciones
+﻿namespace WebVisitsMobile.Models.Configuracion.Configuraciones
 {
     public class ConfiguracionesReqDTO
     {

@@ -103,11 +103,15 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             }
         }
 
-        public async Task<Configuraciones> GetByTypeSettingAndCompanyId(Guid typeSetting, Guid clientCompanyId)
+        public async Task<Configuraciones?> GetByTypeSettingAndCompanyId(Guid typeSetting, Guid clientCompanyId)
         {
             try
             {
                 Configuraciones setting = await _unitOfWork.ConfiguracionesRepository.GetSetting(s => s.TipoConfiguracion == typeSetting && s.EmpresaClienteId == clientCompanyId);
+                if (setting == null)
+                {
+                    return null;
+                }    
                 return setting;
             }
             catch (Exception ex)
@@ -411,15 +415,15 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             return true;
         }
 
-        public async Task<bool> CreateSettingsForCompany(List<ConfiguracionesReqDTO> settings, Guid empresaClienteId, Guid currentUserId)
+        public async Task<bool> CreateSettingsForCompany(List<ConfiguracionesReqDTO> settings, Guid clientCompanyId, Guid currentUserId)
         {
-            if (empresaClienteId == Guid.Empty)
+            if (clientCompanyId == Guid.Empty)
                 return false;
 
             if (currentUserId == Guid.Empty)
                 return false;
 
-            if (settings == null || settings.Count == 0)
+            if (settings == null || settings.Count() == 0)
                 return false;
 
             var now = DateTime.UtcNow;
@@ -434,7 +438,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 Valor3 = c.Valor3,
                 editable = c.editable,
                 lectura = c.lectura,
-                EmpresaClienteId = empresaClienteId,
+                EmpresaClienteId = clientCompanyId,
                 UsuarioCreadorId = currentUserId,
                 FechaCreacion = now,
                 Estado = 1
