@@ -181,11 +181,12 @@ namespace WebVisitsMobile.Data.Implements.HID
 
         public async Task<List<LicenciaHidUser>> GetAllLicenciasExpiradas()
         {
-            var ahora = DateTime.UtcNow;
+            var ahora = DateTime.Now;
 
             return await _context.LicenciaHidUser
                 .Where(u => u.FechaFin.HasValue
                          && u.FechaFin.Value < ahora
+                         && u.Estado == 1
                          && u.Plataforma != null)
                 .Select(u => new LicenciaHidUser
                 {
@@ -193,10 +194,31 @@ namespace WebVisitsMobile.Data.Implements.HID
                     EmpresaClienteId = u.EmpresaClienteId,
                     FechaFin      = u.FechaFin,
                     Plataforma    = u.Plataforma,
-                    ExternalId    = u.ExternalId
+                    ExternalId    = u.ExternalId,
+                    UsuarioWalletId = u.UsuarioWalletId
                 })
                 .AsNoTracking()
                 .ToListAsync();
+        }
+
+        public async Task<bool> ExisteEmailEnLicenciaHidUser(string email)
+        {
+            return await _context.LicenciaHidUser
+                .AnyAsync(u => u.Email == email);
+        }
+
+        public async Task<LicenciaHidUser?> GetLicenciaVigenteByEmail(string email)
+        {
+            var ahora = DateTime.Now;
+
+            return await _context.LicenciaHidUser
+                .Where(u => u.Email == email
+                         && u.UsuarioWalletId != null
+                         && u.FechaInicio.HasValue && u.FechaInicio.Value <= ahora
+                         && u.FechaFin.HasValue    && u.FechaFin.Value    >= ahora)
+                .OrderByDescending(u => u.FechaCreacion)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
         }
     }
 }

@@ -19,5 +19,16 @@ namespace WebVisitsMobile.Data.Implements.HID
                 .ThenBy(u => u.Estado)
                 .ToListAsync();
         }
+
+        public async Task<string?> GetCredencialWalletMasReciente(Guid licenciaHidUserId)
+        {
+            var credencial = await _context.CredencialHid
+                .Where(c => c.Usuarioid == licenciaHidUserId)
+                .OrderByDescending(c => c.FechaCreacion)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            return credencial?.CredencialValor;
+        }
     }
 }

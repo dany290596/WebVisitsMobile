@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Infrastructure.Interfaces;
+using WebVisitsMobile.Infrastructure.Options;
 using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
 using WebVisitsMobile.Services.Responses;
 
@@ -21,13 +24,15 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
         private readonly IPasswordService _passwordService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ISesionService _sesionService;
+        private readonly AesManagedOption _aesManagedOption;
 
         public LoginController(
             IConfiguration configuration,
             IUsuarioService usuarioService,
             IPasswordService passwordService,
             IHttpContextAccessor httpContextAccessor,
-            ISesionService sesionService
+            ISesionService sesionService,
+            IOptions<AesManagedOption> aesManagedOption
             )
         {
             _configuration = configuration;
@@ -35,6 +40,7 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
             _passwordService = passwordService;
             _httpContextAccessor = httpContextAccessor;
             _sesionService = sesionService;
+            _aesManagedOption = aesManagedOption.Value;
         }
 
         [HttpPost]
@@ -104,6 +110,120 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
             var response = new ApiResponse<string>(false, "Usuario no válido.", 404, "");
 
             return StatusCode(404, response);
+        }
+
+        [HttpPost("LoginWebVisitsMeeting")]
+        public async Task<IActionResult> LoginWebVisitsMeeting(LoginEncriptado loginEncriptado)
+        {
+            string email;
+            string contrasena;
+
+            try
+            {
+                email = Decrypt(loginEncriptado.Email);
+                contrasena = Decrypt(loginEncriptado.Contrasena);
+            }
+            catch
+            {
+                var respuestaError = new ApiResponse<string>(false, "Las credenciales no pudieron ser desencriptadas.", 400, "");
+                return StatusCode(400, respuestaError);
+            }
+
+            var login = new Login { Email = email, Contrasena = contrasena };
+            var validation = await IsValidUser(login);
+
+            if (validation.Item1)
+            {
+                if (UserExpired(validation.Item2.FechaVencimiento))
+                {
+                    var respuestaVencido = new ApiResponse<string>(
+                        false,
+                        "El usuario ha vencido. Por favor contacte al administrador.",
+                        407,
+                        ""
+                    );
+                    return StatusCode(403, respuestaVencido);
+                }
+                if (validation.Item2.Estado == 2)
+                {
+                    var respuestaDeshabilitado = new ApiResponse<string>(
+                        false,
+                        "No puedes iniciar sesión porque tu cuenta se encuentra deshabilitada. Contacta al administrador del sistema.",
+                        408,
+                        ""
+                    );
+                    return StatusCode(403, respuestaDeshabilitado);
+                }
+
+                string ipAddress = _httpContextAccessor.HttpContext!.Connection.RemoteIpAddress!.ToString();
+                Domain.Entities.Administracion.Sesion.Sesion sesion = new Domain.Entities.Administracion.Sesion.Sesion();
+                sesion.PerfilId = validation.Item2.PerfilId;
+                sesion.UsuarioId = validation.Item2.Id;
+                sesion.FechaInicio = DateTime.Now;
+                sesion.DireccionIp = ipAddress;
+                sesion.Id = new Guid();
+                await _sesionService.Insert(sesion, validation.Item2.Id, validation.Item2.Id);
+
+                if (validation.Item2.TipoUsuario.Nombre == "Api" && validation.Item2.Correo == "WebVisits")
+                {
+                    var token = GenerateToken(validation.Item2, sesion.Id);
+                    var repuesta = new ApiResponse<string>(true, "Token generado correctamente.", 200, token);
+                    return StatusCode(200, repuesta);
+                }
+                if (validation.Item2.TipoUsuario.Nombre == "Partner HID")
+                {
+                    var token = GenerateToken(validation.Item2, sesion.Id);
+                    var repuesta = new ApiResponse<string>(true, "Token generado correctamente.", 200, token);
+                    return StatusCode(200, repuesta);
+                }
+                if (validation.Item2.TipoUsuario.Nombre == "Desarrollador")
+                {
+                    var token = GenerateToken(validation.Item2, sesion.Id);
+                    var repuesta = new ApiResponse<string>(true, "Token generado correctamente.", 200, token);
+                    return StatusCode(200, repuesta);
+                }
+                if (validation.Item2.TipoUsuario.Nombre == "Equipo CRC")
+                {
+                    var token = GenerateToken(validation.Item2, sesion.Id);
+                    var repuesta = new ApiResponse<string>(true, "Token generado correctamente.", 200, token);
+                    return StatusCode(200, repuesta);
+                }
+
+                return StatusCode(401, new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, ""));
+            }
+
+            return StatusCode(404, new ApiResponse<string>(false, "Usuario no válido.", 404, ""));
+        }
+
+        private string Decrypt(string encryptedText)
+        {
+            // Key: SHA-256 de StartupVector → 32 bytes (AES-256)
+            // IV:  MD5 de StartupVector → 16 bytes (tamaño de bloque AES)
+            var vectorBytes = Encoding.UTF8.GetBytes(_aesManagedOption.StartupVector);
+
+            byte[] keyBytes;
+            byte[] ivBytes;
+
+            using (var sha256 = SHA256.Create())
+                keyBytes = sha256.ComputeHash(vectorBytes);
+
+            using (var md5 = MD5.Create())
+                ivBytes = md5.ComputeHash(vectorBytes);
+
+            var cipherBytes = Convert.FromBase64String(encryptedText);
+
+            using var aes = Aes.Create();
+            aes.Key = keyBytes;
+            aes.IV = ivBytes;
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.PKCS7;
+
+            using var decryptor = aes.CreateDecryptor();
+            using var ms = new MemoryStream(cipherBytes);
+            using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
+            using var reader = new StreamReader(cs, Encoding.UTF8);
+
+            return reader.ReadToEnd();
         }
 
         private async Task<(bool, Usuario)> IsValidUser(Login login)

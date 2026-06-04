@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
+using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.HID;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.HID.UserHID;
@@ -362,7 +363,8 @@ namespace WebVisitsMobile.Controllers.HID
                     EmpresaClienteId = u.EmpresaClienteId,
                     FechaFin      = u.FechaFin,
                     Plataforma    = u.Plataforma,
-                    ExternalId    = u.ExternalId
+                    ExternalId    = u.ExternalId,
+                    UsuarioWalletId=u.UsuarioWalletId
                 });
 
                 var response = new ApiResponse<IEnumerable<LicenciaHidUserExpiradaRespDTO>>(
@@ -373,6 +375,121 @@ namespace WebVisitsMobile.Controllers.HID
             catch (Exception)
             {
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Obtiene el UsuarioInvitacionDetalle de la licencia HID vigente más reciente asociada al correo electrónico.
+        /// </summary>
+        [HttpGet("GetInvitacionDetalle")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<InvitacionDetalleRespDTO>))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetInvitacionDetalleByEmail([Required][FromQuery] string email)
+        {
+            try
+            {
+
+                Token token = _accesorService.GetTokenData();
+                if (token.Email==string.Empty)
+                {
+                    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+                }
+
+                var emailExiste = await _licenciaUserHIDService.ExisteEmailEnLicenciaHidUser(email);
+                if (!emailExiste)
+                {
+                    return StatusCode(404, new ApiResponse<InvitacionDetalleRespDTO>(
+                        false,
+                        "No se encontraron registros para el correo proporcionado.",
+                        404,
+                        null));
+                }
+
+                var invitacionDetalle = await _licenciaUserHIDService.GetInvitacionDetalleVigenteByEmail(email);
+                if (invitacionDetalle == null)
+                {
+                    return StatusCode(404, new ApiResponse<InvitacionDetalleRespDTO>(
+                        false,
+                        "No existe una licencia HID válida para el correo proporcionado.",
+                        404,
+                        null));
+                }
+
+                var response = new ApiResponse<InvitacionDetalleRespDTO>(
+                    true,
+                    "Consulta exitosa",
+                    200,
+                    new InvitacionDetalleRespDTO { UsuarioInvitacionDetalle = invitacionDetalle });
+
+                return StatusCode(200, response);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ApiResponse<InvitacionDetalleRespDTO>(
+                    false,
+                    "Ocurrió un error interno al procesar la solicitud.",
+                    500,
+                    null));
+            }
+        }
+
+        /// <summary>
+        /// Obtiene el CredencialValor Wallet más reciente del usuario identificado por su ExternalId.
+        /// </summary>
+        [HttpGet("GetCredencialWalletByExternalId")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<CredencialWalletRespDTO>))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetCredencialWalletByExternalId([Required][FromQuery] Guid externalId)
+        {
+            try
+            {
+                var usuario = await _licenciaUserHIDService.GetByExternalId(externalId);
+                if (usuario == null)
+                {
+                    return StatusCode(404, new ApiResponse<CredencialWalletRespDTO>(
+                        false,
+                        $"No se encontró un usuario con el ExternalId '{externalId}'.",
+                        404,
+                        null));
+                }
+
+                var tieneWallet = await _licenciaUserHIDService.TieneCredencialWallet(usuario.Id);
+                if (!tieneWallet)
+                {
+                    return StatusCode(404, new ApiResponse<CredencialWalletRespDTO>(
+                        false,
+                        "El usuario no tiene una credencial de tipo Wallet asignada.",
+                        404,
+                        null));
+                }
+
+                var credencialValor = await _licenciaUserHIDService.GetCredencialWalletMasReciente(usuario.Id);
+                if (credencialValor == null)
+                {
+                    return StatusCode(404, new ApiResponse<CredencialWalletRespDTO>(
+                        false,
+                        "El usuario no tiene registros en la tabla de credenciales.",
+                        404,
+                        null));
+                }
+
+                var response = new ApiResponse<CredencialWalletRespDTO>(
+                    true,
+                    "Consulta exitosa",
+                    200,
+                    new CredencialWalletRespDTO { CredencialValor = credencialValor });
+
+                return StatusCode(200, response);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ApiResponse<CredencialWalletRespDTO>(
+                    false,
+                    "Ocurrió un error interno al procesar la solicitud.",
+                    500,
+                    null));
             }
         }
 

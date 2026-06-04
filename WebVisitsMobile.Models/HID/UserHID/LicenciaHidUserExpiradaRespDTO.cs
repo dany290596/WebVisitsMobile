@@ -10,5 +10,7 @@ namespace WebVisitsMobile.Models.HID.UserHID
         public DateTime? FechaFin { get; set; }
         public int? Plataforma { get; set; }
         public Guid? ExternalId { get; set; }
+        public Guid? UsuarioWalletId { get; set; }
+
     }
 }

@@ -33,5 +33,10 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<LicenciaHidUser> GetByIdExpired(Guid licenseUserHIDId);
         Task<bool> CreateTypeCredential(UserHIDTypeCredentialReqDTO licenseUserHID, Guid currentClientCompanyId, Guid currentUserId);
         Task<List<LicenciaHidUser>> GetAllLicenciasExpiradas();
+        Task<bool> ExisteEmailEnLicenciaHidUser(string email);
+        Task<string?> GetInvitacionDetalleVigenteByEmail(string email);
+        Task<LicenciaHidUser?> GetByExternalId(Guid externalId);
+        Task<bool> TieneCredencialWallet(Guid licenciaHidUserId);
+        Task<string?> GetCredencialWalletMasReciente(Guid licenciaHidUserId);
     }
 }

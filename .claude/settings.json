@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\edgar\\\\source\\\\repos\\\\WebVisitsMobile\" -Recurse -Filter \"*Context.cs\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\edgar\\\\source\\\\repos\\\\WebVisitsMobile\\\\WebVisitsMobile.Domain\\\\Entities\\\\HID\\\\\" -Filter \"*.cs\" | Select-Object -ExpandProperty FullName)"
+    ]
+  }
+}

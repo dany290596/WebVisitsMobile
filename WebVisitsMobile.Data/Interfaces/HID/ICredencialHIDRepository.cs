@@ -6,5 +6,6 @@ namespace WebVisitsMobile.Data.Interfaces.HID
     public interface ICredencialHIDRepository : IRepository<CredencialHid>
     {
         Task<IEnumerable<CredencialHid>> GetAllCredentialHID();
+        Task<string?> GetCredencialWalletMasReciente(Guid licenciaHidUserId);
     }
 }

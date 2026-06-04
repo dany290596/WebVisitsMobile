@@ -598,6 +598,7 @@ namespace WebVisitsMobile.Services.Services.HID
 
                 licenseUserHIDUpdate.FechaModificacion = DateTime.Now;
                 licenseUserHIDUpdate.UsuarioModificadorId = currentUserId;
+                licenseUserHIDUpdate.Status = 2;
 
                 _unitOfWork.LicenciaUserHIDRepository.Update(licenseUserHIDUpdate);
                 await _unitOfWork.SaveChangesAsync();
@@ -908,7 +909,7 @@ namespace WebVisitsMobile.Services.Services.HID
 
             var valor = new TareaWalletInactivateDTO()
             {
-                ExternalId = data.ExternalId
+                ExternalId = data.UsuarioWalletId
             };
 
             Tarea task = new Tarea
@@ -1604,6 +1605,76 @@ namespace WebVisitsMobile.Services.Services.HID
             }
 
             return pagedCredentialDevice;
+        }
+
+        public async Task<bool> ExisteEmailEnLicenciaHidUser(string email)
+        {
+            try
+            {
+                return await _unitOfWork.LicenciaUserHIDRepository.ExisteEmailEnLicenciaHidUser(email);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<string?> GetInvitacionDetalleVigenteByEmail(string email)
+        {
+            try
+            {
+                var registro = await _unitOfWork.LicenciaUserHIDRepository.GetLicenciaVigenteByEmail(email);
+                return registro?.InvitacionDetalle;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<LicenciaHidUser?> GetByExternalId(Guid externalId)
+        {
+            if (externalId == Guid.Empty)
+                return null;
+
+            try
+            {
+                return await _unitOfWork.LicenciaUserHIDRepository.GetUserHID(u => u.ExternalId == externalId);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> TieneCredencialWallet(Guid licenciaHidUserId)
+        {
+            try
+            {
+                var credencial = await _unitOfWork.UsuarioHidTipoCredencialRepository
+                    .GetUserHidTypeCredential(x =>
+                        x.LicenciaHidUserId == licenciaHidUserId &&
+                        x.TipoCredencialId == CREDENCIAL_WALLET &&
+                        x.Estado == 1);
+
+                return credencial != null;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<string?> GetCredencialWalletMasReciente(Guid licenciaHidUserId)
+        {
+            try
+            {
+                return await _unitOfWork.CredencialHIDRepository.GetCredencialWalletMasReciente(licenciaHidUserId);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 
