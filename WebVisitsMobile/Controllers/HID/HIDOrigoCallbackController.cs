@@ -2,6 +2,7 @@
 using System.Text.Json;
 using WebVisitsMobile.Models.HID.HIDOrigoCallback;
 using WebVisitsMobile.Services.Interfaces.HID;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace WebVisitsMobile.Controllers.HID
 {
@@ -22,52 +23,102 @@ namespace WebVisitsMobile.Controllers.HID
         /// Recibe todos los eventos de HID Origo via Callback.
         /// URL registrada en HID: POST /api/HIDOrigoCallback
         /// </summary>
+        /// [DisableRequestSizeLimit]
+        [DisableRequestSizeLimit]
+        [RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
         [HttpPost]
         public async Task<IActionResult> ReceiveCallback()
         {
-            string body = string.Empty;
+            // ✅ Leer el body ANTES de responder
+            Request.EnableBuffering();
+            using var reader = new StreamReader(Request.Body, leaveOpen: true);
+            string body = await reader.ReadToEndAsync();
 
-            try
+            Console.WriteLine($"[HIDOrigo] ▶️  RECIBIDO | {DateTime.UtcNow:HH:mm:ss.fff}");
+            Console.WriteLine($"[HIDOrigo] 📦 BODY: {body}");
+
+            // ✅ Procesar en background — HID recibe 200 OK de inmediato
+            _ = Task.Run(async () =>
             {
-                using var reader = new StreamReader(Request.Body);
-                body = await reader.ReadToEndAsync();
-
-                Console.WriteLine("========== BODY RECIBIDO ==========");
-                Console.WriteLine(body);
-                Console.WriteLine("===================================");
-
-                if (string.IsNullOrWhiteSpace(body))
-                    return Ok();
-
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var eventos = JsonSerializer.Deserialize<List<HIDWebhookEventDTO>>(body, options);
-
-                Console.WriteLine("========== EVENTOS DESERIALIZADOS ==========");
-                Console.WriteLine(JsonSerializer.Serialize(eventos, options));
-                Console.WriteLine("============================================");
-
-                if (eventos == null || eventos.Count == 0)
-                    return Ok();
-
-                foreach (var evt in eventos)
+                try
                 {
-                    if (evt == null) continue;
-                    await ProcessEventAsync(evt, options);
-                }
+                    if (string.IsNullOrWhiteSpace(body)) return;
 
-                return Ok();
-            }
-            catch (JsonException)
-            {
-                return Ok(); // Siempre 200 — HID no debe reintentar por errores nuestros
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("ERROR AL DESERIALIZAR HIDWebhookEventDTO");
-                Console.WriteLine(ex.ToString());
-                return Ok(); // Siempre 200
-            }
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var eventos = JsonSerializer.Deserialize<List<HIDWebhookEventDTO>>(body, options);
+
+                    if (eventos == null || eventos.Count == 0) return;
+
+                    foreach (var evt in eventos)
+                    {
+                        if (evt == null) continue;
+                        Console.WriteLine($"[HIDOrigo] 🔁 Procesando | Type: {evt.Type} | Id: {evt.Id}");
+                        await ProcessEventAsync(evt, options);
+                        Console.WriteLine($"[HIDOrigo] ✅ Procesado OK | Type: {evt.Type}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[HIDOrigo] ❌ Error en background: {ex.Message}");
+                }
+            });
+
+            // ✅ HID recibe 200 OK inmediatamente sin esperar el procesamiento
+            return Ok();
         }
+
+        //[DisableRequestSizeLimit]
+        //[RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
+        //[HttpPost]
+        //public async Task<IActionResult> ReceiveCallback()
+        //{
+        //    string body = string.Empty;
+
+        //    try
+        //    {
+        //        // ✅ ESTE ES EL CAMBIO CLAVE — habilitar lectura del body
+        //        Request.EnableBuffering();
+
+        //        using var reader = new StreamReader(Request.Body, leaveOpen: true);
+        //        body = await reader.ReadToEndAsync();
+        //        Request.Body.Position = 0;
+
+        //        Console.WriteLine("========== BODY RECIBIDO ==========");
+        //        Console.WriteLine(body);
+        //        Console.WriteLine("===================================");
+
+        //        if (string.IsNullOrWhiteSpace(body))
+        //            return Ok();
+
+        //        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        //        var eventos = JsonSerializer.Deserialize<List<HIDWebhookEventDTO>>(body, options);
+
+        //        Console.WriteLine("========== EVENTOS DESERIALIZADOS ==========");
+        //        Console.WriteLine(JsonSerializer.Serialize(eventos, options));
+        //        Console.WriteLine("============================================");
+
+        //        if (eventos == null || eventos.Count == 0)
+        //            return Ok();
+
+        //        foreach (var evt in eventos)
+        //        {
+        //            if (evt == null) continue;
+        //            await ProcessEventAsync(evt, options);
+        //        }
+
+        //        return Ok();
+        //    }
+        //    catch (JsonException)
+        //    {
+        //        return Ok(); // Siempre 200 — HID no debe reintentar por errores nuestros
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine("ERROR AL DESERIALIZAR HIDWebhookEventDTO");
+        //        Console.WriteLine(ex.ToString());
+        //        return Ok(); // Siempre 200
+        //    }
+        //}
 
         // ─────────────────────────────────────────────────────────────────────
         // PROCESADOR — Rutea por el campo "type" del envelope + "status" en data
@@ -101,16 +152,16 @@ namespace WebVisitsMobile.Controllers.HID
             switch (data.Status)
             {
                 case "USER_CREATED":
-                    await _hidOrigoEventService.OnUserCreatedAsync(data);
+                    await _hidOrigoEventService.OnUserCreated(data);
                     break;
                 case "USER_UPDATED":
-                    await _hidOrigoEventService.OnUserUpdatedAsync(data);
+                    await _hidOrigoEventService.OnUserUpdated(data);
                     break;
                 case "USER_DELETE_INITIATED":
-                    await _hidOrigoEventService.OnUserDeleteInitiatedAsync(data);
+                    await _hidOrigoEventService.OnUserDeleteInitiated(data);
                     break;
                 case "USER_DELETED":
-                    await _hidOrigoEventService.OnUserDeletedAsync(data);
+                    await _hidOrigoEventService.OnUserDeleted(data);
                     break;
             }
         }
@@ -149,10 +200,10 @@ namespace WebVisitsMobile.Controllers.HID
             switch (data.Status)
             {
                 case "CREDENTIALCONTAINER_PERSONALIZED":
-                    await _hidOrigoEventService.OnDevicePersonalizedAsync(data);
+                    await _hidOrigoEventService.OnDevicePersonalized(data);
                     break;
                 case "CREDENTIALCONTAINER_INACTIVE":
-                    await _hidOrigoEventService.OnDeviceInactiveAsync(data);
+                    await _hidOrigoEventService.OnDeviceInactive(data);
                     break;
             }
         }
@@ -168,22 +219,22 @@ namespace WebVisitsMobile.Controllers.HID
             switch (data.Status)
             {
                 case "CREDENTIAL_RESERVED":
-                    await _hidOrigoEventService.OnCredentialReservedAsync(data);
+                    await _hidOrigoEventService.OnCredentialReserved(data);
                     break;
                 case "CREDENTIAL_ISSUED":
-                    await _hidOrigoEventService.OnCredentialIssuedAsync(data);
+                    await _hidOrigoEventService.OnCredentialIssued(data);
                     break;
                 case "CREDENTIAL_REVOKING":
-                    await _hidOrigoEventService.OnCredentialRevokingAsync(data);
+                    await _hidOrigoEventService.OnCredentialRevoking(data);
                     break;
                 case "CREDENTIAL_REVOKED":
-                    await _hidOrigoEventService.OnCredentialRevokedAsync(data);
+                    await _hidOrigoEventService.OnCredentialRevoked(data);
                     break;
                 case "CREDENTIAL_UNBOUND":
-                    await _hidOrigoEventService.OnCredentialUnboundAsync(data);
+                    await _hidOrigoEventService.OnCredentialUnbound(data);
                     break;
                 case "CREDENTIAL_CREATION_FAILURE":
-                    await _hidOrigoEventService.OnCredentialCreationFailureAsync(data);
+                    await _hidOrigoEventService.OnCredentialCreationFailure(data);
                     break;
             }
         }

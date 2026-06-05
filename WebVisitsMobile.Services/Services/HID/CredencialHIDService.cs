@@ -387,19 +387,35 @@ namespace WebVisitsMobile.Services.Services.HID
         {
             try
             {
-                CredencialHid data = await _unitOfWork.CredencialHIDRepository.GetCredentialHID(u => u.LicenciaHidUser.UsuarioWalletId == userId);
-                if (data == null) { return false; }
+                // Intento 1 — buscar por UsuarioWalletId del usuario relacionado
+                CredencialHid? data = await _unitOfWork.CredencialHIDRepository
+                    .GetCredentialHID(u => u.LicenciaHidUser.UsuarioWalletId == userId);
+
+                // Intento 2 — buscar por ExternalId del usuario relacionado
+                if (data == null)
+                {
+                    Console.WriteLine($"[HIDOrigo] CredencialHID.UpdateStatus ⚠️  No encontrado por UsuarioWalletId, intentando ExternalId...");
+                    data = await _unitOfWork.CredencialHIDRepository
+                        .GetCredentialHID(u => u.LicenciaHidUser.ExternalId == userId);
+                }
+
+                if (data == null)
+                {
+                    Console.WriteLine($"[HIDOrigo] CredencialHID.UpdateStatus ❌ No encontrado para: {userId}");
+                    return false;
+                }
 
                 data.Status = status;
                 data.FechaModificacion = DateTime.Now;
-
                 _unitOfWork.CredencialHIDRepository.Update(data);
                 await _unitOfWork.SaveChangesAsync();
 
+                Console.WriteLine($"[HIDOrigo] CredencialHID.UpdateStatus ✅ Status actualizado a {status} para: {userId}");
                 return true;
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[HIDOrigo] CredencialHID.UpdateStatus ❌ Exception: {ex.Message}");
                 return false;
             }
         }

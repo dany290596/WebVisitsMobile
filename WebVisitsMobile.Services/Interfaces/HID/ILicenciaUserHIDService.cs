@@ -14,6 +14,7 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<bool> UpdateWithAttributes(LicenciaHidUser licenseUserHID, Guid clientCompanyId, Guid currentUserId);
         Task<bool> UpdateStatus(Guid userHIDId, string newInvitationActivity, int newStatus, Guid currentUserId);
         Task<bool> UpdateStatus(Guid userId, int status);
+        Task<bool> UpdateStatusByIntId(int userId, int status);
         Task<bool> Reactivate(Guid id, Guid currentUserId);
         Task<bool> Inactivate(Guid id, Guid currentUserId);
         Task<bool> InactivateById(Guid id, Guid userLowId);

@@ -776,8 +776,52 @@ namespace WebVisitsMobile.Services.Services.HID
         {
             try
             {
-                LicenciaHidUser data = await _unitOfWork.LicenciaUserHIDRepository.GetUserHID(u => u.UsuarioWalletId == userId);
-                if (data == null) { return false; }
+                // Intento 1 — buscar por UsuarioWalletId
+                LicenciaHidUser? data = await _unitOfWork.LicenciaUserHIDRepository
+                    .GetUserHID(u => u.UsuarioWalletId == userId);
+
+                // Intento 2 — buscar por ExternalId
+                if (data == null)
+                {
+                    Console.WriteLine($"[HIDOrigo] UpdateStatus ⚠️  No encontrado por UsuarioWalletId, intentando ExternalId...");
+                    data = await _unitOfWork.LicenciaUserHIDRepository
+                        .GetUserHID(u => u.ExternalId == userId);
+                }
+
+                if (data == null)
+                {
+                    Console.WriteLine($"[HIDOrigo] UpdateStatus ❌ No encontrado con ningún campo para: {userId}");
+                    return false;
+                }
+
+                data.Status = status;
+                data.FechaModificacion = DateTime.Now;
+                _unitOfWork.LicenciaUserHIDRepository.Update(data);
+                await _unitOfWork.SaveChangesAsync();
+
+                Console.WriteLine($"[HIDOrigo] UpdateStatus ✅ Status actualizado a {status} para: {userId}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[HIDOrigo] UpdateStatus ❌ Exception: {ex.Message}");
+                return false;
+            }
+        }
+
+        // Buscar por UserId entero (ej: 165901445)
+        public async Task<bool> UpdateStatusByIntId(int userId, int status)
+        {
+            try
+            {
+                LicenciaHidUser? data = await _unitOfWork.LicenciaUserHIDRepository
+                    .GetUserHID(u => u.UserId == userId);
+
+                if (data == null)
+                {
+                    Console.WriteLine($"[HIDOrigo] UpdateStatusByIntId ❌ No encontrado para UserId: {userId}");
+                    return false;
+                }
 
                 data.Status = status;
                 data.FechaModificacion = DateTime.Now;
@@ -785,10 +829,12 @@ namespace WebVisitsMobile.Services.Services.HID
                 _unitOfWork.LicenciaUserHIDRepository.Update(data);
                 await _unitOfWork.SaveChangesAsync();
 
+                Console.WriteLine($"[HIDOrigo] UpdateStatusByIntId ✅ Status actualizado a {status} para UserId: {userId}");
                 return true;
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[HIDOrigo] UpdateStatusByIntId ❌ Exception: {ex.Message}");
                 return false;
             }
         }

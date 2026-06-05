@@ -6,6 +6,11 @@ using WebVisitsMobile.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.AllowSynchronousIO = true;
+});
+
 // Add services to the container.
 
 builder.Services.AddControllers();

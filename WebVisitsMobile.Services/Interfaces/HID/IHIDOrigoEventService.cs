@@ -5,21 +5,21 @@ namespace WebVisitsMobile.Services.Interfaces.HID
     public interface IHIDOrigoEventService
     {
         // ─── USUARIOS ────────────────────────────────────────────────────────
-        Task<bool> OnUserCreatedAsync(UserEventDTO data);
-        Task<bool> OnUserUpdatedAsync(UserEventDTO data);
-        Task<bool> OnUserDeleteInitiatedAsync(UserEventDTO data);
-        Task<bool> OnUserDeletedAsync(UserEventDTO data);
+        Task<bool> OnUserCreated(UserEventDTO data);
+        Task<bool> OnUserUpdated(UserEventDTO data);
+        Task<bool> OnUserDeleteInitiated(UserEventDTO data);
+        Task<bool> OnUserDeleted(UserEventDTO data);
 
         // ─── CREDENCIALES ─────────────────────────────────────────────────────
-        Task<bool> OnCredentialReservedAsync(CredentialEventDTO data);
-        Task<bool> OnCredentialIssuedAsync(CredentialEventDTO data);
-        Task<bool> OnCredentialRevokingAsync(CredentialEventDTO data);
-        Task<bool> OnCredentialRevokedAsync(CredentialEventDTO data);
-        Task<bool> OnCredentialUnboundAsync(CredentialEventDTO data);
-        Task<bool> OnCredentialCreationFailureAsync(CredentialEventDTO data);
+        Task<bool> OnCredentialReserved(CredentialEventDTO data);
+        Task<bool> OnCredentialIssued(CredentialEventDTO data);
+        Task<bool> OnCredentialRevoking(CredentialEventDTO data);
+        Task<bool> OnCredentialRevoked(CredentialEventDTO data);
+        Task<bool> OnCredentialUnbound(CredentialEventDTO data);
+        Task<bool> OnCredentialCreationFailure(CredentialEventDTO data);
 
         // ─── DISPOSITIVOS ─────────────────────────────────────────────────────
-        Task<bool> OnDevicePersonalizedAsync(EndpointEventDTO data);
-        Task<bool> OnDeviceInactiveAsync(EndpointEventDTO data);
+        Task<bool> OnDevicePersonalized(EndpointEventDTO data);
+        Task<bool> OnDeviceInactive(EndpointEventDTO data);
     }
 }
