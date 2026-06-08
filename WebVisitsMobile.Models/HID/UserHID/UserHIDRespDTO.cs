@@ -28,6 +28,12 @@ namespace WebVisitsMobile.Models.HID.UserHID
             3 => "Completado",
             7 => "Inactivo",
             8 => "Activo",
+
+            20 => "Creado",
+            21 => "Actualizado",
+            22 => "En proceso de eliminación",
+            23 => "Eliminado",
+
             null => "Sin estado",
             _ => "Estado desconocido"
         };
@@ -38,6 +44,12 @@ namespace WebVisitsMobile.Models.HID.UserHID
             3 => "#32CD32", // Completado - Verde
             7 => "#FF0000", // Inactivo - Rojo
             8 => "#32CD32",
+
+            20 => "#32CD32",
+            21 => "#FFA500",
+            22 => "#1E90FF",
+            23 => "#FF0000",
+
             null => "#2f2f2f", // Sin estado - Gris claro
             _ => "#2f2f2f" // Estado desconocido - Gris brillante
         };

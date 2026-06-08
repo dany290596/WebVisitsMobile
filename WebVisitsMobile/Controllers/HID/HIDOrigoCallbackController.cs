@@ -67,59 +67,6 @@ namespace WebVisitsMobile.Controllers.HID
             return Ok();
         }
 
-        //[DisableRequestSizeLimit]
-        //[RequestFormLimits(MultipartBodyLengthLimit = long.MaxValue)]
-        //[HttpPost]
-        //public async Task<IActionResult> ReceiveCallback()
-        //{
-        //    string body = string.Empty;
-
-        //    try
-        //    {
-        //        // ✅ ESTE ES EL CAMBIO CLAVE — habilitar lectura del body
-        //        Request.EnableBuffering();
-
-        //        using var reader = new StreamReader(Request.Body, leaveOpen: true);
-        //        body = await reader.ReadToEndAsync();
-        //        Request.Body.Position = 0;
-
-        //        Console.WriteLine("========== BODY RECIBIDO ==========");
-        //        Console.WriteLine(body);
-        //        Console.WriteLine("===================================");
-
-        //        if (string.IsNullOrWhiteSpace(body))
-        //            return Ok();
-
-        //        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        //        var eventos = JsonSerializer.Deserialize<List<HIDWebhookEventDTO>>(body, options);
-
-        //        Console.WriteLine("========== EVENTOS DESERIALIZADOS ==========");
-        //        Console.WriteLine(JsonSerializer.Serialize(eventos, options));
-        //        Console.WriteLine("============================================");
-
-        //        if (eventos == null || eventos.Count == 0)
-        //            return Ok();
-
-        //        foreach (var evt in eventos)
-        //        {
-        //            if (evt == null) continue;
-        //            await ProcessEventAsync(evt, options);
-        //        }
-
-        //        return Ok();
-        //    }
-        //    catch (JsonException)
-        //    {
-        //        return Ok(); // Siempre 200 — HID no debe reintentar por errores nuestros
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine("ERROR AL DESERIALIZAR HIDWebhookEventDTO");
-        //        Console.WriteLine(ex.ToString());
-        //        return Ok(); // Siempre 200
-        //    }
-        //}
-
         // ─────────────────────────────────────────────────────────────────────
         // PROCESADOR — Rutea por el campo "type" del envelope + "status" en data
         // ─────────────────────────────────────────────────────────────────────

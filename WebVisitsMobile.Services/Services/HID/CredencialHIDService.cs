@@ -82,7 +82,7 @@ namespace WebVisitsMobile.Services.Services.HID
         {
             try
             {
-                CredencialHid credentialHID = await _unitOfWork.CredencialHIDRepository.GetById(credentialHIDId);
+                CredencialHid credentialHID = await _unitOfWork.CredencialHIDRepository.GetCredentialHID(c => c.Id == credentialHIDId);
                 return credentialHID;
             }
             catch (Exception ex)

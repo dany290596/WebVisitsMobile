@@ -37,37 +37,6 @@ namespace WebVisitsMobile.Models.HID.HIDOrigoCallback
 
     // ─── USUARIOS ─────────────────────────────────────────────────────────────────
     // Viene en eventos type: "com.origo.mi.user"
-    //public class UserEventDTO
-    //{
-    //    [JsonPropertyName("userId")]
-    //    public string? UserId { get; set; }
-
-    //    [JsonPropertyName("externalId")]
-    //    public string? ExternalId { get; set; }
-
-    //    // ✅ Status real: USER_CREATED, USER_UPDATED, USER_DELETE_INITIATED, USER_DELETED
-    //    // ✅ Status real: USER_CREATED: 20, USER_UPDATED: 21, USER_DELETE_INITIATED: 22, USER_DELETED: 23
-    //    [JsonPropertyName("status")]
-    //    public string? Status { get; set; }
-
-    //    [JsonPropertyName("firstname")]
-    //    public string? Firstname { get; set; }
-
-    //    [JsonPropertyName("lastname")]
-    //    public string? Lastname { get; set; }
-
-    //    [JsonPropertyName("email")]
-    //    public string? Email { get; set; }
-
-    //    [JsonPropertyName("organizationId")]
-    //    public string? OrganizationId { get; set; }
-
-    //    [JsonPropertyName("sourceTimestamp")]
-    //    public string? SourceTimestamp { get; set; }
-
-    //    [JsonPropertyName("processedDate")]
-    //    public string? ProcessedDate { get; set; }
-    //}
 
     public class UserEventDTO
     {
@@ -157,7 +126,6 @@ namespace WebVisitsMobile.Models.HID.HIDOrigoCallback
         [JsonPropertyName("externalId")]
         public string? ExternalId { get; set; }
 
-        // ✅ Status real: CREDENTIALCONTAINER_PERSONALIZED, CREDENTIALCONTAINER_INACTIVE
         // ✅ Status real: CREDENTIALCONTAINER_PERSONALIZED, CREDENTIALCONTAINER_INACTIVE
         [JsonPropertyName("status")]
         public string? Status { get; set; }
