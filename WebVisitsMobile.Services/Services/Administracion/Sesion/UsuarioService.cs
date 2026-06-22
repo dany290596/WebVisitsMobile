@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 using WebVisitsMobile.Data.Interfaces.Common;
 using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Domain.Options;
 using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
 using WebVisitsMobile.Services.QueryFilters.Administracion.Sesion;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebVisitsMobile.Services.Services.Administracion.Sesion
 {
@@ -230,6 +229,80 @@ namespace WebVisitsMobile.Services.Services.Administracion.Sesion
 
             return await _unitOfWork.UsuarioRepository
                 .GetFirstOrDefaultUser(u => u.Correo == email);
+        }
+
+        public async Task<bool> ValidateUserEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Email inválido", nameof(email));
+
+            var usuarios = _unitOfWork.UsuarioRepository.GetAll();
+
+            return usuarios.Any(x => x.Correo.ToLower() == email.ToLower());
+        }
+
+        public async Task<bool> SendRecoveryCode(string correo, string numero, string clave)
+        {
+            //try
+            //{
+
+            //    Usuario usuario = await _unitOfWork.UsuarioRepository.GetUser(x => x.Correo.ToLower() == correo.ToLower());
+
+            //    bool agregarClave = await AddUserPassword(usuario, clave);
+
+            //    CorreoEnviar correoEnviar = new CorreoEnviar();
+            //    correoEnviar.De = "proyectos@crcdemexico.com.mx";
+            //    correoEnviar.Para = correo;
+            //    correoEnviar.Cc = "Contraseña";
+            //    correoEnviar.Mensaje = "Estimado/a usuario/a,\n\n"
+            //        + "Hemos recibido su solicitud para cambiar la contraseña de su cuenta.\n\n"
+            //        + "Su código de verificación es: " + numero + "\n\n"
+            //        + "Si no has solicitado este código, por favor ignora este mensaje. Es posible que alguien haya ingresado tu dirección de correo electrónico por error.\n\n"
+            //        + "Saludos cordiales,\n"
+            //        + "El equipo de soporte.";
+
+            //    correoEnviar.Enviado = 2;
+            //    correoEnviar.Marca = 1;
+            //    correoEnviar.Asunto = "Cambio de contraseña";
+            //    bool enviarCorreo = await correoEnviarServices.InsertCorreoEnviar(correoEnviar, new Guid("00000000-0000-0000-0000-000000000000"), new Guid("00000000-0000-0000-0000-000000000000"));
+
+            //    return enviarCorreo;
+            //}
+            //catch (Exception ex)
+            //{
+
+            //    return false;
+            //}
+
+            return true;
+        }
+
+        public async Task<bool> AddUserPassword(Usuario usuario, string clave)
+        {
+            bool booOk = false;
+            //try
+            //{
+            //    ClaveRecuperacion claveRecuperacion = new ClaveRecuperacion();
+            //    claveRecuperacion.Clave = clave;
+            //    claveRecuperacion.FechaVigencia = DateTime.Now.AddMinutes(30);
+            //    var datos_clave = JsonConvert.SerializeObject(claveRecuperacion);
+            //    var datos_encriptados = encriptacionServices.EncriptarCadena(datos_clave);
+            //    var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
+
+
+            //    usuario.Clave = datos_encriptados_cadena;
+
+            //    _unitOfWork.UsuarioRepository.Update(usuario);
+            //    await _unitOfWork.SaveChangesAsync();
+
+            //    booOk = true;
+            //}
+            //catch (Exception ex)
+            //{
+            //    throw;
+            //}
+
+            return booOk;
         }
     }
 }

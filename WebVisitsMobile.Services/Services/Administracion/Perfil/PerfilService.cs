@@ -211,5 +211,22 @@ namespace WebVisitsMobile.Services.Services.Administracion.Perfil
             Domain.Entities.Administracion.Perfil.Perfil perfil = await _unitOfWork.PerfilRepository.GetByIdConPermisos(id);
             return perfil;
         }
+
+        public async Task<bool> ExistsName(string name)
+        {
+            try
+            {
+                var data = await _unitOfWork.PerfilRepository.GetProfile(n => n.Nombre == name);
+                if (data == null)
+                {
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }

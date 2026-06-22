@@ -282,5 +282,21 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
 
             return DateTime.Now.Date > fechaVencimiento.Value.Date;
         }
+
+        [Route("GetRecoveryCode")]
+        [HttpGet]
+        public async Task<IActionResult> GetRecoveryCode(string correo)
+        {
+
+            bool validarCorreo = await _usuarioService.ValidateUserEmail(correo);
+            if (validarCorreo == false) { return BadRequest("El usuario que desea recuperar no existe"); }
+            Random random = new Random();
+            int numero = random.Next(10000000, 99999999);
+            string clave = numero.ToString();
+
+            bool enviarCorreo = await _usuarioService.SendRecoveryCode(correo, numero.ToString(), clave);
+
+            return StatusCode(200, enviarCorreo);
+        }
     }
 }

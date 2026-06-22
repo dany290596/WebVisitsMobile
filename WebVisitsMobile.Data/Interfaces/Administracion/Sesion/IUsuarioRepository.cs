@@ -11,5 +11,6 @@ namespace WebVisitsMobile.Data.Interfaces.Administracion.Sesion
         Task<Usuario> GetFirstOrDefaultUser(Expression<Func<Usuario, bool>> predicate);
         Guid GetSelectUserByUserTypeNameAndUserMail(string typeUserName, string userMail);
         Task<bool> EmailExistsAsync(string email, Guid excludedUserId);
+        Task<Usuario> GetUser(Expression<Func<Usuario, bool>> predicate);
     }
 }

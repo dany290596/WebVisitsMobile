@@ -32,6 +32,12 @@ namespace WebVisitsMobile.Data.Implements.Administracion.Sesion
                 FirstOrDefaultAsync(predicate);
         }
 
+        public async Task<Usuario> GetUser(Expression<Func<Usuario, bool>> predicate)
+        {
+            return await _context.Usuario.
+                FirstOrDefaultAsync(predicate);
+        }
+
         public Guid GetSelectUserByUserTypeNameAndUserMail(string typeUserName, string userMail)
         {
             return _context.Usuario.OrderBy(ob => ob.Id).Where(s => s.TipoUsuario.Nombre == typeUserName && s.Correo == userMail).Select(s => s.Id).First();

@@ -16,5 +16,7 @@ namespace WebVisitsMobile.Services.Interfaces.Administracion.Sesion
         Task<Usuario> GetUserValid(Guid id);
         Task<Usuario> GetUserById(Guid id);
         Task<Usuario> GetUserByEmail(string email);
+        Task<bool> ValidateUserEmail(string email);
+        Task<bool> SendRecoveryCode(string correo, string numero, string clave);
     }
 }

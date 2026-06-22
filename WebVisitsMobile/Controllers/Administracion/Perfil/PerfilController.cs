@@ -195,11 +195,12 @@ namespace WebVisitsMobile.Controllers.Administracion.Perfil
             if (validarSesion == null) { return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta.", tipoError = 3 }); }
 
             var mapper = _mapper.Map<Domain.Entities.Administracion.Perfil.Perfil>(data);
-            //var email = await _perfilService.GetUserByEmail(mapper.Correo);
-            //if (email != null)
-            //{
-            //    return StatusCode(409, new ApiResponse<bool>(false, "Ya hay una cuenta registrada con este correo electrónico. Usa otro correo o intenta recuperar tu contraseña.", 409, false));
-            //}
+
+            var name = await _perfilService.ExistsName(mapper.Nombre);
+            if (name == true)
+            {
+                return StatusCode(409, new ApiResponse<bool>(false, "Ya hay una perfil registrado con este nombre.", 409, false));
+            }
 
             bool book = await _perfilService.Create(mapper, token.UsuarioId, empresaId);
             if (!book)
