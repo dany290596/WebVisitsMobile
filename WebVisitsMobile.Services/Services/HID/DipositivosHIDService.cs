@@ -270,6 +270,10 @@ namespace WebVisitsMobile.Services.Services.HID
                 _unitOfWork.DipositivosHIDRepository.Update(data);
                 await _unitOfWork.SaveChangesAsync();
 
+
+
+
+
                 Console.WriteLine($"[HIDOrigo] DipositivosHID.UpdateStatus ✅ Status actualizado a {status} para: {userId}");
                 return true;
             }

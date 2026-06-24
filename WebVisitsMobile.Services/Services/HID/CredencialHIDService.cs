@@ -160,6 +160,8 @@ namespace WebVisitsMobile.Services.Services.HID
                 credentialHIDUpdate.TipoCredencial = credentialHID.TipoCredencial;
                 credentialHIDUpdate.CredencialValor = credentialHID.CredencialValor;
                 credentialHIDUpdate.Validity = credentialHID.Validity;
+                credentialHIDUpdate.DispositivoId = credentialHID.DispositivoId;
+                credentialHIDUpdate.Status = credentialHID.Status;
 
                 credentialHIDUpdate.FechaModificacion = DateTime.Now;
                 credentialHIDUpdate.UsuarioModificadorId = currentUserId;

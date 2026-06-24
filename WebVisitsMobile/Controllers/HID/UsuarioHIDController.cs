@@ -5,15 +5,17 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.HID;
+using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.HID.UserHID;
+using WebVisitsMobile.Models.Organizacion.Tarea.Tarea;
 using WebVisitsMobile.Services.Interfaces.HID;
 using WebVisitsMobile.Services.QueryFilters.HID;
 using WebVisitsMobile.Services.Responses;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebVisitsMobile.Controllers.HID
 {
-    [Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     [ApiController]
@@ -141,6 +143,8 @@ namespace WebVisitsMobile.Controllers.HID
         [HttpPost]
         public async Task<IActionResult> Create(UserHIDReqDTO data)
         {
+
+
             if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
             {
                 return BadRequest("El header de la empresa es inválido.");
@@ -148,11 +152,7 @@ namespace WebVisitsMobile.Controllers.HID
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
-            Token token = _accesorService.GetTokenData();
-            if (token == null)
-            {
-                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
-            }
+
 
             var mapper = _mapper.Map<LicenciaHidUser>(data);
 
@@ -217,6 +217,31 @@ namespace WebVisitsMobile.Controllers.HID
                 return StatusCode(500, new ApiResponse<string>(false, "ocurrió un error.", 500, string.Empty));
             }
             var response = new ApiResponse<LicenciaHidUser>(true, "Se actualizó correctamente.", 200, result);
+
+            return StatusCode(200, response);
+        }
+
+
+        [HttpPut("ActualizarCredencial/{correo}")]
+        public async Task<IActionResult> ActualizarCredencial(string correo)
+        {
+
+
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+            {
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+            }
+
+            var result = await _licenciaUserHIDService.ActualizarCredencial(correo, token.EmpresaId, token.UsuarioId);
+            if (result == null)
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "ocurrió un error.", 500, string.Empty));
+            }
+
+            TareaRespDTO dto = _mapper.Map<TareaRespDTO>(result);
+
+            var response = new ApiResponse<TareaRespDTO>(true, "Se actualizó correctamente.", 200, dto);
 
             return StatusCode(200, response);
         }
@@ -516,6 +541,70 @@ namespace WebVisitsMobile.Controllers.HID
                     null));
             }
         }
+
+
+
+        /// <summary>
+        /// Obtiene el CredencialValor Wallet más reciente del usuario identificado por su ExternalId.
+        /// </summary>
+        [HttpGet("GetCredencialWalletByExternalIdWatch")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<CredencialWalletRespDTO>))]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+        public async Task<IActionResult> GetCredencialWalletByExternalIdWatch([Required][FromQuery] Guid externalId)
+        {
+            try
+            {
+                var usuario = await _licenciaUserHIDService.GetByExternalId(externalId);
+                if (usuario == null)
+                {
+                    return StatusCode(404, new ApiResponse<CredencialWalletRespDTO>(
+                        false,
+                        $"No se encontró un usuario con el ExternalId '{externalId}'.",
+                        404,
+                        null));
+                }
+
+                var tieneWallet = await _licenciaUserHIDService.TieneCredencialWallet(usuario.Id);
+                if (!tieneWallet)
+                {
+                    return StatusCode(404, new ApiResponse<CredencialWalletRespDTO>(
+                        false,
+                        "El usuario no tiene una credencial de tipo Wallet asignada.",
+                        404,
+                        null));
+                }
+
+                var credencialValor = await _licenciaUserHIDService.GetCredencialWalletMasRecienteWatch(usuario.Id);
+                if (credencialValor == null)
+                {
+                    return StatusCode(404, new ApiResponse<CredencialWalletRespDTO>(
+                        false,
+                        "El usuario no tiene registros en la tabla de credenciales.",
+                        404,
+                        null));
+                }
+
+                var response = new ApiResponse<CredencialWalletRespDTO>(
+                    true,
+                    "Consulta exitosa",
+                    200,
+                    new CredencialWalletRespDTO { CredencialValor = credencialValor });
+
+                return StatusCode(200, response);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ApiResponse<CredencialWalletRespDTO>(
+                    false,
+                    "Ocurrió un error interno al procesar la solicitud.",
+                    500,
+                    null));
+            }
+        }
+
+
+        
 
         [HttpPatch("ReactivateCredentialUser")]
         public async Task<IActionResult> ReactivateCredentialUser([Required] Guid id, [Required] Guid usuarioReactivadorId)

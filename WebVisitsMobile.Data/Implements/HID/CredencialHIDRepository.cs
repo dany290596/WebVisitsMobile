@@ -38,5 +38,25 @@ namespace WebVisitsMobile.Data.Implements.HID
 
             return credencial?.CredencialValor;
         }
+
+        public async Task<CredencialHid> GetCredentialHIDExternalId(Guid id)
+        {
+            return await _context.CredencialHid
+                 .Where(u => u.ExternalId == id)
+                 .OrderByDescending(u => u.FechaCreacion)
+                 .AsNoTracking()
+                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<string?> GetCredencialWalletMasRecienteWatch(Guid licenciaHidUserId)
+        {
+            var credencial = await _context.CredencialHid
+                .Where(c => c.Usuarioid == licenciaHidUserId && c.TipoCredencial=="Wallet Watch")
+                .OrderByDescending(c => c.FechaCreacion)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            return credencial?.CredencialValor;
+        }
     }
 }

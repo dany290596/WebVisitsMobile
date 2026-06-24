@@ -35,6 +35,11 @@ namespace WebVisitsMobile.Infrastructure.Services
             try
             {
                 var UsuarioId = _accesor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type.EndsWith("UsuarioId"))?.Value;
+
+                if (UsuarioId == null)
+                    return null;
+
+
                 var CorreoElectronico = _accesor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type.EndsWith("Correo"))?.Value;
                 var PerfilId = _accesor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type.EndsWith("PerfilId"))?.Value;
                 var EmpresaId = _accesor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type.EndsWith("EmpresaId"))?.Value;

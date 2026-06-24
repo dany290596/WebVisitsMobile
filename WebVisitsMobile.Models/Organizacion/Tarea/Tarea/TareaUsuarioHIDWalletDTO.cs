@@ -5,6 +5,7 @@
         public Guid Id { get; set; }
         public string DisplayName { get; set; }
         public string ExternalId { get; set; }
+        public Guid? UsuarioWalletId { get; set; }
         public string Emails { get; set; }
         public string Telefono { get; set; }
         public DateTime? FechaInicio { get; set; }

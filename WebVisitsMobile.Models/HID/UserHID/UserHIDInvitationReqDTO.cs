@@ -6,6 +6,8 @@
         public DateTime? InvitacionFecha { get; set; }
         public DateTime? InvitacionExpirationDate { get; set; }
         public string? InvitacionDetalle { get; set; }
+        public string? InvitacionActividad { get; set; }
+
         public int? Status { get; set; }
     }
 }

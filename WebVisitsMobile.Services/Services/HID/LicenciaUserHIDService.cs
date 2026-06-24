@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using System.Numerics;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -31,6 +32,24 @@ namespace WebVisitsMobile.Services.Services.HID
         private readonly IEmailService _emailService;
         private readonly IHostEnvironment _env;
         private readonly IPlantillaCredencialService _plantillaCredencialService;
+
+        private static readonly object _logLock = new();
+
+        private static void Log(string message)
+        {
+            var timestamp = DateTime.Now;
+            var line = $"[{timestamp:yyyy-MM-dd HH:mm:ss.fff}] {message}";
+            Console.WriteLine(line);
+            try
+            {
+                var dir = @"C:\logs";
+                Directory.CreateDirectory(dir);
+                var file = System.IO.Path.Combine(dir, $"webvisitsMobilecallbacks_{timestamp:yyyy-MM-dd}.txt");
+                lock (_logLock)
+                    System.IO.File.AppendAllText(file, line + Environment.NewLine);
+            }
+            catch { }
+        }
 
         private static readonly Guid CREDENCIAL_HID = Guid.Parse("1A2B3C4D-5E6F-7890-ABCD-EF1234567890");
         private static readonly Guid CREDENCIAL_WALLET = Guid.Parse("2B3C4D5E-6F70-8901-BCDE-F12345678901");
@@ -332,10 +351,8 @@ namespace WebVisitsMobile.Services.Services.HID
                         Email = licenseUserHID.Email,
                         Telefono = licenseUserHID.Telefono,
                         Apellidos = licenseUserHID.Apellidos,
-                        FechaInicio = licenseUserHID.FechaInicio,
+                        FechaInicio = licenseUserHID.FechaInicio?.Date,
                         FechaFin = licenseUserHID.FechaFin,
-                        // Copiar cualquier otro campo necesario que deba heredarse
-                        // (UserId, Site, Alert… según tu lógica de negocio)
                         LicenseCount = 1,
                         EmpresaClienteId = currentClientCompanyId,
                         Status = 1,
@@ -574,6 +591,90 @@ namespace WebVisitsMobile.Services.Services.HID
             }
         }
 
+
+        public async Task<Tarea> ActualizarCredencial(string correo, Guid clientCompanyId, Guid currentUserId)
+        {
+            Tarea tarea = new Tarea();
+
+            try
+            {
+
+                LicenciaHidUser licenciaHidUser = await _unitOfWork.LicenciaUserHIDRepository.GetUserActivoEmail(correo);
+
+                if (licenciaHidUser==null)
+                {
+                    return null;
+                }
+
+
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    WriteIndented = false,
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                };
+
+                var templateAdd = licenciaHidUser.PlantillaCredencialId is Guid plantillaId
+                    ? await _plantillaCredencialService.GetById(plantillaId, (Guid)licenciaHidUser.EmpresaClienteId)
+                    : null;
+
+                var walletAdd = new TareaUsuarioHIDWalletDTO()
+                {
+                    Id = licenciaHidUser.Id,
+                    DisplayName = licenciaHidUser.Nombre + " " + licenciaHidUser.Apellidos,
+                    ExternalId = licenciaHidUser.ExternalId.ToString()!,
+                    UsuarioWalletId = licenciaHidUser.UsuarioWalletId,
+                    Emails = licenciaHidUser.Email,
+                    Telefono = licenciaHidUser.Telefono!,
+                    FechaInicio = licenciaHidUser.FechaInicio,
+                    FechaFin = licenciaHidUser.FechaFin,
+                    Plataforma = licenciaHidUser.Plataforma,
+                    Plantilla = templateAdd == null
+                    ? null
+                    : new TareaPlantillaCredencialDTO
+                    {
+                        Id = templateAdd.Id,
+                        BackgroundExternalId = templateAdd.BackgroundExternalId,
+                        LogoExternalId = templateAdd.LogoExternalId,
+                        ExternalId = templateAdd.ExternalId,
+                        AppleId = templateAdd.AppleId
+                    }
+                };
+
+                var tareaNew = new Tarea
+                {
+                    Id = Guid.NewGuid(),
+                    TipoTareaId = new Guid("17034A93-A868-4B9B-90C1-5FE689E9381B"),
+                    Fecha = DateTime.Now,
+                    Pendiente = 1,
+                    Status = 1,
+                    ValorEnvio = JsonSerializer.Serialize(walletAdd, jsonOptions),
+                    ValorRetorno = "",
+                    ReferenciaId = licenciaHidUser.Id,
+                    Marca = 0,
+                    EmpresaClienteId = licenciaHidUser.EmpresaClienteId,
+                    UsuarioCreadorId = currentUserId,
+                    FechaCreacion = DateTime.Now,
+                    Estado = 1
+                };
+
+                await _unitOfWork.TareaRepository.Add(tareaNew);
+
+                // 7. Persistir todos los cambios en una sola transacción
+                await _unitOfWork.SaveChangesAsync();
+
+                tarea = tareaNew;
+
+            }
+            catch (Exception)
+            {
+
+                return null;
+            }
+
+            return tarea;
+        }
+
         public async Task<LicenciaHidUser?> UpdatePartial(LicenciaHidUser licenseUserHID, Guid clientCompanyId, Guid currentUserId)
         {
             try
@@ -599,6 +700,7 @@ namespace WebVisitsMobile.Services.Services.HID
                 licenseUserHIDUpdate.FechaModificacion = DateTime.Now;
                 licenseUserHIDUpdate.UsuarioModificadorId = currentUserId;
                 licenseUserHIDUpdate.Status = 2;
+                licenseUserHIDUpdate.InvitacionActividad = licenseUserHID.InvitacionActividad;
 
                 _unitOfWork.LicenciaUserHIDRepository.Update(licenseUserHIDUpdate);
                 await _unitOfWork.SaveChangesAsync();
@@ -777,20 +879,19 @@ namespace WebVisitsMobile.Services.Services.HID
             try
             {
                 // Intento 1 — buscar por UsuarioWalletId
-                LicenciaHidUser? data = await _unitOfWork.LicenciaUserHIDRepository
-                    .GetUserHID(u => u.UsuarioWalletId == userId);
+                LicenciaHidUser? data = await _unitOfWork.LicenciaUserHIDRepository.GetUserWalletId(userId);
 
                 // Intento 2 — buscar por ExternalId
                 if (data == null)
                 {
-                    Console.WriteLine($"[HIDOrigo] UpdateStatus ⚠️  No encontrado por UsuarioWalletId, intentando ExternalId...");
+                    Log($"[HIDOrigo] UpdateStatus ⚠️  No encontrado por UsuarioWalletId, intentando ExternalId...");
                     data = await _unitOfWork.LicenciaUserHIDRepository
                         .GetUserHID(u => u.ExternalId == userId);
                 }
 
                 if (data == null)
                 {
-                    Console.WriteLine($"[HIDOrigo] UpdateStatus ❌ No encontrado con ningún campo para: {userId}");
+                    Log($"[HIDOrigo] UpdateStatus ❌ No encontrado con ningún campo para: {userId}");
                     return false;
                 }
 
@@ -799,12 +900,12 @@ namespace WebVisitsMobile.Services.Services.HID
                 _unitOfWork.LicenciaUserHIDRepository.Update(data);
                 await _unitOfWork.SaveChangesAsync();
 
-                Console.WriteLine($"[HIDOrigo] UpdateStatus ✅ Status actualizado a {status} para: {userId}");
+                Log($"[HIDOrigo] UpdateStatus ✅ Status actualizado a {status} para: {userId}");
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[HIDOrigo] UpdateStatus ❌ Exception: {ex.Message}");
+                Log($"[HIDOrigo] UpdateStatus ❌ Exception: {ex.Message}");
                 return false;
             }
         }
@@ -819,7 +920,7 @@ namespace WebVisitsMobile.Services.Services.HID
 
                 if (data == null)
                 {
-                    Console.WriteLine($"[HIDOrigo] UpdateStatusByIntId ❌ No encontrado para UserId: {userId}");
+                    Log($"[HIDOrigo] UpdateStatusByIntId ❌ No encontrado para UserId: {userId}");
                     return false;
                 }
 
@@ -829,12 +930,12 @@ namespace WebVisitsMobile.Services.Services.HID
                 _unitOfWork.LicenciaUserHIDRepository.Update(data);
                 await _unitOfWork.SaveChangesAsync();
 
-                Console.WriteLine($"[HIDOrigo] UpdateStatusByIntId ✅ Status actualizado a {status} para UserId: {userId}");
+                Log($"[HIDOrigo] UpdateStatusByIntId ✅ Status actualizado a {status} para UserId: {userId}");
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[HIDOrigo] UpdateStatusByIntId ❌ Exception: {ex.Message}");
+                Log($"[HIDOrigo] UpdateStatusByIntId ❌ Exception: {ex.Message}");
                 return false;
             }
         }
@@ -1743,6 +1844,20 @@ namespace WebVisitsMobile.Services.Services.HID
                 throw;
             }
         }
+
+        public async Task<string?> GetCredencialWalletMasRecienteWatch(Guid licenciaHidUserId)
+        {
+            try
+            {
+                return await _unitOfWork.CredencialHIDRepository.GetCredencialWalletMasRecienteWatch(licenciaHidUserId);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
     }
 
     public static class InvitationStatusMapper

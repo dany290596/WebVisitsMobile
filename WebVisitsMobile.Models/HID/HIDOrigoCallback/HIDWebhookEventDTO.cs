@@ -126,6 +126,9 @@ namespace WebVisitsMobile.Models.HID.HIDOrigoCallback
         [JsonPropertyName("externalId")]
         public string? ExternalId { get; set; }
 
+        [JsonPropertyName("passIds")]
+        public List<string>? PassIds { get; set; }
+
         // ✅ Status real: CREDENTIALCONTAINER_PERSONALIZED, CREDENTIALCONTAINER_INACTIVE
         [JsonPropertyName("status")]
         public string? Status { get; set; }

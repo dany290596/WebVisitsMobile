@@ -9,5 +9,11 @@ namespace WebVisitsMobile.Data.Interfaces.HID
         Task<CredencialHid> GetCredentialHID(Expression<Func<CredencialHid, bool>> predicate);
         Task<IEnumerable<CredencialHid>> GetAllCredentialHID();
         Task<string?> GetCredencialWalletMasReciente(Guid licenciaHidUserId);
+
+        Task<CredencialHid> GetCredentialHIDExternalId(Guid id);
+
+        Task<string?> GetCredencialWalletMasRecienteWatch(Guid licenciaHidUserId);
+
+
     }
 }

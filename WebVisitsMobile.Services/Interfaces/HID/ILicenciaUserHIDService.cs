@@ -1,4 +1,5 @@
 ﻿using WebVisitsMobile.Domain.Entities.HID;
+using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
 using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Models.Common;
 using WebVisitsMobile.Models.HID.UserHID;
@@ -11,6 +12,8 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<bool> Create(LicenciaHidUser licenseUserHID, Guid currentClientCompanyId, Guid currentUserId);
         Task<bool> Update(LicenciaHidUser licenseUserHID, Guid currentUserId);
         Task<LicenciaHidUser?> UpdatePartial(LicenciaHidUser licenseUserHID, Guid clientCompanyId, Guid currentUserId);
+        Task<Tarea> ActualizarCredencial(string correo, Guid clientCompanyId, Guid currentUserId);
+
         Task<bool> UpdateWithAttributes(LicenciaHidUser licenseUserHID, Guid clientCompanyId, Guid currentUserId);
         Task<bool> UpdateStatus(Guid userHIDId, string newInvitationActivity, int newStatus, Guid currentUserId);
         Task<bool> UpdateStatus(Guid userId, int status);
@@ -40,5 +43,7 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<LicenciaHidUser?> GetByExternalId(Guid externalId);
         Task<bool> TieneCredencialWallet(Guid licenciaHidUserId);
         Task<string?> GetCredencialWalletMasReciente(Guid licenciaHidUserId);
+        Task<string?> GetCredencialWalletMasRecienteWatch(Guid licenciaHidUserId);
+
     }
 }

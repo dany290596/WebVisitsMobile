@@ -220,5 +220,32 @@ namespace WebVisitsMobile.Data.Implements.HID
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
         }
+
+
+        public async Task<LicenciaHidUser?> GetUserActivoEmail(string email)
+        {
+            var ahora = DateTime.Now;
+
+            return await _context.LicenciaHidUser
+                .Where(u => u.Email == email
+                         && u.UsuarioWalletId != null
+                         && u.Status==3
+                         && u.FechaInicio.HasValue && u.FechaInicio.Value <= ahora
+                         && u.FechaFin.HasValue && u.FechaFin.Value >= ahora)
+                .OrderByDescending(u => u.FechaCreacion)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<LicenciaHidUser> GetUserWalletId(Guid id)
+        {
+            return await _context.LicenciaHidUser
+                 .Where(u => u.UsuarioWalletId == id)
+                 .OrderByDescending(u => u.FechaCreacion)
+                 .AsNoTracking()
+                 .FirstOrDefaultAsync();
+        }
+
+
     }
 }

@@ -10,10 +10,14 @@ namespace WebVisitsMobile.Data.Interfaces.HID
         Task<bool> UpdateStatusOnly(Guid userHIDId, string newInvitationActivity, int newStatus, Guid currentUserId);
         Task<List<UserHIDExpired>> GetAllUsersHIDExpired();
         Task<UserHIDExpired> GetUserHIDExpired(Guid id);
+        Task<LicenciaHidUser> GetUserWalletId(Guid id);
+
         Task<LicenciaHidUser?> GetUserHIDWithCredential(Guid? externalId);
         Task<LicenciaHidUser> GetUserHID(Expression<Func<LicenciaHidUser, bool>> predicate);
         Task<List<LicenciaHidUser>> GetAllLicenciasExpiradas();
         Task<bool> ExisteEmailEnLicenciaHidUser(string email);
         Task<LicenciaHidUser?> GetLicenciaVigenteByEmail(string email);
+        Task<LicenciaHidUser?> GetUserActivoEmail(string email);
+
     }
 }

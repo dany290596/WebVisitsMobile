@@ -9,6 +9,8 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<bool> OnUserUpdated(UserEventDTO data);
         Task<bool> OnUserDeleteInitiated(UserEventDTO data);
         Task<bool> OnUserDeleted(UserEventDTO data);
+        Task<bool> OnUserUpdatedPass(PassEventDTO data);
+
 
         // ─── CREDENCIALES ─────────────────────────────────────────────────────
         Task<bool> OnCredentialReserved(CredentialEventDTO data);
@@ -20,6 +22,12 @@ namespace WebVisitsMobile.Services.Interfaces.HID
 
         // ─── DISPOSITIVOS ─────────────────────────────────────────────────────
         Task<bool> OnDevicePersonalized(EndpointEventDTO data);
+        Task<bool> OnDeviceCreate(EndpointEventDTO data);
+
         Task<bool> OnDeviceInactive(EndpointEventDTO data);
+
+
+        Task<bool> ActualizarStatusPass(PassEventDTO data,int Status);
+
     }
 }
