@@ -7,5 +7,10 @@ namespace WebVisitsMobile.Data.Implements.Administracion.Sesion
     public class SesionRepository : Repository<Domain.Entities.Administracion.Sesion.Sesion>, ISesionRepository
     {
         public SesionRepository(WebVisitsMobileContext context) : base(context) { }
+
+        public async Task<int> NumberOfSessions(Guid userId)
+        {
+            return _context.Sesion.Where(x => x.UsuarioId == userId).AsEnumerable().Count();
+        }
     }
 }

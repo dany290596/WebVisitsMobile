@@ -151,14 +151,14 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 Configuraciones settingUpdate = await _unitOfWork.ConfiguracionesRepository.GetById(setting.Id);
                 if (settingUpdate == null) { return false; }
 
-                settingUpdate.NombreParametro = setting.NombreParametro;
-                settingUpdate.ValorGuid = setting.ValorGuid;
+                //settingUpdate.NombreParametro = setting.NombreParametro;
+                //settingUpdate.ValorGuid = setting.ValorGuid;
                 settingUpdate.Valor1 = setting.Valor1;
                 settingUpdate.Valor2 = setting.Valor2;
                 settingUpdate.Valor3 = setting.Valor3;
                 settingUpdate.editable = setting.editable;
                 settingUpdate.lectura = setting.lectura;
-                settingUpdate.EmpresaClienteId = clientCompanyId;
+                //settingUpdate.EmpresaClienteId = clientCompanyId;
                 settingUpdate.FechaModificacion = DateTime.Now;
                 settingUpdate.UsuarioModificadorId = currentUserId;
 

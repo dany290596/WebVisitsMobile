@@ -8,6 +8,7 @@ using WebVisitsMobile.Data.Implements.Configuracion;
 using WebVisitsMobile.Data.Implements.Empresa;
 using WebVisitsMobile.Data.Implements.HID;
 using WebVisitsMobile.Data.Implements.Organizacion.Tarea;
+using WebVisitsMobile.Data.Implements.Parametrizacion;
 using WebVisitsMobile.Data.Implements.Ubicacion;
 using WebVisitsMobile.Data.Interfaces.Administracion.Aplicacion;
 using WebVisitsMobile.Data.Interfaces.Administracion.Modulo;
@@ -19,6 +20,7 @@ using WebVisitsMobile.Data.Interfaces.Configuracion;
 using WebVisitsMobile.Data.Interfaces.Empresa;
 using WebVisitsMobile.Data.Interfaces.HID;
 using WebVisitsMobile.Data.Interfaces.Organizacion.Tarea;
+using WebVisitsMobile.Data.Interfaces.Parametrizacion;
 using WebVisitsMobile.Data.Interfaces.Ubicacion;
 
 namespace WebVisitsMobile.Data.Implements.Common
@@ -49,6 +51,7 @@ namespace WebVisitsMobile.Data.Implements.Common
         private readonly IPaisRepository _paisRepository;
         private readonly IPaisEstadoRepository _paisEstadoRepository;
         private readonly ICiudadRepository _ciudadRepository;
+        private readonly ICorreoEnviarRepository _correoEnviarRepository;
 
         public UnitOfWork(WebVisitsMobileContext context)
         {
@@ -77,7 +80,7 @@ namespace WebVisitsMobile.Data.Implements.Common
         public IPaisRepository PaisRepository => _paisRepository ?? new PaisRepository(_context);
         public IPaisEstadoRepository PaisEstadoRepository => _paisEstadoRepository ?? new PaisEstadoRepository(_context);
         public ICiudadRepository CiudadRepository => _ciudadRepository ?? new CiudadRepository(_context);
-
+        public ICorreoEnviarRepository CorreoEnviarRepository => _correoEnviarRepository ?? new CorreoEnviarRepository(_context);
         public void Dispose()
         {
             if (_context != null)

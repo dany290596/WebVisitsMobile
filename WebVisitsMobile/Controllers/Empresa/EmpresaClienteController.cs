@@ -11,6 +11,7 @@ using WebVisitsMobile.Domain.Entities.Empresa;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Infrastructure.Services;
 using WebVisitsMobile.Models.Empresa.EmpresaCliente;
+using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
 using WebVisitsMobile.Services.Interfaces.Organizacion.Tarea;
 using WebVisitsMobile.Services.QueryFilters.Empresa;
@@ -32,8 +33,10 @@ namespace WebVisitsMobile.Controllers.Empresa
         private readonly IEmpresaClienteService _empresaClienteService;
         private readonly ITareaService _tareaService;
         private readonly ITipoTareaService _tipoTareaService;
-        private readonly TaskEventService _taskEventService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IPasswordService _passwordService;
+        private readonly IUsuarioService _usuarioService;
+        private readonly TaskEventService _taskEventService;
 
         public EmpresaClienteController(
             IMapper mapper,
@@ -44,8 +47,9 @@ namespace WebVisitsMobile.Controllers.Empresa
             ITareaService tareaService,
             ITipoTareaService tipoTareaService,
             TaskEventService taskEventService,
-            IServiceProvider serviceProvider
-
+            IServiceProvider serviceProvider,
+            IPasswordService passwordService,
+            IUsuarioService usuarioService
             )
         {
             _mapper = mapper;
@@ -57,6 +61,8 @@ namespace WebVisitsMobile.Controllers.Empresa
             _tipoTareaService = tipoTareaService;
             _taskEventService = taskEventService;
             _serviceProvider = serviceProvider;
+            _passwordService = passwordService;
+            _usuarioService = usuarioService;
         }
 
         [HttpGet]
@@ -194,40 +200,6 @@ namespace WebVisitsMobile.Controllers.Empresa
 
             return StatusCode(200, response);
         }
-
-        //[HttpPost]
-        //public async Task<IActionResult> Create(EmpresaClienteReqDTO data)
-        //{
-        //    if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
-        //    {
-        //        return BadRequest("El header de la empresa es inválido.");
-        //    }
-        //    var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
-        //    if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
-
-        //    Token token = _accesorService.GetTokenData();
-        //    if (token == null)
-        //    {
-        //        return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
-        //    }
-
-        //    var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-        //    if (validarSesion == null) { return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta.", tipoError = 3 }); }
-
-        //    var mapper = _mapper.Map<EmpresaCliente>(data);
-
-        //    bool book = await _empresaClienteService.CreateWithHID(mapper, [], token.UsuarioId);
-        //    if (!book)
-        //    {
-        //        return StatusCode(500, new ApiResponse<string>(false, "ocurrió un error.", 500, null));
-        //    }
-
-        //    EmpresaClienteRespDTO dto = _mapper.Map<EmpresaClienteRespDTO>(mapper);
-
-        //    var response = new ApiResponse<EmpresaClienteRespDTO>(book, "El registro se creó correctamente.", 200, dto);
-
-        //    return StatusCode(200, response);
-        //}
 
         [HttpPost("TestConnection")]
         public async Task<IActionResult> TestConnection([FromBody] TestConnectionDTO data)
@@ -490,11 +462,20 @@ namespace WebVisitsMobile.Controllers.Empresa
                             null
                         ));
                     }
-                }
+                }                
+
+                string password = "oG@P~cS68d*";
+                string passwordHash = _passwordService.Hash(password);
 
                 var clientCompany = _mapper.Map<EmpresaCliente>(empresa);
 
-                bool resultado = await _empresaClienteService.CreateWithHID(clientCompany, configuraciones, token.UsuarioId);
+                var email = await _usuarioService.GetUserByEmail(clientCompany.CorreoElectronico);
+                if (email != null)
+                {
+                    return StatusCode(409, new ApiResponse<bool>(false, "Ya hay una cuenta registrada con este correo electrónico. Usa otro correo o intenta recuperar tu contraseña.", 409, false));
+                }
+
+                bool resultado = await _empresaClienteService.CreateWithHID(clientCompany, configuraciones, password, passwordHash, token.UsuarioId);
                 if (!resultado)
                 {
                     return StatusCode(500, new ApiResponse<bool>(false, "No se pudo crear el registro.", 500, false));

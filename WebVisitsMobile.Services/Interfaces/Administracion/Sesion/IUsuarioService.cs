@@ -18,5 +18,10 @@ namespace WebVisitsMobile.Services.Interfaces.Administracion.Sesion
         Task<Usuario> GetUserByEmail(string email);
         Task<bool> ValidateUserEmail(string email);
         Task<bool> SendRecoveryCode(string correo, string numero, string clave);
+        Task<bool> ValidateAttemptDate(string codigo, string correo);
+        Task<bool> ValidateCode(string codigo, string correo);
+        Task<int> ValidateIntent(string codigo, string correo);
+        Task<bool> ValidateIntentDate(string codigo, string correo);
+        Task<bool> ChangePassword(string contrasena, string correo);
     }
 }

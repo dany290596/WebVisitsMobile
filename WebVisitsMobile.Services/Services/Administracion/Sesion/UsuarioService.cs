@@ -2,9 +2,13 @@
 using Newtonsoft.Json;
 using WebVisitsMobile.Data.Interfaces.Common;
 using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
+using WebVisitsMobile.Domain.Entities.Parametrizacion;
 using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Domain.Options;
+using WebVisitsMobile.Models.Encriptacion;
 using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
+using WebVisitsMobile.Services.Interfaces.Encriptacion;
+using WebVisitsMobile.Services.Interfaces.Parametrizacion;
 using WebVisitsMobile.Services.QueryFilters.Administracion.Sesion;
 
 namespace WebVisitsMobile.Services.Services.Administracion.Sesion
@@ -13,14 +17,20 @@ namespace WebVisitsMobile.Services.Services.Administracion.Sesion
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PaginationOption _paginationOption;
+        private readonly ICorreoEnviarService _correoEnviarService;
+        private readonly IEncriptacionService _encriptacionService;
 
         public UsuarioService(
             IUnitOfWork unitOfWork,
-            IOptions<PaginationOption> options
+            IOptions<PaginationOption> options,
+            ICorreoEnviarService correoEnviarService,
+            IEncriptacionService encriptacionService
             )
         {
             _unitOfWork = unitOfWork;
             _paginationOption = options.Value;
+            _correoEnviarService = correoEnviarService;
+            _encriptacionService = encriptacionService;
         }
 
         public async Task<PagedList<Usuario>> GetAll(UsuarioQueryFilter filters, Guid clientCompanyId)
@@ -243,36 +253,35 @@ namespace WebVisitsMobile.Services.Services.Administracion.Sesion
 
         public async Task<bool> SendRecoveryCode(string correo, string numero, string clave)
         {
-            //try
-            //{
+            try
+            {
+                Usuario usuario = await _unitOfWork.UsuarioRepository.GetUser(x => x.Correo.ToLower() == correo.ToLower());
 
-            //    Usuario usuario = await _unitOfWork.UsuarioRepository.GetUser(x => x.Correo.ToLower() == correo.ToLower());
+                bool agregarClave = await AddUserPassword(usuario, clave);
 
-            //    bool agregarClave = await AddUserPassword(usuario, clave);
+                CorreoEnviar correoEnviar = new CorreoEnviar();
+                correoEnviar.De = "proyectos@crcdemexico.com.mx";
+                correoEnviar.Para = correo;
+                correoEnviar.Cc = null;
+                correoEnviar.Mensaje = "Estimado/a usuario/a,\n\n"
+                    + "Hemos recibido su solicitud para cambiar la contraseña de su cuenta.\n\n"
+                    + "Su código de verificación es: " + numero + "\n\n"
+                    + "Si no has solicitado este código, por favor ignora este mensaje. Es posible que alguien haya ingresado tu dirección de correo electrónico por error.\n\n"
+                    + "Saludos cordiales,\n"
+                    + "El equipo de soporte.";
 
-            //    CorreoEnviar correoEnviar = new CorreoEnviar();
-            //    correoEnviar.De = "proyectos@crcdemexico.com.mx";
-            //    correoEnviar.Para = correo;
-            //    correoEnviar.Cc = "Contraseña";
-            //    correoEnviar.Mensaje = "Estimado/a usuario/a,\n\n"
-            //        + "Hemos recibido su solicitud para cambiar la contraseña de su cuenta.\n\n"
-            //        + "Su código de verificación es: " + numero + "\n\n"
-            //        + "Si no has solicitado este código, por favor ignora este mensaje. Es posible que alguien haya ingresado tu dirección de correo electrónico por error.\n\n"
-            //        + "Saludos cordiales,\n"
-            //        + "El equipo de soporte.";
+                correoEnviar.Enviado = 2;
+                correoEnviar.Marca = 1;
+                correoEnviar.Asunto = "Cambio de contraseña";
+                bool enviarCorreo = await _correoEnviarService.InsertEmailSend(correoEnviar, new Guid("00000000-0000-0000-0000-000000000000"), new Guid("00000000-0000-0000-0000-000000000000"));
 
-            //    correoEnviar.Enviado = 2;
-            //    correoEnviar.Marca = 1;
-            //    correoEnviar.Asunto = "Cambio de contraseña";
-            //    bool enviarCorreo = await correoEnviarServices.InsertCorreoEnviar(correoEnviar, new Guid("00000000-0000-0000-0000-000000000000"), new Guid("00000000-0000-0000-0000-000000000000"));
+                return enviarCorreo;
+            }
+            catch (Exception ex)
+            {
 
-            //    return enviarCorreo;
-            //}
-            //catch (Exception ex)
-            //{
-
-            //    return false;
-            //}
+                return false;
+            }
 
             return true;
         }
@@ -280,27 +289,216 @@ namespace WebVisitsMobile.Services.Services.Administracion.Sesion
         public async Task<bool> AddUserPassword(Usuario usuario, string clave)
         {
             bool booOk = false;
-            //try
-            //{
-            //    ClaveRecuperacion claveRecuperacion = new ClaveRecuperacion();
-            //    claveRecuperacion.Clave = clave;
-            //    claveRecuperacion.FechaVigencia = DateTime.Now.AddMinutes(30);
-            //    var datos_clave = JsonConvert.SerializeObject(claveRecuperacion);
-            //    var datos_encriptados = encriptacionServices.EncriptarCadena(datos_clave);
-            //    var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
+            try
+            {
+                ClaveRecuperacion claveRecuperacion = new ClaveRecuperacion();
+                claveRecuperacion.Clave = clave;
+                claveRecuperacion.FechaVigencia = DateTime.Now.AddMinutes(30);
+                var datos_clave = JsonConvert.SerializeObject(claveRecuperacion);
+                var datos_encriptados = _encriptacionService.EncriptarCadena(datos_clave);
+                var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
+
+                usuario.Clave = datos_encriptados_cadena;
+
+                _unitOfWork.UsuarioRepository.Update(usuario);
+                await _unitOfWork.SaveChangesAsync();
+
+                booOk = true;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            return booOk;
+        }
+
+        public async Task<bool> ValidateAttemptDate(string codigo, string correo)
+        {
+            DateTime fecha = DateTime.Now;
+            Usuario usuario = await GetUserByEmail(correo);
+            if (usuario == null) { return false; }
+
+            if (usuario!.Intentos == null)
+            {
+                IntentosRecuperacion intentosRecuperacion = new IntentosRecuperacion();
+                intentosRecuperacion.FechaPrimerIntento = fecha;
+                intentosRecuperacion.cont = 1;
+
+                var datos_clave = JsonConvert.SerializeObject(intentosRecuperacion);
+                var datos_encriptados = _encriptacionService.EncriptarCadena(datos_clave);
+                var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
 
 
-            //    usuario.Clave = datos_encriptados_cadena;
+                usuario.Intentos = datos_encriptados_cadena;
 
-            //    _unitOfWork.UsuarioRepository.Update(usuario);
-            //    await _unitOfWork.SaveChangesAsync();
+                _unitOfWork.UsuarioRepository.Update(usuario);
+                await _unitOfWork.SaveChangesAsync();
 
-            //    booOk = true;
-            //}
-            //catch (Exception ex)
-            //{
-            //    throw;
-            //}
+                return true;
+
+            }
+
+            EncriptarIntentos claveEncriptada = JsonConvert.DeserializeObject<EncriptarIntentos>(usuario.Intentos);
+            DesebcriptarDTO datos_Encriptados = new DesebcriptarDTO();
+            datos_Encriptados.Cad = claveEncriptada.Result.Cad;
+            datos_Encriptados.L1 = claveEncriptada.Result.L1;
+            datos_Encriptados.L2 = claveEncriptada.Result.L2;
+
+            IntentosRecuperacion clave = await _encriptacionService.DesencriptarIntentos(datos_Encriptados);
+
+            if (fecha > clave.FechaPrimerIntento.AddHours(1))
+            {
+                IntentosRecuperacion intentosRecuperacion = new IntentosRecuperacion();
+                intentosRecuperacion.FechaPrimerIntento = fecha;
+                intentosRecuperacion.cont = 1;
+
+                var datos_clave = JsonConvert.SerializeObject(intentosRecuperacion);
+                var datos_encriptados = _encriptacionService.EncriptarCadena(datos_clave);
+                var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
+
+
+                usuario.Intentos = datos_encriptados_cadena;
+
+                _unitOfWork.UsuarioRepository.Update(usuario);
+                await _unitOfWork.SaveChangesAsync();
+
+                return true;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public async Task<bool> ValidateCode(string codigo, string correo)
+        {
+            DateTime fecha = DateTime.Now;
+            Usuario usuario = await GetUserByEmail(correo);
+            if (usuario == null) { return false; }
+            EncriptarIntentos claveEncriptada = JsonConvert.DeserializeObject<EncriptarIntentos>(usuario.Clave);
+            DesebcriptarDTO datos_Encriptados = new DesebcriptarDTO();
+            datos_Encriptados.Cad = claveEncriptada.Result.Cad;
+            datos_Encriptados.L1 = claveEncriptada.Result.L1;
+            datos_Encriptados.L2 = claveEncriptada.Result.L2;
+
+            ClaveRecuperacion clave = await _encriptacionService.DesencriptarClaveRecuperacion(datos_Encriptados);
+
+            if (fecha > clave.FechaVigencia)
+            {
+                return false;
+            }
+
+
+            return clave.Clave == codigo;
+        }
+
+        public async Task<int> ValidateIntent(string codigo, string correo)
+        {
+            DateTime fecha = DateTime.Now;
+            Usuario usuario = await GetUserByEmail(correo);
+            if (usuario == null) { return 0; }
+            EncriptarIntentos claveEncriptada = JsonConvert.DeserializeObject<EncriptarIntentos>(usuario.Intentos);
+            DesebcriptarDTO datos_Encriptados = new DesebcriptarDTO();
+            datos_Encriptados.Cad = claveEncriptada.Result.Cad;
+            datos_Encriptados.L1 = claveEncriptada.Result.L1;
+            datos_Encriptados.L2 = claveEncriptada.Result.L2;
+
+            IntentosRecuperacion clave = await _encriptacionService.DesencriptarIntentos(datos_Encriptados);
+
+            if (clave.cont == 7)
+            {
+                return 7;
+            }
+            clave.cont = clave.cont + 1;
+
+            var datos_clave2 = JsonConvert.SerializeObject(clave);
+            var datos_encriptados2 = _encriptacionService.EncriptarCadena(datos_clave2);
+            var datos_encriptados_cadena2 = JsonConvert.SerializeObject(datos_encriptados2);
+            usuario.Intentos = datos_encriptados_cadena2;
+
+            _unitOfWork.UsuarioRepository.Update(usuario);
+            await _unitOfWork.SaveChangesAsync();
+
+            return clave.cont;
+        }
+
+        public async Task<bool> ValidateIntentDate(string codigo, string correo)
+        {
+            DateTime fecha = DateTime.Now;
+            Usuario usuario = await GetUserByEmail(correo);
+
+            if (usuario.Intentos == null)
+            {
+                IntentosRecuperacion intentosRecuperacion = new IntentosRecuperacion();
+                intentosRecuperacion.FechaPrimerIntento = fecha;
+                intentosRecuperacion.cont = 1;
+
+                var datos_clave = JsonConvert.SerializeObject(intentosRecuperacion);
+                var datos_encriptados = _encriptacionService.EncriptarCadena(datos_clave);
+                var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
+
+
+                usuario.Intentos = datos_encriptados_cadena;
+
+                _unitOfWork.UsuarioRepository.Update(usuario);
+                await _unitOfWork.SaveChangesAsync();
+
+                return true;
+
+            }
+
+            EncriptarIntentos claveEncriptada = JsonConvert.DeserializeObject<EncriptarIntentos>(usuario.Intentos);
+            DesebcriptarDTO datos_Encriptados = new DesebcriptarDTO();
+            datos_Encriptados.Cad = claveEncriptada.Result.Cad;
+            datos_Encriptados.L1 = claveEncriptada.Result.L1;
+            datos_Encriptados.L2 = claveEncriptada.Result.L2;
+
+            IntentosRecuperacion clave = await _encriptacionService.DesencriptarIntentos(datos_Encriptados);
+
+            if (fecha > clave.FechaPrimerIntento.AddHours(1))
+            {
+                IntentosRecuperacion intentosRecuperacion = new IntentosRecuperacion();
+                intentosRecuperacion.FechaPrimerIntento = fecha;
+                intentosRecuperacion.cont = 1;
+
+                var datos_clave = JsonConvert.SerializeObject(intentosRecuperacion);
+                var datos_encriptados = _encriptacionService.EncriptarCadena(datos_clave);
+                var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
+
+
+                usuario.Intentos = datos_encriptados_cadena;
+
+                _unitOfWork.UsuarioRepository.Update(usuario);
+                await _unitOfWork.SaveChangesAsync();
+
+                return true;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public async Task<bool> ChangePassword(string contrasena, string correo)
+        {
+            bool booOk = false;
+            try
+            {
+                Usuario usuario = await GetUserByEmail(correo);
+                if (usuario == null) { return false; }
+
+                usuario.Contrasena = contrasena;
+
+                _unitOfWork.UsuarioRepository.Update(usuario);
+                await _unitOfWork.SaveChangesAsync();
+
+                booOk = true;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
 
             return booOk;
         }

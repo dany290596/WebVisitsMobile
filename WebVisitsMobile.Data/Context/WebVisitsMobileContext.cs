@@ -8,6 +8,7 @@ using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Domain.Entities.Empresa;
 using WebVisitsMobile.Domain.Entities.HID;
 using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
+using WebVisitsMobile.Domain.Entities.Parametrizacion;
 using WebVisitsMobile.Domain.Entities.Ubicacion;
 
 namespace WebVisitsMobile.Data.Context
@@ -39,5 +40,7 @@ namespace WebVisitsMobile.Data.Context
         public virtual DbSet<Pais> Pais { get; set; }
         public virtual DbSet<Ciudad> Ciudad { get; set; }
         public virtual DbSet<PaisEstado> PaisEstado { get; set; }
+
+        public virtual DbSet<CorreoEnviar> CorreoEnviar { get; set; }
     }
 }

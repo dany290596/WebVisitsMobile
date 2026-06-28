@@ -19,6 +19,9 @@ namespace WebVisitsMobile.Domain.Entities.Administracion.Sesion
         [ForeignKey(nameof(EmpresaClienteId))]
         public Guid? EmpresaClienteId { get; set; }
 
+        public string? Clave { get; set; } = null!;
+        public string? Intentos { get; set; } = null!;
+
         public virtual Perfil.Perfil Perfil { get; set; } = null!;
         public virtual TipoUsuario TipoUsuario { get; set; } = null!;
         public virtual EmpresaCliente? EmpresaCliente { get; set; }

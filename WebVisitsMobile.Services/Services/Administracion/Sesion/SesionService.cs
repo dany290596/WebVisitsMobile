@@ -171,5 +171,26 @@ namespace WebVisitsMobile.Services.Services.Administracion.Sesion
                 throw;
             }
         }
+
+        public async Task<bool> VerifyFirstConnection(Guid userId)
+        {
+            bool booOk = false;
+            try
+            {
+                int numeroSesiones = await _unitOfWork.SesionRepository.NumberOfSessions(userId);
+
+                if (numeroSesiones <= 1)
+                {
+                    booOk = true;
+                }
+            }
+            catch (Exception ex)
+            {
+
+                return false;
+            }
+
+            return booOk;
+        }
     }
 }

@@ -15,6 +15,6 @@ namespace WebVisitsMobile.Models.HID.DipositivosHID
         public byte? DeviceDefault { get; set; }
         public byte? Status { get; set; }
 
-        public UserHIDRespDTO? LicenciaUserHID { get; set; }
+        public UserHIDRespDTO? LicenciaHidUser { get; set; }
     }
 }

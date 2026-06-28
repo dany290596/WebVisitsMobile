@@ -1,14 +1,18 @@
 ﻿using Microsoft.Extensions.Options;
 using WebVisitsMobile.Data.Interfaces.Common;
+using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Domain.Entities.Empresa;
 using WebVisitsMobile.Domain.Entities.HID;
 using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
+using WebVisitsMobile.Domain.Entities.Parametrizacion;
 using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Domain.Options;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
+using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
+using WebVisitsMobile.Services.Interfaces.Parametrizacion;
 using WebVisitsMobile.Services.QueryFilters.Empresa;
 
 namespace WebVisitsMobile.Services.Services.Empresa
@@ -18,15 +22,22 @@ namespace WebVisitsMobile.Services.Services.Empresa
         private readonly IUnitOfWork _unitOfWork;
         private readonly PaginationOption _paginationOptions;
         private readonly IConfiguracionService _configuracionService;
+        private readonly IUsuarioService _usuarioService;
+        private readonly ICorreoEnviarService _correoEnviarService;
+
         public EmpresaClienteService(
             IUnitOfWork unitOfWork,
             IOptions<PaginationOption> options,
-            IConfiguracionService configuracionService
+            IConfiguracionService configuracionService,
+            IUsuarioService usuarioService,
+            ICorreoEnviarService correoEnviarService
             )
         {
             _unitOfWork = unitOfWork;
             _paginationOptions = options.Value;
             _configuracionService = configuracionService;
+            _usuarioService = usuarioService;
+            _correoEnviarService = correoEnviarService;
         }
 
         public async Task<PagedList<EmpresaCliente>> GetAll(EmpresaClienteQueryFilter filters)
@@ -154,7 +165,7 @@ namespace WebVisitsMobile.Services.Services.Empresa
             return booOk;
         }
 
-        public async Task<bool> CreateWithHID(EmpresaCliente clientCompany, List<ConfiguracionesReqDTO>? settings, Guid usuarioActualId)
+        public async Task<bool> CreateWithHID(EmpresaCliente clientCompany, List<ConfiguracionesReqDTO>? settings, string password, string passwordHash, Guid usuarioActualId)
         {
             bool booOk = false;
 
@@ -229,6 +240,30 @@ namespace WebVisitsMobile.Services.Services.Empresa
                 if (settingCommon.Count() != 0)
                 {
                     await _configuracionService.CreateSettingsForCompany(settingCommon, clientCompany.Id, usuarioActualId);
+                }
+
+                var user = new Usuario()
+                {
+                    Correo = clientCompany.CorreoElectronico,
+                    Contrasena = passwordHash,
+                    Vence = 2,
+                    FechaVencimiento = null,
+                    PerfilId = new Guid("0043801F-F691-45C9-BCDA-3E131E3766F2"),
+                    TipoUsuarioId = new Guid("2228D6FB-CBDD-4672-9A06-A6E054157E6D"),
+                    EmpresaClienteId = clientCompany.Id,
+                    Clave = null
+                };
+                var userResponse = await _usuarioService.Create(user, password, usuarioActualId, clientCompany.Id);
+                if (userResponse == true)
+                {
+                    var email = new CorreoEnviarUsuario()
+                    {
+                        Nombre = " - ",
+                        Correo = clientCompany.CorreoElectronico,
+                        Contrasena = password
+                    };
+
+                    await _correoEnviarService.SendUserEmail(email, usuarioActualId, clientCompany.Id);
                 }
             }
             catch (Exception ex)

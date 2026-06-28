@@ -255,5 +255,23 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
 
             return StatusCode(200, response);
         }
+
+        [Route("ChangePassword")]
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(CambiarContrasena nuevaContasena)
+        {
+            Token tokenData = _accesorService.GetTokenData();
+
+            if (tokenData.UsuarioId == Guid.Empty)
+            {
+                return StatusCode(401, new ApiResponse<string>(false, "no tiene permiso sobre este recurso", 401, null));
+            }
+
+            var contrasena = _passwordService.Hash(nuevaContasena.Contrasena);
+
+            bool cambiarContrasena = await _usuarioService.ChangePassword(contrasena, tokenData.Email);
+
+            return StatusCode(200, cambiarContrasena);
+        }
     }
 }

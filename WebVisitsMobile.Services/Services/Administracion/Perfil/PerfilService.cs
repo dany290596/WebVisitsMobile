@@ -228,5 +228,27 @@ namespace WebVisitsMobile.Services.Services.Administracion.Perfil
                 throw;
             }
         }
+
+        public async Task<bool> ExistsNameForUpdate(Guid perfilId, string name)
+        {
+            var currentPerfil = await _unitOfWork.PerfilRepository.GetById(perfilId);
+
+            if (currentPerfil == null)
+            {
+                return false;
+            }
+
+            // Si el nombre no cambió, permitir guardar
+            if (currentPerfil.Nombre.Trim().ToLower() == name.Trim().ToLower())
+            {
+                return false;
+            }
+
+            var data = await _unitOfWork.PerfilRepository.GetProfile(
+                x => x.Nombre.Trim().ToLower() == name.Trim().ToLower()
+            );
+
+            return data != null;
+        }
     }
 }

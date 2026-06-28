@@ -44,9 +44,25 @@ namespace WebVisitsMobile.Services.Services.HID
                 else
                 {
                     credentialHID = await _unitOfWork.CredencialHIDRepository.GetAllCredentialHID();
+                    if (filters.UsuarioNombre != null && filters.UsuarioNombre != "")
+                    {
+                        var palabras = filters.UsuarioNombre
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                        foreach (var palabra in palabras)
+                        {
+                            credentialHID = credentialHID.Where(x =>
+                                (!string.IsNullOrEmpty(x.LicenciaHidUser.Nombre) &&
+                                 x.LicenciaHidUser.Nombre.Contains(palabra, StringComparison.OrdinalIgnoreCase))
+                                ||
+                                (!string.IsNullOrEmpty(x.LicenciaHidUser.Apellidos) &&
+                                 x.LicenciaHidUser.Apellidos.Contains(palabra, StringComparison.OrdinalIgnoreCase))
+                            );
+                        }
+                    }
                 }
 
-                if (filters.TipoCredencial != null) { credentialHID = credentialHID.Where(x => x.TipoCredencial.ToLower().Contains(filters.TipoCredencial.ToLower())); }
+                if (filters.TipoCredencial != null) { credentialHID = credentialHID.Where(x => x.TipoCredencial!.ToLower().Contains(filters.TipoCredencial.ToLower())); }
                 if (filters.DispositivoId != null && filters.DispositivoId != Guid.Empty) { credentialHID = credentialHID.Where(x => x.DispositivoId == filters.DispositivoId); }
                 if (filters.Usuarioid != null && filters.Usuarioid != Guid.Empty) { credentialHID = credentialHID.Where(x => x.Usuarioid == filters.Usuarioid); }
                 if (filters.CredencialValor != null) { credentialHID = credentialHID.Where(x => x.CredencialValor.ToLower().Contains(filters.CredencialValor.ToLower())); }

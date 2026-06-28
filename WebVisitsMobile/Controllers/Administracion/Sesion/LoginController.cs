@@ -85,7 +85,7 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
                     var repuesta = new ApiResponse<string>(true, "Token generado correctamente.", 200, token);
                     return StatusCode(200, repuesta);
                 }
-                if (validation.Item2.TipoUsuario.Nombre == "Partner HID")
+                if (validation.Item2.TipoUsuario.Id == new Guid("2228D6FB-CBDD-4672-9A06-A6E054157E6D"))
                 {
                     var token = GenerateToken(validation.Item2, sesion.Id);
                     var repuesta = new ApiResponse<string>(true, "Token generado correctamente.", 200, token);
@@ -297,6 +297,53 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
             bool enviarCorreo = await _usuarioService.SendRecoveryCode(correo, numero.ToString(), clave);
 
             return StatusCode(200, enviarCorreo);
+        }
+
+        [Route("GetValidateCode")]
+        [HttpGet]
+        public async Task<IActionResult> GetValidateCode(string codigo, string correo)
+        {
+
+            bool validarFechaIntento = await _usuarioService.ValidateAttemptDate(codigo, correo);
+            if (validarFechaIntento == false) { return BadRequest("Numero de intentos superado espere 1 hora para volver a probar"); }
+
+            bool validarCorreo = await _usuarioService.ValidateUserEmail(correo);
+            if (validarCorreo == false) { return BadRequest("El usuario que desea recuperar no existe"); }
+
+
+            bool validarCodigo = await _usuarioService.ValidateCode(codigo, correo);
+            if (validarCodigo == false)
+            {
+                int ValidarIntentos = await _usuarioService.ValidateIntent(codigo, correo);
+                if (ValidarIntentos == 7) { return BadRequest("Numero de intentos superado espere 1 hora para volver a probar"); }
+            }
+
+            return StatusCode(200, validarCodigo);
+        }
+
+        [Route("RecoverPassword")]
+        [HttpPost]
+        public async Task<IActionResult> RecoverPassword(NuevaContasena nuevaContasena)
+        {
+            bool validarFechaIntento = await _usuarioService.ValidateIntentDate(nuevaContasena.Codigo!, nuevaContasena.Correo!);
+            if (validarFechaIntento == false) { return BadRequest("Numero de intentos superado espere 1 hora para volver a probar"); }
+
+            bool validarCorreo = await _usuarioService.ValidateUserEmail(nuevaContasena.Correo!);
+            if (validarCorreo == false) { return BadRequest("El usuario que desea recuperar no existe"); }
+
+            bool validarCodigo = await _usuarioService.ValidateCode(nuevaContasena.Codigo!, nuevaContasena.Correo!);
+            if (validarCodigo == false)
+            {
+                int ValidarIntentos = await _usuarioService.ValidateIntent(nuevaContasena.Codigo!, nuevaContasena.Correo!);
+                if (ValidarIntentos == 7) { return BadRequest("Numero de intentos superado espere 1 hora para volver a probar"); }
+                if (validarCodigo == false) { return BadRequest("Ocurrio un error, datos incorrectos"); }
+            }
+
+            var contrasena = _passwordService.Hash(nuevaContasena.Contrasena);
+
+            bool cambiarContrasena = await _usuarioService.ChangePassword(contrasena, nuevaContasena.Correo);
+
+            return StatusCode(200, cambiarContrasena);
         }
     }
 }

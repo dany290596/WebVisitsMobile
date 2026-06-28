@@ -236,6 +236,17 @@ namespace WebVisitsMobile.Controllers.Administracion.Perfil
 
             var mapper = _mapper.Map<Domain.Entities.Administracion.Perfil.Perfil>(data);
             mapper.Id = id;
+
+            var existeNombre = await _perfilService.ExistsNameForUpdate(id, data.Nombre);
+            if (existeNombre)
+            {
+                return StatusCode(409, new ApiResponse<bool>(
+                    false,
+                    "Ya existe un perfil con ese nombre.",
+                    409,
+                    false
+                ));
+            }
             var result = await _perfilService.Update(mapper, token.UsuarioId, empresaId);
             if (!result)
             {

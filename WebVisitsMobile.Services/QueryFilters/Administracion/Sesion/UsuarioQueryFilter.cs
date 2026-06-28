@@ -12,5 +12,6 @@ namespace WebVisitsMobile.Services.QueryFilters.Administracion.Sesion
         public Guid? IdAsociado { get; set; }
         public byte? Vence { get; set; }
         public DateTime? FechaVencimiento { get; set; }
+        public string? Clave { get; set; } = null!;
     }
 }

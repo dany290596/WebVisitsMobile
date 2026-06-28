@@ -17,6 +17,7 @@ namespace WebVisitsMobile.Models.Administracion.Sesion.Usuario
         public Guid PerfilId { get; set; }
         public Guid TipoUsuarioId { get; set; }
         public Guid? EmpresaClienteId { get; set; }
+        public string? Clave { get; set; } = null!;
 
         public virtual PerfilRespDTO Perfil { get; set; } = null!;
         public virtual TipoUsuarioRespDTO TipoUsuario { get; set; } = null!;

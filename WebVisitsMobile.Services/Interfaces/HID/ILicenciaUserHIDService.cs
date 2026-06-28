@@ -13,7 +13,6 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<bool> Update(LicenciaHidUser licenseUserHID, Guid currentUserId);
         Task<LicenciaHidUser?> UpdatePartial(LicenciaHidUser licenseUserHID, Guid clientCompanyId, Guid currentUserId);
         Task<Tarea> ActualizarCredencial(string correo, Guid clientCompanyId, Guid currentUserId);
-
         Task<bool> UpdateWithAttributes(LicenciaHidUser licenseUserHID, Guid clientCompanyId, Guid currentUserId);
         Task<bool> UpdateStatus(Guid userHIDId, string newInvitationActivity, int newStatus, Guid currentUserId);
         Task<bool> UpdateStatus(Guid userId, int status);
@@ -44,6 +43,5 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<bool> TieneCredencialWallet(Guid licenciaHidUserId);
         Task<string?> GetCredencialWalletMasReciente(Guid licenciaHidUserId);
         Task<string?> GetCredencialWalletMasRecienteWatch(Guid licenciaHidUserId);
-
     }
 }

@@ -7,6 +7,7 @@ using WebVisitsMobile.Data.Interfaces.Configuracion;
 using WebVisitsMobile.Data.Interfaces.Empresa;
 using WebVisitsMobile.Data.Interfaces.HID;
 using WebVisitsMobile.Data.Interfaces.Organizacion.Tarea;
+using WebVisitsMobile.Data.Interfaces.Parametrizacion;
 using WebVisitsMobile.Data.Interfaces.Ubicacion;
 
 namespace WebVisitsMobile.Data.Interfaces.Common
@@ -35,6 +36,7 @@ namespace WebVisitsMobile.Data.Interfaces.Common
         IPaisRepository PaisRepository { get; }
         IPaisEstadoRepository PaisEstadoRepository { get; }
         ICiudadRepository CiudadRepository { get; }
+        ICorreoEnviarRepository CorreoEnviarRepository { get; }
 
         void SaveChanges();
         Task SaveChangesAsync();

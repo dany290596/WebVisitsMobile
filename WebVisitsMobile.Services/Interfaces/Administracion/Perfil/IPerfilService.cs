@@ -13,5 +13,6 @@ namespace WebVisitsMobile.Services.Interfaces.Administracion.Perfil
         Task<bool> Update(Domain.Entities.Administracion.Perfil.Perfil data, Guid currentUserId, Guid clientCompanyId);
         Task<Domain.Entities.Administracion.Perfil.Perfil> GetPerfilConPermisos(Guid id);
         Task<bool> ExistsName(string name);
+        Task<bool> ExistsNameForUpdate(Guid perfilId, string name);
     }
 }

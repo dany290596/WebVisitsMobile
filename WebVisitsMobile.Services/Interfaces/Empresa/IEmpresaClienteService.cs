@@ -12,7 +12,7 @@ namespace WebVisitsMobile.Services.Interfaces.Empresa
         Task<EmpresaCliente> GetCompanyClient(Guid id);
         Task<bool> Inactivate(Guid id, Guid currentUserId);
         Task<bool> Reactivate(Guid id, Guid currentUserId);
-        Task<bool> CreateWithHID(EmpresaCliente clientCompany, List<ConfiguracionesReqDTO>? settings, Guid usuarioActualId);
+        Task<bool> CreateWithHID(EmpresaCliente clientCompany, List<ConfiguracionesReqDTO>? settings, string password, string passwordHash, Guid usuarioActualId);
         Task<bool> Update(EmpresaCliente clientCompany, Guid usuarioActualId);
         Task<bool> UpdateWithHID(EmpresaCliente clientCompany, List<ConfiguracionesReqDTO>? settings, Guid usuarioActualId);
         Task<EmpresaCliente?> GetByRFC(string rfc);

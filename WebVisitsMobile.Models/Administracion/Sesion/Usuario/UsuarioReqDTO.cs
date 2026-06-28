@@ -10,5 +10,6 @@
         public Guid PerfilId { get; set; }
         public Guid TipoUsuarioId { get; set; }
         public Guid? EmpresaClienteId { get; set; }
+        public string? Clave { get; set; } = null!;
     }
 }

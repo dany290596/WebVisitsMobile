@@ -40,10 +40,32 @@ namespace WebVisitsMobile.Services.Services.HID
                 else
                 {
                     deviceHID = await _unitOfWork.DipositivosHIDRepository.GetAllDevice();
+                    if (filters.UsuarioNombre != null && filters.UsuarioNombre != "")
+                    {
+                        //deviceHID = deviceHID.Where(x => x.LicenciaHidUser.Nombre.ToLower().Contains(filters.UsuarioNombre.ToLower()));
+                        var palabras = filters.UsuarioNombre
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                        foreach (var palabra in palabras)
+                        {
+                            deviceHID = deviceHID.Where(x =>
+                                (!string.IsNullOrEmpty(x.LicenciaHidUser.Nombre) &&
+                                 x.LicenciaHidUser.Nombre.Contains(palabra, StringComparison.OrdinalIgnoreCase))
+                                ||
+                                (!string.IsNullOrEmpty(x.LicenciaHidUser.Apellidos) &&
+                                 x.LicenciaHidUser.Apellidos.Contains(palabra, StringComparison.OrdinalIgnoreCase))
+                            );
+                        }
+                    }
                 }
 
                 if (filters.CodigoInvitacion != null) { deviceHID = deviceHID.Where(x => x.CodigoInvitacion.ToLower().Contains(filters.CodigoInvitacion.ToLower())); }
-                if (filters.NombreDispositivo != null) { deviceHID = deviceHID.Where(x => x.NombreDispositivo.ToLower().Contains(filters.NombreDispositivo.ToLower())); }
+                //if (filters.NombreDispositivo != null) { deviceHID = deviceHID.Where(x => x.NombreDispositivo.ToLower().Contains(filters.NombreDispositivo.ToLower())); }
+                if (!string.IsNullOrWhiteSpace(filters.NombreDispositivo))
+                {
+                    var nombre = filters.NombreDispositivo.Trim().ToLower();
+                    deviceHID = deviceHID.Where(x => x.NombreDispositivo != null && x.NombreDispositivo.ToLower().Contains(nombre));
+                }
                 if (filters.SdkVersion != null) { deviceHID = deviceHID.Where(x => x.SdkVersion.ToLower().Contains(filters.SdkVersion.ToLower())); }
                 if (filters.SistemaOperativo != null) { deviceHID = deviceHID.Where(x => x.SistemaOperativo.ToLower().Contains(filters.SistemaOperativo.ToLower())); }
                 if (filters.UsuarioId != null && filters.UsuarioId != Guid.Empty) { deviceHID = deviceHID.Where(x => x.UsuarioId == filters.UsuarioId); }
@@ -64,7 +86,11 @@ namespace WebVisitsMobile.Services.Services.HID
                 if (filters.FechaReactivacionHasta != null && filters.FechaReactivacionHasta != DateTime.MinValue) { deviceHID = deviceHID.Where(x => x.FechaCreacion.CompareTo(filters.FechaReactivacionHasta) <= 0); }
                 if (filters.Estado != null && filters.Estado > 0) { deviceHID = deviceHID.Where(x => x.Estado == filters.Estado); }
 
-                pagedCredentialDevice = PagedList<DipositivosHid>.Create(deviceHID, filters.PageNumber, filters.PageSize);
+                //pagedCredentialDevice = PagedList<DipositivosHid>.Create(deviceHID, filters.PageNumber, filters.PageSize);
+                var filtered = deviceHID.ToList();
+
+                pagedCredentialDevice = PagedList<DipositivosHid>
+                    .Create(filtered, filters.PageNumber, filters.PageSize);
             }
             catch (Exception ex)
             {
@@ -269,10 +295,6 @@ namespace WebVisitsMobile.Services.Services.HID
                 data.FechaModificacion = DateTime.Now;
                 _unitOfWork.DipositivosHIDRepository.Update(data);
                 await _unitOfWork.SaveChangesAsync();
-
-
-
-
 
                 Console.WriteLine($"[HIDOrigo] DipositivosHID.UpdateStatus ✅ Status actualizado a {status} para: {userId}");
                 return true;

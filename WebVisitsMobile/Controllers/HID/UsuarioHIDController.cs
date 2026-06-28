@@ -1,18 +1,16 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.HID;
-using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
 using WebVisitsMobile.Infrastructure.Interfaces;
+using WebVisitsMobile.Models.Common;
 using WebVisitsMobile.Models.HID.UserHID;
 using WebVisitsMobile.Models.Organizacion.Tarea.Tarea;
 using WebVisitsMobile.Services.Interfaces.HID;
 using WebVisitsMobile.Services.QueryFilters.HID;
 using WebVisitsMobile.Services.Responses;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebVisitsMobile.Controllers.HID
 {
@@ -53,11 +51,11 @@ namespace WebVisitsMobile.Controllers.HID
         {
             try
             {
-                Token token = _accesorService.GetTokenData();
-                if (token == null)
-                {
-                    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
-                }
+                //Token token = _accesorService.GetTokenData();
+                //if (token == null)
+                //{
+                //    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+                //}
 
                 var data = await _licenciaUserHIDService.GetAll(filters);
                 if (data == null || !data.Any())
@@ -86,16 +84,55 @@ namespace WebVisitsMobile.Controllers.HID
             }
         }
 
+        [HttpGet("Query")]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<UserHIDRespDTO>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetAllQuery([FromQuery] LicenciaUserHIDQueryFilter filters)
+        {
+            try
+            {
+                //Token token = _accesorService.GetTokenData();
+                //if (token == null)
+                //{
+                //    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+                //}
+
+                var data = await _licenciaUserHIDService.GetAllQuery(filters);
+                if (data == null || !data.Any())
+                {
+                    return StatusCode(200, new ApiResponse<IEnumerable<UserHIDRespDTO>>(
+                        true,
+                        "No se encontraron registros que coincidan con tu búsqueda",
+                        200,
+                        Enumerable.Empty<UserHIDRespDTO>()
+                    ));
+                }
+
+                string strUriPreviousPage = _uriService.GetLicenseUserHIDPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+                string strUriNextPage = _uriService.GetLicenseUserHIDPaginationUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();
+
+                var response = new ApiResponse<IEnumerable<CommonDTO>>(true, "Consulta exitosa", 200, data.ToList());
+                response.CargarMetaData(data.TotalCount, data.PageSize, data.CurrentPage, data.TotalPages,
+                                        data.HasNextPage, data.HasPreviousPage, strUriNextPage, strUriPreviousPage);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             try
             {
-                Token token = _accesorService.GetTokenData();
-                if (token == null)
-                {
-                    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
-                }
+                //Token token = _accesorService.GetTokenData();
+                //if (token == null)
+                //{
+                //    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+                //}
 
                 var data = await _licenciaUserHIDService.GetById(id);
                 if (data == null)
@@ -118,11 +155,11 @@ namespace WebVisitsMobile.Controllers.HID
         {
             try
             {
-                Token token = _accesorService.GetTokenData();
-                if (token == null)
-                {
-                    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
-                }
+                //Token token = _accesorService.GetTokenData();
+                //if (token == null)
+                //{
+                //    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+                //}
 
                 var data = await _licenciaUserHIDService.GetByPhoto(id);
                 if (data == null)
@@ -143,16 +180,12 @@ namespace WebVisitsMobile.Controllers.HID
         [HttpPost]
         public async Task<IActionResult> Create(UserHIDReqDTO data)
         {
-
-
             if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
             {
                 return BadRequest("El header de la empresa es inválido.");
             }
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
-
-
 
             var mapper = _mapper.Map<LicenciaHidUser>(data);
 
@@ -172,11 +205,11 @@ namespace WebVisitsMobile.Controllers.HID
         [HttpPut]
         public async Task<IActionResult> Update(Guid id, UserHIDEditDTO data)
         {
-            Token token = _accesorService.GetTokenData();
-            if (token == null)
-            {
-                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
-            }
+            //Token token = _accesorService.GetTokenData();
+            //if (token == null)
+            //{
+            //    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+            //}
 
             var mapper = _mapper.Map<LicenciaHidUser>(data);
             mapper.Id = id;
@@ -225,8 +258,6 @@ namespace WebVisitsMobile.Controllers.HID
         [HttpPut("ActualizarCredencial/{correo}")]
         public async Task<IActionResult> ActualizarCredencial(string correo)
         {
-
-
             Token token = _accesorService.GetTokenData();
             if (token == null)
             {
@@ -310,11 +341,11 @@ namespace WebVisitsMobile.Controllers.HID
         [HttpPatch("InactivateCredentialUser")]
         public async Task<IActionResult> InactivateCredentialUser([Required] Guid id, [Required] Guid usuarioBajaId)
         {
-            Token token = _accesorService.GetTokenData();
-            if (token == null)
-            {
-                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
-            }
+            //Token token = _accesorService.GetTokenData();
+            //if (token == null)
+            //{
+            //    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+            //}
 
             if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
             {
@@ -396,7 +427,6 @@ namespace WebVisitsMobile.Controllers.HID
             try
             {
                 var data = await _licenciaUserHIDService.GetAllLicenciasExpiradas();
-
                 if (data == null || !data.Any())
                 {
                     return StatusCode(200, new ApiResponse<IEnumerable<LicenciaHidUserExpiradaRespDTO>>(
@@ -408,12 +438,12 @@ namespace WebVisitsMobile.Controllers.HID
 
                 var dataDTO = data.Select(u => new LicenciaHidUserExpiradaRespDTO
                 {
-                    Id            = u.Id,
+                    Id = u.Id,
                     EmpresaClienteId = u.EmpresaClienteId,
-                    FechaFin      = u.FechaFin,
-                    Plataforma    = u.Plataforma,
-                    ExternalId    = u.ExternalId,
-                    UsuarioWalletId=u.UsuarioWalletId
+                    FechaFin = u.FechaFin,
+                    Plataforma = u.Plataforma,
+                    ExternalId = u.ExternalId,
+                    UsuarioWalletId = u.UsuarioWalletId
                 });
 
                 var response = new ApiResponse<IEnumerable<LicenciaHidUserExpiradaRespDTO>>(
@@ -439,11 +469,11 @@ namespace WebVisitsMobile.Controllers.HID
             try
             {
 
-                Token token = _accesorService.GetTokenData();
-                if (token.Email==string.Empty)
-                {
-                    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
-                }
+                //Token token = _accesorService.GetTokenData();
+                //if (token.Email==string.Empty)
+                //{
+                //    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+                //}
 
                 var emailExiste = await _licenciaUserHIDService.ExisteEmailEnLicenciaHidUser(email);
                 if (!emailExiste)
@@ -542,8 +572,6 @@ namespace WebVisitsMobile.Controllers.HID
             }
         }
 
-
-
         /// <summary>
         /// Obtiene el CredencialValor Wallet más reciente del usuario identificado por su ExternalId.
         /// </summary>
@@ -604,8 +632,6 @@ namespace WebVisitsMobile.Controllers.HID
         }
 
 
-        
-
         [HttpPatch("ReactivateCredentialUser")]
         public async Task<IActionResult> ReactivateCredentialUser([Required] Guid id, [Required] Guid usuarioReactivadorId)
         {
@@ -616,11 +642,11 @@ namespace WebVisitsMobile.Controllers.HID
             var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
             if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
-            Token token = _accesorService.GetTokenData();
-            if (token == null)
-            {
-                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
-            }
+            //Token token = _accesorService.GetTokenData();
+            //if (token == null)
+            //{
+            //    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+            //}
 
             var userTipoCredencial = await _usuarioHidTipoCredencialService.GetUserHidTypeCredential(id);
             if (userTipoCredencial == null)

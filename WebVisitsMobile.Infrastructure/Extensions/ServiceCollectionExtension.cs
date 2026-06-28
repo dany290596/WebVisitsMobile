@@ -19,9 +19,11 @@ using WebVisitsMobile.Services.Interfaces.Administracion.Seccion;
 using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
+using WebVisitsMobile.Services.Interfaces.Encriptacion;
 using WebVisitsMobile.Services.Interfaces.HID;
 using WebVisitsMobile.Services.Interfaces.Organizacion.Email;
 using WebVisitsMobile.Services.Interfaces.Organizacion.Tarea;
+using WebVisitsMobile.Services.Interfaces.Parametrizacion;
 using WebVisitsMobile.Services.Interfaces.Ubicacion;
 using WebVisitsMobile.Services.Services.Administracion.Aplicacion;
 using WebVisitsMobile.Services.Services.Administracion.Modulo;
@@ -30,9 +32,11 @@ using WebVisitsMobile.Services.Services.Administracion.Seccion;
 using WebVisitsMobile.Services.Services.Administracion.Sesion;
 using WebVisitsMobile.Services.Services.Configuracion;
 using WebVisitsMobile.Services.Services.Empresa;
+using WebVisitsMobile.Services.Services.Encriptacion;
 using WebVisitsMobile.Services.Services.HID;
 using WebVisitsMobile.Services.Services.Organizacion.Email;
 using WebVisitsMobile.Services.Services.Organizacion.Tarea;
+using WebVisitsMobile.Services.Services.Parametrizacion;
 using WebVisitsMobile.Services.Services.Ubicacion;
 
 namespace WebVisitsMobile.Infrastructure.Extensions
@@ -89,6 +93,8 @@ namespace WebVisitsMobile.Infrastructure.Extensions
             services.AddTransient<ICiudadService, CiudadService>();
             services.AddTransient<IEmailTemplateService, EmailTemplateService>();
             services.AddTransient<IHIDOrigoEventService, HIDOrigoEventService>();
+            services.AddTransient<ICorreoEnviarService, CorreoEnviarService>();
+            services.AddTransient<IEncriptacionService, EncriptacionService>();
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddTransient<IUnitOfWork, UnitOfWork>();
