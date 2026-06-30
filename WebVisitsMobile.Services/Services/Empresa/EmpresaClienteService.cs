@@ -258,7 +258,7 @@ namespace WebVisitsMobile.Services.Services.Empresa
                 {
                     var email = new CorreoEnviarUsuario()
                     {
-                        Nombre = " - ",
+                        Nombre = "Sin nombre",
                         Correo = clientCompany.CorreoElectronico,
                         Contrasena = password
                     };

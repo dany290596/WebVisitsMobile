@@ -10,6 +10,7 @@ using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
 using WebVisitsMobile.Services.Interfaces.Encriptacion;
 using WebVisitsMobile.Services.Interfaces.Parametrizacion;
 using WebVisitsMobile.Services.QueryFilters.Administracion.Sesion;
+using WebVisitsMobile.Services.Services.Parametrizacion;
 
 namespace WebVisitsMobile.Services.Services.Administracion.Sesion
 {
@@ -103,6 +104,12 @@ namespace WebVisitsMobile.Services.Services.Administracion.Sesion
 
                 await _unitOfWork.UsuarioRepository.Add(user);
                 await _unitOfWork.SaveChangesAsync();
+
+                CorreoEnviarUsuario correoAltaUsuario = new CorreoEnviarUsuario();
+                correoAltaUsuario.Nombre = "Sin nombre";
+                correoAltaUsuario.Correo = user.Correo;
+                correoAltaUsuario.Contrasena = password;
+                await _correoEnviarService.SendUserEmail(correoAltaUsuario, currentUserId, clientCompanyId);
 
                 booOk = true;
             }
