@@ -95,6 +95,7 @@ namespace WebVisitsMobile.Infrastructure.Extensions
             services.AddTransient<IHIDOrigoEventService, HIDOrigoEventService>();
             services.AddTransient<ICorreoEnviarService, CorreoEnviarService>();
             services.AddTransient<IEncriptacionService, EncriptacionService>();
+            services.AddTransient<IAccountService, AccountService>();
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddTransient<IUnitOfWork, UnitOfWork>();
@@ -105,7 +106,7 @@ namespace WebVisitsMobile.Infrastructure.Extensions
             services.AddSingleton<IUriService>(provider =>
             {
                 var accesor = provider.GetRequiredService<IHttpContextAccessor>();
-                var request = accesor.HttpContext.Request;
+                var request = accesor.HttpContext!.Request;
                 var absoluteUri = string.Concat(request.Scheme, "://", request.Host.ToUriComponent());
 
                 return new UriService(absoluteUri);
@@ -142,7 +143,17 @@ namespace WebVisitsMobile.Infrastructure.Extensions
 
         public static IServiceCollection AddSwagger(this IServiceCollection services, string xmlFileName)
         {
-            string[] pagesApplication = { "Autenticación", "Cliente", "Sesión", "HID Origo", "Parametrización", "Organización", "Configuración", "Ubicación" };
+            string[] pagesApplication = {
+                "Autenticación",
+                "Cliente",
+                "Sesión",
+                "HID Origo",
+                "Parametrización",
+                "Organización",
+                "Configuración",
+                "Ubicación",
+                "Mi cuenta"
+            };
 
             services.AddSwaggerGen(c =>
             {

@@ -58,6 +58,7 @@ namespace WebVisitsMobile.Services.Services.Ubicacion
                 if (filters.FechaReactivacionHasta != null && filters.FechaReactivacionHasta != DateTime.MinValue) { data = data.Where(x => x.FechaCreacion.CompareTo(filters.FechaReactivacionHasta) <= 0); }
                 if (filters.Estado != null && filters.Estado > 0) { data = data.Where(x => x.Estado == filters.Estado); }
 
+                data = data.OrderBy(x => x.Nombre);
                 pagedData = PagedList<Ciudad>.Create(data, filters.PageNumber, filters.PageSize);
             }
             catch (Exception ex)

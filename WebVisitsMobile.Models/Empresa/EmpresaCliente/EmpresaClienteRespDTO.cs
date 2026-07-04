@@ -12,7 +12,10 @@ namespace WebVisitsMobile.Models.Empresa.EmpresaCliente
         public string? TelefonoEmpresa { get; set; } = null;
         public string? TelefonoMovil { get; set; } = null;
         public string? CorreoElectronico { get; set; } = null;
+
         public byte UsaCredencialesHID { get; set; }
+        public byte UsaCredencialesWallet { get; set; }
+
         public string? PaisNombre { get; set; } = null;
         public string? EstadoNombre { get; set; }
         public string? CiudadNombre { get; set; } = null;

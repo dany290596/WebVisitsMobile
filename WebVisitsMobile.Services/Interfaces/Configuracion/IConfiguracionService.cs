@@ -28,5 +28,8 @@ namespace WebVisitsMobile.Services.Interfaces.Configuracion
         Task<SettingAccountEmail?> GetSettingOfAccountEmail();
         Task<bool> DeleteAllSettingsByCompany(Guid clientCompanyId);
         Task<List<SettingsGroupTap>> GetSettingsGroupedByType();
+        Task<List<SettingsGroupTap>> GetSettingsForHID();
+        Task<List<SettingsGroupTap>> GetSettingsForWallet();
+        Task<List<SettingsGroupTap>> GetSettingsDecrypt(Guid companyId, Guid typeSettingId);
     }
 }

@@ -85,6 +85,7 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("Organización/swagger.json", "Organización");
         options.SwaggerEndpoint("Configuración/swagger.json", "Configuración");
         options.SwaggerEndpoint("Ubicación/swagger.json", "Ubicación");
+        options.SwaggerEndpoint("Mi cuenta/swagger.json", "Mi cuenta");
     });
 }
 else
@@ -116,6 +117,7 @@ else
         options.SwaggerEndpoint("Organización/swagger.json", "Organización");
         options.SwaggerEndpoint("Configuración/swagger.json", "Configuración");
         options.SwaggerEndpoint("Ubicación/swagger.json", "Ubicación");
+        options.SwaggerEndpoint("Mi cuenta/swagger.json", "Mi cuenta");
     });
 }
 
@@ -123,9 +125,6 @@ else
 
 // Se integra la siguiente linea que permite la autenticación por medio del token ::: NOTA => REQUERIDO
 app.UseAuthentication();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

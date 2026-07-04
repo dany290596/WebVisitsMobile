@@ -161,6 +161,29 @@ namespace WebVisitsMobile.Controllers.Empresa
             }
         }
 
+        //[HttpGet("GetCompanyWithConfiguration/{id}")]
+        //public async Task<IActionResult> GetCompanyWithConfiguration(Guid id)
+        //{
+        //    try
+        //    {
+        //        if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+        //        {
+        //            return BadRequest("El header de la empresa es inválido.");
+        //        }
+        //        var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+        //        if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+        //        var data = await _empresaClienteService.GetWithSetting(id);
+        //        var response = new ApiResponse<CompanyClientWithSetting>(true, "Consulta ejecutada", 200, data);
+
+        //        return StatusCode(200, response);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw;
+        //    }
+        //}
+
         [HttpPatch("Inactivate")]
         public async Task<IActionResult> Inactivate([Required] Guid id, [Required] Guid usuarioBajaId)
         {
@@ -201,6 +224,77 @@ namespace WebVisitsMobile.Controllers.Empresa
             return StatusCode(200, response);
         }
 
+        /*
+        [HttpPost("TestConnection")]
+        public async Task<IActionResult> TestConnection([FromBody] TestConnectionDTO data)
+        {
+            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+                return BadRequest("El header de la empresa es inválido.");
+
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null)
+                return BadRequest($"La empresa con el ID {empresaId} no existe.");
+
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+
+            var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
+            if (validarSesion == null)
+                return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesión activa con tu cuenta.", tipoError = 3 });
+
+            try
+            {
+                // Verificar tipo de tarea (ID fijo como en el antiguo)
+                var tipoTareaId = new Guid("617950AD-6DAE-4FE3-B31F-5D18D6315645");
+                var tipoTarea = await _tipoTareaService.GetById(tipoTareaId);
+                if (tipoTarea == null)
+                    return BadRequest(new ApiResponse<bool>(false, "El tipo de tarea no existe.", 400, false));
+
+                // Serializar datos de prueba
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    WriteIndented = false,
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                };
+
+                var nuevaTarea = new Domain.Entities.Organizacion.Tarea.Tarea
+                {
+                    TipoTareaId = tipoTareaId,
+                    Fecha = DateTime.Now,
+                    Pendiente = 1,
+                    Status = 1,
+                    ValorEnvio = JsonSerializer.Serialize(data, jsonOptions),
+                    ValorRetorno = "",
+                    EmpresaClienteId = empresaId   // Asignamos la empresa del header
+                };
+
+                var tareaCreada = await _tareaService.Create(nuevaTarea, token.UsuarioId);
+                if (tareaCreada == null)
+                    return StatusCode(500, new ApiResponse<bool>(false, "No se pudo crear la tarea.", 500, false));
+
+                // Registrar en el sistema SSE para que el frontend pueda suscribirse
+                _taskEventService.RegisterTask(tareaCreada.Id);
+
+                // Iniciar monitoreo en segundo plano (sin await)
+                _ = MonitorTaskInBackground(tareaCreada.Id);
+
+                var response = new ApiResponse<Domain.Entities.Organizacion.Tarea.Tarea>(
+                    true,
+                    "Tarea creada correctamente. Esperando resultado de la conexión HID.",
+                    200,
+                    tareaCreada
+                );
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "Error interno al crear la tarea.", 500, null));
+            }
+        }
+        */
         [HttpPost("TestConnection")]
         public async Task<IActionResult> TestConnection([FromBody] TestConnectionDTO data)
         {
@@ -476,6 +570,103 @@ namespace WebVisitsMobile.Controllers.Empresa
                 }
 
                 bool resultado = await _empresaClienteService.CreateWithHID(clientCompany, configuraciones, password, passwordHash, token.UsuarioId);
+                if (!resultado)
+                {
+                    return StatusCode(500, new ApiResponse<bool>(false, "No se pudo crear el registro.", 500, false));
+                }
+
+                EmpresaClienteRespDTO empresaRespDTO = _mapper.Map<EmpresaClienteRespDTO>(clientCompany);
+                var response = new ApiResponse<EmpresaClienteRespDTO>(true, "La empresa se registró correctamente.", 200, empresaRespDTO);
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "Error interno del servidor.", 500, null));
+            }
+        }
+
+        [HttpPost("WithSettingEncrypted")]
+        public async Task<IActionResult> CreateWithSettingEncrypted([FromBody] EmpresaClienteEncryptedReqDTO model)
+        {
+            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+                return BadRequest("El header de la empresa es inválido.");
+
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null)
+                return BadRequest($"La empresa con el ID {empresaId} no existe.");
+
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+
+            var empresa = model.Empresa;
+            var configuracionesHID = model.SettingEncryptedHID;
+            var configuracionesWallet = model.SettingEncryptedWallet;
+
+            try
+            {
+                // ----- Validación de RFC y Razón Social duplicados -----
+                var rfcExistente = await _empresaClienteService.GetByRFC(empresa.RFC);
+                if (rfcExistente != null)
+                {
+                    return Ok(new ApiResponse<string>(
+                        false,
+                        "Ya existe una empresa registrada con el mismo RFC.",
+                        200,
+                        null
+                    ));
+                }
+
+                var razonSocialExistente = await _empresaClienteService.GetByRazonSocial(empresa.RazonSocial);
+                if (razonSocialExistente != null)
+                {
+                    return Ok(new ApiResponse<string>(
+                        false,
+                        "Ya existe una empresa registrada con la misma razón social.",
+                        200,
+                        null
+                    ));
+                }
+
+                if (empresa.UsaCredencialesHID == 1)
+                {
+                    if (configuracionesHID == null || configuracionesHID == "")
+                    {
+                        return BadRequest(new ApiResponse<string>(
+                            false,
+                            "Las configuraciones HID son obligatorias cuando la empresa utiliza credenciales HID.",
+                            400,
+                            null
+                        ));
+                    }
+                }
+
+                if (empresa.UsaCredencialesWallet == 1)
+                {
+                    if (configuracionesWallet == null || configuracionesWallet == "")
+                    {
+                        return BadRequest(new ApiResponse<string>(
+                            false,
+                            "Las configuraciones Wallet son obligatorias cuando la empresa utiliza credenciales Wallet.",
+                            400,
+                            null
+                        ));
+                    }
+                }
+
+                string password = "oG@P~cS68d*";
+                string passwordHash = _passwordService.Hash(password);
+
+                var clientCompany = _mapper.Map<EmpresaCliente>(empresa);
+
+                var email = await _usuarioService.GetUserByEmail(clientCompany.CorreoElectronico);
+                if (email != null)
+                {
+                    return StatusCode(409, new ApiResponse<bool>(false, "Ya hay una cuenta registrada con este correo electrónico. Usa otro correo o intenta recuperar tu contraseña.", 409, false));
+                }
+
+                bool resultado = await _empresaClienteService.CreateWithSettingEncrypted(clientCompany, configuracionesHID, configuracionesWallet, password, passwordHash, token.UsuarioId);
                 if (!resultado)
                 {
                     return StatusCode(500, new ApiResponse<bool>(false, "No se pudo crear el registro.", 500, false));

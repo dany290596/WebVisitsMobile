@@ -27,6 +27,7 @@ namespace WebVisitsMobile.Models.Empresa.EmpresaCliente
         //public Guid EstadoId { get; set; }
         //public Guid CiudadId { get; set; }
         public byte UsaCredencialesHID { get; set; } = 2;
+        public byte UsaCredencialesWallet { get; set; } = 2;
 
         public Guid? PaisId { get; set; }
         public Guid? EstadoId { get; set; }

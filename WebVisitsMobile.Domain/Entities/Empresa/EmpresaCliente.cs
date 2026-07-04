@@ -11,7 +11,10 @@ namespace WebVisitsMobile.Domain.Entities.Empresa
         public string TelefonoEmpresa { get; set; }
         public string? TelefonoMovil { get; set; }
         public string CorreoElectronico { get; set; }
+
         public byte UsaCredencialesHID { get; set; }
+        public byte UsaCredencialesWallet { get; set; }
+
 
         [ForeignKey("PaisId")]
         public Guid? PaisId { get; set; }

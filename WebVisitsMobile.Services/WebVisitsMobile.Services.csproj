@@ -18,4 +18,9 @@
     <ProjectReference Include="..\WebVisitsMobile.Models\WebVisitsMobile.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Interfaces\Administracion\Seguridad\" />
+    <Folder Include="Services\Administracion\Seguridad\" />
+  </ItemGroup>
+
 </Project>

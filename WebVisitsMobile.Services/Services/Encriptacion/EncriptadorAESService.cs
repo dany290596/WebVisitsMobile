@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using WebVisitsMobile.Models.Administracion.Seguridad.AlgoritmoAES;
 
 namespace WebVisitsMobile.Services.Services.Encriptacion
 {
@@ -100,17 +101,32 @@ namespace WebVisitsMobile.Services.Services.Encriptacion
             this.IV = this.oAlgoritmo.IV;
         }
 
-        public byte[] Encriptar(String strMensaje)
+        //public byte[] Encriptar(String strMensaje)
+        //{
+        //    ICryptoTransform oEncriptador = oAlgoritmo.CreateEncryptor();
+        //    byte[] textoPlano = Encoding.Default.GetBytes(strMensaje);
+        //    MemoryStream oMemoria = new MemoryStream();
+        //    CryptoStream oCryptoStream = new CryptoStream(oMemoria, oEncriptador, CryptoStreamMode.Write);
+        //    oCryptoStream.Write(textoPlano, 0, strMensaje.Length);
+        //    oCryptoStream.FlushFinalBlock();
+
+        //    oMemoria.Close();
+        //    oCryptoStream.Close();
+
+        //    return oMemoria.ToArray();
+        //}
+
+        public byte[] Encriptar(string strMensaje)
         {
             ICryptoTransform oEncriptador = oAlgoritmo.CreateEncryptor();
-            byte[] textoPlano = Encoding.Default.GetBytes(strMensaje);
-            MemoryStream oMemoria = new MemoryStream();
-            CryptoStream oCryptoStream = new CryptoStream(oMemoria, oEncriptador, CryptoStreamMode.Write);
-            oCryptoStream.Write(textoPlano, 0, strMensaje.Length);
-            oCryptoStream.FlushFinalBlock();
 
-            oMemoria.Close();
-            oCryptoStream.Close();
+            byte[] textoPlano = Encoding.UTF8.GetBytes(strMensaje);
+
+            using MemoryStream oMemoria = new MemoryStream();
+            using CryptoStream oCryptoStream = new CryptoStream(oMemoria, oEncriptador, CryptoStreamMode.Write);
+
+            oCryptoStream.Write(textoPlano, 0, textoPlano.Length);
+            oCryptoStream.FlushFinalBlock();
 
             return oMemoria.ToArray();
         }
@@ -224,6 +240,18 @@ namespace WebVisitsMobile.Services.Services.Encriptacion
         {
             this.ClaveGenerada = this.StringToByteArray(this.arrClaves[numClave]);
             this.oAlgoritmo.Key = this.ClaveGenerada;
+        }
+
+
+        public async Task<string> DecryptedAES(AlgoritmoAESDTO datos)
+        {
+            EncriptadorAESService oEncriptador = new EncriptadorAESService();
+            oEncriptador.Configurar();
+            oEncriptador.LoadClave(datos.L1);
+            oEncriptador.LoadIV(datos.L2);
+            var cadena = oEncriptador.Desencriptar_String(datos.Cad);
+
+            return cadena;
         }
     }
 }

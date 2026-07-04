@@ -217,5 +217,35 @@ namespace WebVisitsMobile.Controllers.Configuracion
 
             return StatusCode(200, new ApiResponse<List<SettingsGroupTap>>(true, "Configuración obtenida correctamente.", 200, result));
         }
+
+        [HttpGet("SettingsHIDGrouped")]
+        public async Task<IActionResult> GetSettingsHIDGrouped()
+        {
+            var result = await _configuracionService.GetSettingsForHID();
+            if (result == null || !result.Any())
+                return StatusCode(404, new ApiResponse<SettingsGroupTap>(false, "No se encontraron configuraciones.", 404, null));
+
+            return StatusCode(200, new ApiResponse<List<SettingsGroupTap>>(true, "Configuración obtenida correctamente.", 200, result));
+        }
+
+        [HttpGet("SettingsWalletGrouped")]
+        public async Task<IActionResult> GetSettingsWalletGrouped()
+        {
+            var result = await _configuracionService.GetSettingsForWallet();
+            if (result == null || !result.Any())
+                return StatusCode(404, new ApiResponse<SettingsGroupTap>(false, "No se encontraron configuraciones.", 404, null));
+
+            return StatusCode(200, new ApiResponse<List<SettingsGroupTap>>(true, "Configuración obtenida correctamente.", 200, result));
+        }
+
+        [HttpGet("SettingsDecrypt")]
+        public async Task<IActionResult> GetSettingsDecrypt(Guid companyId, Guid typeSettingId)
+        {
+            var result = await _configuracionService.GetSettingsDecrypt(companyId, typeSettingId);
+            if (result == null || !result.Any())
+                return StatusCode(404, new ApiResponse<List<SettingsGroupTap>>(false, "No se encontraron configuraciones.", 404, new List<SettingsGroupTap>()));
+
+            return StatusCode(200, new ApiResponse<List<SettingsGroupTap>>(true, "Configuración obtenida correctamente.", 200, result));
+        }
     }
 }

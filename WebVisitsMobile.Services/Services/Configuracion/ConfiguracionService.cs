@@ -1,13 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text.Json;
 using WebVisitsMobile.Data.Interfaces.Common;
 using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Domain.Options;
+using WebVisitsMobile.Models.Administracion.Seguridad.AlgoritmoAES;
 using WebVisitsMobile.Models.Common;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.QueryFilters.Configuracion;
+using WebVisitsMobile.Services.Services.Encriptacion;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebVisitsMobile.Services.Services.Configuracion
 {
@@ -15,6 +21,8 @@ namespace WebVisitsMobile.Services.Services.Configuracion
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PaginationOption _paginationOptions;
+        EncriptadorAESService _encriptacionService = new EncriptadorAESService();
+
         public ConfiguracionService(
             IUnitOfWork unitOfWork,
             IOptions<PaginationOption> options)
@@ -111,7 +119,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 if (setting == null)
                 {
                     return null;
-                }    
+                }
                 return setting;
             }
             catch (Exception ex)
@@ -260,7 +268,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                  {
                      TipoConfiguracion = c.TipoConfiguracion,
                      Nombre = c.NombreParametro,
-                     Valor1 = c.Valor1
+                     Valor1 = c.Valor1!
                  })
                  .ToListAsync();
 
@@ -454,35 +462,6 @@ namespace WebVisitsMobile.Services.Services.Configuracion
         {
             return Task.FromResult(new List<Configuraciones>
             {
-                //// @CN01
-                //new() { TipoConfiguracion = Guid.Parse('742CE98B-684B-4A76-BA0D-CF62621FC3E7'), NombreParametro = 'Customer ID', Valor1 = '', Valor2 = '', Valor3 = '', Editable = 1, Lectura = 0, Estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('BB617929-5F49-4FDC-8C28-62435505B600'), NombreParametro = 'Client ID', Valor1 = '', Valor2 = '', Valor3 = '', Editable = 1, Lectura = 0, Estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('29625587-4A45-495A-B728-203608694C44'), NombreParametro = 'Client secret/Client certificate', Valor1 = '', Valor2 = '', Valor3 = '', Editable = 1, Lectura = 0, Estado = 1 },
-
-                //// Configuración de URLS
-                //new() { TipoConfiguracion = Guid.Parse('60ADEBFE-01B5-497A-828B-CF3801F37495'), NombreParametro = 'IDP authentication URL', valor1: 'https://api.cert.origo.hidglobal.com', valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('9B02E35B-A069-4BF5-B9CA-337A59455347'), NombreParametro = 'API URL', valor1: '', valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('82481E61-4BF5-44CE-B222-3283F7BC02F9'), NombreParametro = 'Callback and Event URL', valor1: '', valor2: 'If callback is implemented', valor3: '', editable: 1, lectura: 0, estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('84BA81E1-56C0-4BEE-A57F-D05C13BB544A'), NombreParametro = 'Premium Report URL', valor1: '', valor2: 'If premium reports API is used', valor3: '', editable: 1, lectura: 0, estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('5006A3E3-1E78-4341-9253-C2189A7C8974'), NombreParametro = "Credential Management URL", valor1: "", valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('5F9327BE-42D6-46B9-BF0E-DB7176371A20'), NombreParametro = "Users URL", valor1: "", valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9'), NombreParametro = "Events URL", valor1: "", valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('A90006CA-A3E8-4576-A8B0-25B1C5438D55'), NombreParametro = "Transaction URL", valor1: "", valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
-
-                //// Parámetros de API
-                //new() { TipoConfiguracion = Guid.Parse('40E1A0B9-9144-490E-BF75-7663F3447118'), NombreParametro = 'Content Type', valor1: 'application/vnd.assaabloy.ma.credential-management-2.2+json', valor2: 'Header requirement', valor3: '', editable: 1, lectura: 0, estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('4B6BCEFA-20CA-48B9-92FA-5396C7C94202'), NombreParametro = 'Accept Type', valor1: '##MANDATORY##', valor2: 'For .NET compatibility', valor3: '', editable: 1, lectura: 0, estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('788F90F3-0CE3-4E96-B4BA-38DA1CFE105B'), NombreParametro = 'Application ID', valor1: 'HID-CRCDEMEXICO-DEV', valor2: 'Format: HID-PARTNERNAME-SOLUTIONNAME', valor3: '', editable: 1, lectura: 0, estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6'), NombreParametro = 'Application Version', valor1: '##MANDATORY##', valor2: 'Versioning format', valor3: '', editable: 1, lectura: 0, estado =  1 },
-
-                //// Clave de producto
-                //new() { TipoConfiguracion = Guid.Parse('C98EE139-92FB-4E71-94B7-AE258DD1929A'), NombreParametro = 'Part number field', valor1: 'MID-SUB-CRD_FTPN_644745', valor2: 'Replaces hardcoded value', valor3: '', editable: 1, lectura: 0, estado = 1 },
-
-                //// Métodos de descubrimiento
-                //new() { TipoConfiguracion = Guid.Parse('D539FF01-17F0-4C29-9E17-668A5591ACE5'), NombreParametro = 'Auto detect Part number', valor1: '4924_644745', valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('18A0E41D-960E-4F52-9604-D0C773A87F9C'), NombreParametro = 'Select Part number', valor1: 'MID-SUB-CRD_FTPN_644745', valor2: '', valor3: '', editable: 1, lectura: 0, estado = 1 },
-                //new() { TipoConfiguracion = Guid.Parse('32DC2E87-E6A4-48D7-AF0E-B967ED2BBF49'), NombreParametro = 'Manual entry Part number', valor1: 'Enter value', valor2: 'HID Origo compatible', valor3: '', editable: 1, lectura: 0, estado = 1 },
-
                 // @CN01
                 new() { TipoConfiguracion = Guid.Parse("742CE98B-684B-4A76-BA0D-CF62621FC3E7"), NombreParametro = "Customer ID", Valor1 = "", editable = 1, lectura = 0 },
                 new() { TipoConfiguracion = Guid.Parse("BB617929-5F49-4FDC-8C28-62435505B600"), NombreParametro = "Client ID", Valor1 = "", editable = 1, lectura = 0 },
@@ -569,6 +548,102 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 new() { Key = "apiParams",   Label = "Parámetros de API",           Items = cn03 },
                 new() { Key = "productKey",  Label = "Clave de producto",           Items = cn04 },
                 new() { Key = "discovery",   Label = "Métodos de descubrimiento",   Items = cn05 }
+            };
+        }
+
+
+        public async Task<List<SettingsGroupTap>> GetSettingsForHID()
+        {
+            var templates = await GetConfigurationTemplates();
+            var templateDict = templates.ToDictionary(t => t.TipoConfiguracion, t => new ConfigSetting
+            {
+                TipoConfiguracion = t.TipoConfiguracion,
+                Nombre = t.NombreParametro,
+                Valor1 = t.Valor1!
+            });
+
+            var cn01 = templates.Where(t => new[]
+            {
+                Guid.Parse("742CE98B-684B-4A76-BA0D-CF62621FC3E7"),
+                Guid.Parse("BB617929-5F49-4FDC-8C28-62435505B600"),
+                Guid.Parse("29625587-4A45-495A-B728-203608694C44")
+            }.Contains(t.TipoConfiguracion)).Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            var cn02 = templates.Where(t => new[]
+            {
+                Guid.Parse("60ADEBFE-01B5-497A-828B-CF3801F37495"),
+                Guid.Parse("9B02E35B-A069-4BF5-B9CA-337A59455347"),
+                Guid.Parse("82481E61-4BF5-44CE-B222-3283F7BC02F9"),
+                Guid.Parse("84BA81E1-56C0-4BEE-A57F-D05C13BB544A"),
+                Guid.Parse("5006A3E3-1E78-4341-9253-C2189A7C8974")
+            }.Contains(t.TipoConfiguracion)).Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            var cn03 = templates.Where(t => new[]
+            {
+                Guid.Parse("40E1A0B9-9144-490E-BF75-7663F3447118"),
+                Guid.Parse("4B6BCEFA-20CA-48B9-92FA-5396C7C94202"),
+                Guid.Parse("788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"),
+                Guid.Parse("FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6")
+            }.Contains(t.TipoConfiguracion)).Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            var cn04 = templates.Where(t => t.TipoConfiguracion == Guid.Parse("C98EE139-92FB-4E71-94B7-AE258DD1929A"))
+                .Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            return new List<SettingsGroupTap>
+            {
+                new() { Key = "authParams",  Label = "Parámetros de autenticación", Items = cn01 },
+                new() { Key = "urlConfig",   Label = "Configuración de URLS",       Items = cn02 },
+                new() { Key = "apiParams",   Label = "Parámetros de API",           Items = cn03 },
+                new() { Key = "productKey",  Label = "Clave de producto",           Items = cn04 }
+            };
+        }
+
+        public async Task<List<SettingsGroupTap>> GetSettingsForWallet()
+        {
+            var templates = await GetConfigurationTemplates();
+            var templateDict = templates.ToDictionary(t => t.TipoConfiguracion, t => new ConfigSetting
+            {
+                TipoConfiguracion = t.TipoConfiguracion,
+                Nombre = t.NombreParametro,
+                Valor1 = t.Valor1!
+            });
+
+            var cn01 = templates.Where(t => new[]
+            {
+                Guid.Parse("742CE98B-684B-4A76-BA0D-CF62621FC3E7"),
+                Guid.Parse("BB617929-5F49-4FDC-8C28-62435505B600"),
+                Guid.Parse("29625587-4A45-495A-B728-203608694C44")
+            }.Contains(t.TipoConfiguracion)).Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            var cn02 = templates.Where(t => new[]
+            {
+                Guid.Parse("60ADEBFE-01B5-497A-828B-CF3801F37495"),
+                Guid.Parse("9B02E35B-A069-4BF5-B9CA-337A59455347"),
+                Guid.Parse("82481E61-4BF5-44CE-B222-3283F7BC02F9"),
+                Guid.Parse("84BA81E1-56C0-4BEE-A57F-D05C13BB544A"),
+                Guid.Parse("5006A3E3-1E78-4341-9253-C2189A7C8974"),
+                Guid.Parse("5F9327BE-42D6-46B9-BF0E-DB7176371A20"),
+                Guid.Parse("9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9"),
+                Guid.Parse("A90006CA-A3E8-4576-A8B0-25B1C5438D55")
+            }.Contains(t.TipoConfiguracion)).Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            var cn03 = templates.Where(t => new[]
+            {
+                Guid.Parse("40E1A0B9-9144-490E-BF75-7663F3447118"),
+                Guid.Parse("4B6BCEFA-20CA-48B9-92FA-5396C7C94202"),
+                Guid.Parse("788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"),
+                Guid.Parse("FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6")
+            }.Contains(t.TipoConfiguracion)).Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            var cn04 = templates.Where(t => t.TipoConfiguracion == Guid.Parse("C98EE139-92FB-4E71-94B7-AE258DD1929A"))
+                .Select(t => templateDict[t.TipoConfiguracion]).ToList();
+
+            return new List<SettingsGroupTap>
+            {
+                new() { Key = "authParams",  Label = "Parámetros de autenticación", Items = cn01 },
+                new() { Key = "urlConfig",   Label = "Configuración de URLS",       Items = cn02 },
+                new() { Key = "apiParams",   Label = "Parámetros de API",           Items = cn03 },
+                new() { Key = "productKey",  Label = "Clave de producto",           Items = cn04 }
             };
         }
 
@@ -689,6 +764,85 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        public async Task<List<SettingsGroupTap>> GetSettingsDecrypt(Guid companyId, Guid typeSettingId)
+        {
+            try
+            {
+                var setting = await _unitOfWork.ConfiguracionesRepository.GetSetting(
+                    s => s.EmpresaClienteId == companyId && s.TipoConfiguracion == typeSettingId);
+
+                if (setting == null || string.IsNullOrEmpty(setting.Valor1))
+                {
+                    return new List<SettingsGroupTap>();
+                }
+
+                var encryptedDto = JsonSerializer.Deserialize<AlgoritmoAESDTO>(setting.Valor1);
+                if (encryptedDto == null)
+                {
+                    return new List<SettingsGroupTap>();
+                }
+
+                // Cargar clave e IV y desencriptar
+                _encriptacionService.Configurar();
+                _encriptacionService.LoadClave(encryptedDto.L1);
+                _encriptacionService.LoadIV(encryptedDto.L2);
+
+                string decryptedJson = _encriptacionService.Desencriptar_String(encryptedDto.Cad);
+
+                // Validar que el resultado sea un JSON mínimamente válido (arreglo u objeto)
+                if (!IsValidJson(decryptedJson))
+                {
+                    // _logger.LogWarning("La cadena descifrada no es un JSON válido para companyId {CompanyId} typeSettingId {TypeId}", companyId, typeSettingId);
+                    return new List<SettingsGroupTap>();
+                }
+
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<List<SettingsGroupTap>>(decryptedJson, options);
+
+                return result ?? new List<SettingsGroupTap>();
+            }
+            catch (JsonException ex)
+            {
+                // _logger.LogWarning(ex, "Error de JSON en GetSettingsDecrypt para {CompanyId}/{TypeId}", companyId, typeSettingId);
+                return new List<SettingsGroupTap>();
+            }
+            catch (CryptographicException ex)
+            {
+                // _logger.LogError(ex, "Error criptográfico en GetSettingsDecrypt para {CompanyId}/{TypeId}", companyId, typeSettingId);
+                return new List<SettingsGroupTap>();
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error inesperado en GetSettingsDecrypt para {CompanyId}/{TypeId}", companyId, typeSettingId);
+                return new List<SettingsGroupTap>();
+            }
+        }
+
+        private bool IsValidJson(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return false;
+            }
+
+            json = json.TrimStart();
+            // Debe comenzar con '{' o '[' para ser un objeto o arreglo JSON
+            if (json.Length == 0 || (json[0] != '{' && json[0] != '['))
+            {
+                return false;
+            }
+
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

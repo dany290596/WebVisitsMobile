@@ -10,6 +10,7 @@ namespace WebVisitsMobile.Services.QueryFilters.Empresa
         public string? TelefonoMovil { get; set; }
         public string? CorreoElectronico { get; set; }
         public byte? UsaCredencialesHID { get; set; }
+        public byte? UsaCredencialesWallet { get; set; }
 
         public Guid? PaisId { get; set; }
         public Guid? EstadoId { get; set; }

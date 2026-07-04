@@ -10,7 +10,6 @@ using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
 using WebVisitsMobile.Services.Interfaces.Encriptacion;
 using WebVisitsMobile.Services.Interfaces.Parametrizacion;
 using WebVisitsMobile.Services.QueryFilters.Administracion.Sesion;
-using WebVisitsMobile.Services.Services.Parametrizacion;
 
 namespace WebVisitsMobile.Services.Services.Administracion.Sesion
 {
