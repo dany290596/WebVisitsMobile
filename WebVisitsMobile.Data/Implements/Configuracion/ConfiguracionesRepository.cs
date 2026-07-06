@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Text.Json;
 using WebVisitsMobile.Data.Context;
 using WebVisitsMobile.Data.Implements.Common;
 using WebVisitsMobile.Data.Interfaces.Configuracion;
 using WebVisitsMobile.Domain.Entities.Configuracion;
+using WebVisitsMobile.Domain.Entities.Encriptacion;
 
 namespace WebVisitsMobile.Data.Implements.Configuracion
 {
@@ -31,7 +33,7 @@ namespace WebVisitsMobile.Data.Implements.Configuracion
             await _context.Configuraciones.AddRangeAsync(settings);
         }
 
-        public async Task<List<SettingsGroup>> GetSettingGroupByCompany()
+        public async Task<List<SettingsGroup>> GetGroupByCompany()
         {
             var settings = await _context.Configuraciones
                 .Where(c => c.Estado == 1 && c.EmpresaCliente.Estado == 1)
@@ -116,6 +118,91 @@ namespace WebVisitsMobile.Data.Implements.Configuracion
                     EmpresaClienteId = group.Key.EmpresaClienteId,
                     EmpresaClienteNombre = group.Key.RazonSocial,
                     Settings = appSetting
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<List<SettingsGroupEncrypted>> GetGroupByCompanyEncrypted()
+        {
+            var settings = await _context.Configuraciones
+                .Where(c => c.Estado == 1 && c.EmpresaCliente.Estado == 1)
+                .Include(c => c.EmpresaCliente)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var requiredKeys = new List<string>
+            {
+                "BB164E4E-F6F3-4C6A-9CE4-0B646B2A0433",
+                "10058B5D-8B95-4C27-9ED1-0426762154FD"
+            };
+
+            var result = new List<SettingsGroupEncrypted>();
+            var grouped = settings
+                .GroupBy(c => new { c.EmpresaClienteId, c.EmpresaCliente.RazonSocial, c.EmpresaCliente.UsaCredencialesHID, c.EmpresaCliente.UsaCredencialesWallet });
+
+            foreach (var group in grouped)
+            {
+                var stringKeySettings = group
+                    .Where(x => x.TipoConfiguracion != Guid.Empty)
+                    .GroupBy(x => x.TipoConfiguracion)
+                    .ToDictionary(
+                        g => g.Key.ToString().ToUpper(),
+                        g => g.First().Valor1 ?? string.Empty
+                    );
+
+                bool isValid = true;
+
+                if (group.Key.UsaCredencialesHID == 1)
+                {
+                    isValid &= stringKeySettings.TryGetValue(
+                        "BB164E4E-F6F3-4C6A-9CE4-0B646B2A0433",
+                        out var hidValue)
+                        && !string.IsNullOrWhiteSpace(hidValue);
+                }
+
+                // Si usa Wallet, debe existir la configuración Wallet
+                if (group.Key.UsaCredencialesWallet == 1)
+                {
+                    isValid &= stringKeySettings.TryGetValue(
+                        "10058B5D-8B95-4C27-9ED1-0426762154FD",
+                        out var walletValue)
+                        && !string.IsNullOrWhiteSpace(walletValue);
+                }
+
+                if (!isValid)
+                    continue; // ❌ Empresa incompleta → la saltamos
+
+                key? credencialesHID = null;
+                key? credencialesWallet = null;
+
+                // HID
+                if (stringKeySettings.TryGetValue("BB164E4E-F6F3-4C6A-9CE4-0B646B2A0433", out var hidJson) &&
+                    !string.IsNullOrWhiteSpace(hidJson) &&
+                    hidJson != "0" &&
+                    !hidJson.Equals("undefined", StringComparison.OrdinalIgnoreCase))
+                {
+                    credencialesHID = JsonSerializer.Deserialize<key>(hidJson);
+                }
+
+                // Wallet
+                if (stringKeySettings.TryGetValue("10058B5D-8B95-4C27-9ED1-0426762154FD", out var walletJson) &&
+                    !string.IsNullOrWhiteSpace(walletJson) &&
+                    walletJson != "0" &&
+                    !walletJson.Equals("undefined", StringComparison.OrdinalIgnoreCase))
+                {
+                    credencialesWallet = JsonSerializer.Deserialize<key>(walletJson);
+                }
+
+                result.Add(new SettingsGroupEncrypted
+                {
+                    EmpresaClienteId = group.Key.EmpresaClienteId,
+                    EmpresaClienteNombre = group.Key.RazonSocial,
+                    UsaCredencialesHID = group.Key.UsaCredencialesHID,
+                    UsaCredencialesWallet = group.Key.UsaCredencialesWallet,
+                    CredencialesHID = credencialesHID,
+                    CredencialesWallet = credencialesWallet
                 });
             }
 

@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
 using WebVisitsMobile.Data.Interfaces.Common;
@@ -13,7 +12,6 @@ using WebVisitsMobile.Models.Configuracion.Configuraciones;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.QueryFilters.Configuracion;
 using WebVisitsMobile.Services.Services.Encriptacion;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebVisitsMobile.Services.Services.Configuracion
 {
@@ -705,11 +703,24 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             }
         }
 
-        public async Task<List<SettingsGroup>> GetSettingsGroupByCompany()
+        public async Task<List<SettingsGroup>> GetGroupByCompany()
         {
             try
             {
-                var settings = await _unitOfWork.ConfiguracionesRepository.GetSettingGroupByCompany();
+                var settings = await _unitOfWork.ConfiguracionesRepository.GetGroupByCompany();
+                return settings.ToList();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<List<SettingsGroupEncrypted>> GetGroupByCompanyEncrypted()
+        {
+            try
+            {
+                var settings = await _unitOfWork.ConfiguracionesRepository.GetGroupByCompanyEncrypted();
                 return settings.ToList();
             }
             catch (Exception ex)

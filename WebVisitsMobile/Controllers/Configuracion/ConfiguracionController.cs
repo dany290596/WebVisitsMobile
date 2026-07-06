@@ -149,12 +149,12 @@ namespace WebVisitsMobile.Controllers.Configuracion
         }
 
 
-        [HttpGet("GroupByCompany", Name = "GetSettingsByCompany")]
-        public async Task<IActionResult> GetSettingsGroupByCompany()
+        [HttpGet("GroupByCompany", Name = "GetGroupByCompany")]
+        public async Task<IActionResult> GetGroupByCompany()
         {
             try
             {
-                var setting = await _configuracionService.GetSettingsGroupByCompany();
+                var setting = await _configuracionService.GetGroupByCompany();
                 if (setting == null)
                 {
                     return StatusCode(503, new ApiResponse<string>(
@@ -175,6 +175,40 @@ namespace WebVisitsMobile.Controllers.Configuracion
                 }
 
                 var response = new ApiResponse<List<SettingsGroup>>(true, "La operación se completó exitosamente.", 200, setting);
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "Se produjo un error interno al procesar la solicitud.", 500, null));
+            }
+        }
+
+        [HttpGet("GroupByCompanyEncrypted", Name = "GetGroupByCompanyEncrypted")]
+        public async Task<IActionResult> GetGroupByCompanyEncrypted()
+        {
+            try
+            {
+                var setting = await _configuracionService.GetGroupByCompanyEncrypted();
+                if (setting == null)
+                {
+                    return StatusCode(503, new ApiResponse<string>(
+                        false,
+                        "No fue posible obtener la información solicitada desde la base de datos. El resultado obtenido fue nulo.",
+                        503,
+                        null
+                    ));
+                }
+                if (!setting.Any())
+                {
+                    var emptyResponse = new ApiResponse<List<SettingsGroupEncrypted>>(
+                                true,
+                                 "No se encontraron registros que coincidan con los criterios especificados.",
+                                200,
+                                new List<SettingsGroupEncrypted>());
+                    return StatusCode(200, emptyResponse);
+                }
+
+                var response = new ApiResponse<List<SettingsGroupEncrypted>>(true, "La operación se completó exitosamente.", 200, setting);
                 return StatusCode(200, response);
             }
             catch (Exception ex)

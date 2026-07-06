@@ -9,5 +9,12 @@
 
         // CN02
         public string IdpAuthenticationUrl { get; set; } = default!;
+        public string? ApiUrl { get; set; } = default!;
+
+        // CN03
+        public string? ApplicationId { get; set; } = default!;
+        public string? ApplicationVersion { get; set; } = default!;
+
+        public Guid? EmpresaClienteId { get; set; }
     }
 }

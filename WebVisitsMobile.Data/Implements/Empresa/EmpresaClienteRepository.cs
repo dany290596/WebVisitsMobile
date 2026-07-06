@@ -77,6 +77,7 @@ namespace WebVisitsMobile.Data.Implements.Empresa
                     TelefonoMovil = empresa.TelefonoMovil,
                     CorreoElectronico = empresa.CorreoElectronico,
                     UsaCredencialesHID = empresa.UsaCredencialesHID,
+                    UsaCredencialesWallet = empresa.UsaCredencialesWallet,
                     Pais = empresa.Pais!,
                     PaisEstado = empresa.PaisEstado!,
                     Ciudad = empresa.Ciudad!

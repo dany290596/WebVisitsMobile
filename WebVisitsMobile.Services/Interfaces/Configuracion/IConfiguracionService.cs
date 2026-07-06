@@ -23,7 +23,8 @@ namespace WebVisitsMobile.Services.Interfaces.Configuracion
         Task<bool> CreateSettingsForCompany(List<ConfiguracionesReqDTO> settings, Guid clientCompanyId, Guid currentUserId);
         Task<bool> ReactivateAllSettingsByCompany(Guid clientCompanyId, Guid currentUserId);
         Task<List<Configuraciones>> GetConfigurationTemplates();
-        Task<List<SettingsGroup>> GetSettingsGroupByCompany();
+        Task<List<SettingsGroup>> GetGroupByCompany();
+        Task<List<SettingsGroupEncrypted>> GetGroupByCompanyEncrypted();
         Task<bool> DeactivateAllSettingByCompany(Guid clientCompanyId, Guid currentUserId);
         Task<SettingAccountEmail?> GetSettingOfAccountEmail();
         Task<bool> DeleteAllSettingsByCompany(Guid clientCompanyId);

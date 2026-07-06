@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using WebVisitsMobile.Data.Interfaces.Common;
 using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.Configuracion;
@@ -10,10 +13,12 @@ using WebVisitsMobile.Domain.Entities.Parametrizacion;
 using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Domain.Options;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
+using WebVisitsMobile.Models.Empresa.EmpresaCliente;
 using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
 using WebVisitsMobile.Services.Interfaces.Encriptacion;
+using WebVisitsMobile.Services.Interfaces.Organizacion.Tarea;
 using WebVisitsMobile.Services.Interfaces.Parametrizacion;
 using WebVisitsMobile.Services.QueryFilters.Empresa;
 
@@ -27,6 +32,7 @@ namespace WebVisitsMobile.Services.Services.Empresa
         private readonly IUsuarioService _usuarioService;
         private readonly ICorreoEnviarService _correoEnviarService;
         private readonly IEncriptacionService _encriptacionService;
+        //private readonly ITareaService _tareaService;
 
         public EmpresaClienteService(
             IUnitOfWork unitOfWork,
@@ -355,10 +361,35 @@ namespace WebVisitsMobile.Services.Services.Empresa
 
                     await _correoEnviarService.SendUserEmail(email, currentUserId, clientCompany.Id);
                 }
+
+                /*
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    WriteIndented = false,
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                };
+                var task = new TestConnectionDTO()
+                {
+                    EmpresaClienteId = clientCompany.Id
+                };
+                var taskNew = new Tarea
+                {
+                    TipoTareaId = new Guid("D333E531-6DAE-49B5-AA40-3301FE4EE2E9"),
+                    Fecha = DateTime.Now,
+                    Pendiente = 1,
+                    Status = 1,
+                    Marca = 1,
+                    ValorEnvio = System.Text.Json.JsonSerializer.Serialize(task, jsonOptions),
+                    ValorRetorno = "",
+                    EmpresaClienteId = clientCompany.Id
+                };
+                var tareaCreada = await _tareaService.Create(taskNew, currentUserId);
+                */
             }
             catch (Exception ex)
             {
-                booOk = false;
+                return false;
             }
 
             return true;
