@@ -124,7 +124,7 @@ namespace WebVisitsMobile.Data.Implements.Configuracion
             return result;
         }
 
-        public async Task<List<SettingsGroupEncrypted>> GetGroupByCompanyEncrypted()
+        public async Task<IEnumerable<SettingsGroupEncrypted>> GetGroupByCompanyEncrypted()
         {
             var settings = await _context.Configuraciones
                 .Where(c => c.Estado == 1 && c.EmpresaCliente.Estado == 1)

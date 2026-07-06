@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Threading.Tasks;
 using WebVisitsMobile.Data.Interfaces.Common;
 using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Domain.EntitiesCustom;
@@ -716,12 +717,23 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             }
         }
 
-        public async Task<List<SettingsGroupEncrypted>> GetGroupByCompanyEncrypted()
+        public async Task<PagedList<SettingsGroupEncrypted>> GetGroupByCompanyEncrypted(SettingsGroupEncryptedQueryFilter filters)
         {
+            PagedList<SettingsGroupEncrypted> pagedTask = null;
+
             try
             {
-                var settings = await _unitOfWork.ConfiguracionesRepository.GetGroupByCompanyEncrypted();
-                return settings.ToList();
+                filters.PageNumber = filters.PageNumber == 0 ? int.Parse(_paginationOptions.DefaultPageNumber) : filters.PageNumber;
+                filters.PageSize = filters.PageSize == 0 ? int.Parse(_paginationOptions.DefaultPageSize) : filters.PageSize;
+
+                var setting = await _unitOfWork.ConfiguracionesRepository.GetGroupByCompanyEncrypted();
+
+                if (filters.UsaCredencialesHID != 0) { setting = setting.Where(x => x.UsaCredencialesHID == filters.UsaCredencialesHID); }
+                if (filters.UsaCredencialesWallet != 0) { setting = setting.Where(x => x.UsaCredencialesWallet == filters.UsaCredencialesWallet); }
+
+                if (filters.EmpresaClienteId != Guid.Empty) { setting = setting.Where(x => x.EmpresaClienteId == filters.EmpresaClienteId); }
+
+                return pagedTask = PagedList<SettingsGroupEncrypted>.Create(setting, filters.PageNumber, filters.PageSize);
             }
             catch (Exception ex)
             {

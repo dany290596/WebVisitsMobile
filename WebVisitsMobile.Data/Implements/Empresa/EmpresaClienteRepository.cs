@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Text.Json;
 using WebVisitsMobile.Data.Context;
 using WebVisitsMobile.Data.Implements.Common;
 using WebVisitsMobile.Data.Interfaces.Empresa;
 using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Domain.Entities.Empresa;
+using WebVisitsMobile.Domain.Entities.Encriptacion;
 
 namespace WebVisitsMobile.Data.Implements.Empresa
 {
@@ -147,6 +149,93 @@ namespace WebVisitsMobile.Data.Implements.Empresa
             {
                 throw;
             }
+        }
+
+        public async Task<CompanyWithSettingEncrypted?> GetCompanyWithSettingEncrypted(Guid companyClientId)
+        {
+            var hidGuid = Guid.Parse("BB164E4E-F6F3-4C6A-9CE4-0B646B2A0433");
+            var walletGuid = Guid.Parse("10058B5D-8B95-4C27-9ED1-0426762154FD");
+
+            var empresa = await _context.EmpresaCliente
+                .Include(x => x.Pais)
+                .Include(x => x.PaisEstado)
+                .Include(x => x.Ciudad)
+                .FirstOrDefaultAsync(x => x.Id == companyClientId);
+
+            if (empresa == null)
+                return null;
+
+            var result = new CompanyWithSettingEncrypted
+            {
+                Id = empresa.Id,
+                RazonSocial = empresa.RazonSocial,
+                RFC = empresa.RFC,
+                TelefonoEmpresa = empresa.TelefonoEmpresa,
+                TelefonoMovil = empresa.TelefonoMovil,
+                CorreoElectronico = empresa.CorreoElectronico,
+                UsaCredencialesHID = empresa.UsaCredencialesHID,
+                UsaCredencialesWallet = empresa.UsaCredencialesWallet,
+                Pais = empresa.Pais!,
+                PaisEstado = empresa.PaisEstado!,
+                Ciudad = empresa.Ciudad!
+            };
+
+            var settingIds = new List<Guid>();
+
+            if (empresa.UsaCredencialesHID == 1)
+                settingIds.Add(hidGuid);
+
+            if (empresa.UsaCredencialesWallet == 1)
+                settingIds.Add(walletGuid);
+
+            if (!settingIds.Any())
+                return result;
+
+            var settings = await _context.Configuraciones
+                .Where(c =>
+                    c.EmpresaClienteId == companyClientId &&
+                    c.Estado == 1 &&
+                    settingIds.Contains(c.TipoConfiguracion))
+                .ToDictionaryAsync(c => c.TipoConfiguracion);
+
+            bool TryDeserialize(Guid tipoConfiguracion, out key? credential)
+            {
+                credential = null;
+
+                if (!settings.TryGetValue(tipoConfiguracion, out var setting))
+                    return false;
+
+                if (string.IsNullOrWhiteSpace(setting.Valor1))
+                    return false;
+
+                try
+                {
+                    credential = JsonSerializer.Deserialize<key>(setting.Valor1);
+                }
+                catch (JsonException)
+                {
+                    return false;
+                }
+
+                return credential != null &&
+                       credential.L1 > 0 &&
+                       credential.L2 > 0 &&
+                       !string.IsNullOrWhiteSpace(credential.Cad);
+            }
+
+            if (empresa.UsaCredencialesHID == 1 &&
+                TryDeserialize(hidGuid, out var hidCredential))
+            {
+                result.CredencialesHID = hidCredential;
+            }
+
+            if (empresa.UsaCredencialesWallet == 1 &&
+                TryDeserialize(walletGuid, out var walletCredential))
+            {
+                result.CredencialesWallet = walletCredential;
+            }
+
+            return result;
         }
     }
 }

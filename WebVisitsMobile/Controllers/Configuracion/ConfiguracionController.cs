@@ -1,11 +1,15 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
+using WebVisitsMobile.Models.HID.TipoCredencial;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
+using WebVisitsMobile.Services.QueryFilters.Configuracion;
 using WebVisitsMobile.Services.Responses;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebVisitsMobile.Controllers.Configuracion
 {
@@ -184,18 +188,23 @@ namespace WebVisitsMobile.Controllers.Configuracion
         }
 
         [HttpGet("GroupByCompanyEncrypted", Name = "GetGroupByCompanyEncrypted")]
-        public async Task<IActionResult> GetGroupByCompanyEncrypted()
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<SettingsGroupEncrypted>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetGroupByCompanyEncrypted([FromQuery] SettingsGroupEncryptedQueryFilter filters)
         {
             try
             {
-                var setting = await _configuracionService.GetGroupByCompanyEncrypted();
+                string strUriPreviousPage = _uriService.GetCompanyEncryptedUri(filters, Url.RouteUrl(nameof(GetGroupByCompanyEncrypted))).ToString();
+                string strUriNextPage = _uriService.GetCompanyEncryptedUri(filters, Url.RouteUrl(nameof(GetGroupByCompanyEncrypted))).ToString();
+
+                var setting = await _configuracionService.GetGroupByCompanyEncrypted(filters);
                 if (setting == null)
                 {
-                    return StatusCode(503, new ApiResponse<string>(
+                    return StatusCode(503, new ApiResponse<List<SettingsGroupEncrypted>>(
                         false,
                         "No fue posible obtener la información solicitada desde la base de datos. El resultado obtenido fue nulo.",
                         503,
-                        null
+                        new List<SettingsGroupEncrypted>()
                     ));
                 }
                 if (!setting.Any())
@@ -209,6 +218,9 @@ namespace WebVisitsMobile.Controllers.Configuracion
                 }
 
                 var response = new ApiResponse<List<SettingsGroupEncrypted>>(true, "La operación se completó exitosamente.", 200, setting);
+                response.CargarMetaData(setting.TotalCount, setting.PageSize, setting.CurrentPage, setting.TotalPages,
+                                        setting.HasNextPage, setting.HasPreviousPage, strUriNextPage, strUriPreviousPage);
+
                 return StatusCode(200, response);
             }
             catch (Exception ex)

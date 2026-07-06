@@ -161,28 +161,28 @@ namespace WebVisitsMobile.Controllers.Empresa
             }
         }
 
-        //[HttpGet("GetCompanyWithConfiguration/{id}")]
-        //public async Task<IActionResult> GetCompanyWithConfiguration(Guid id)
-        //{
-        //    try
-        //    {
-        //        if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
-        //        {
-        //            return BadRequest("El header de la empresa es inválido.");
-        //        }
-        //        var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
-        //        if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+        [HttpGet("CredentialConfigurationEncrypted/{id}")]
+        public async Task<IActionResult> GetCredentialConfigurationEncrypted(Guid id)
+        {
+            try
+            {
+                if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+                {
+                    return BadRequest("El header de la empresa es inválido.");
+                }
+                var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+                if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
 
-        //        var data = await _empresaClienteService.GetWithSetting(id);
-        //        var response = new ApiResponse<CompanyClientWithSetting>(true, "Consulta ejecutada", 200, data);
+                var data = await _empresaClienteService.GetWithSettingEncrypted(id);
+                var response = new ApiResponse<CompanyWithSettingDecrypt>(true, "Consulta ejecutada", 200, data);
 
-        //        return StatusCode(200, response);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw;
-        //    }
-        //}
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
 
         [HttpPatch("Inactivate")]
         public async Task<IActionResult> Inactivate([Required] Guid id, [Required] Guid usuarioBajaId)
@@ -397,7 +397,7 @@ namespace WebVisitsMobile.Controllers.Empresa
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] EmpresaClienteConfiguracionReqDTO model)
+        public async Task<IActionResult> UpdateWithSettingEncrypted(Guid id, [FromBody] EmpresaClienteEncryptedReqDTO model)
         {
             if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
                 return BadRequest("El header de la empresa es inválido.");
@@ -410,16 +410,42 @@ namespace WebVisitsMobile.Controllers.Empresa
             if (token == null)
                 return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
 
-            var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-            if (validarSesion == null)
-                return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesión activa con tu cuenta.", tipoError = 3 });
+            var empresa = model.Empresa;
+            var configuracionesHID = model.SettingEncryptedHID;
+            var configuracionesWallet = model.SettingEncryptedWallet;
 
             try
             {
-                var empresa = _mapper.Map<EmpresaCliente>(model.Empresa);
-                empresa.Id = id;
+                if (empresa.UsaCredencialesHID == 1)
+                {
+                    if (configuracionesHID == null || configuracionesHID == "")
+                    {
+                        return StatusCode(409, new ApiResponse<string>(
+                            false,
+                            "Las configuraciones HID son obligatorias cuando la empresa utiliza credenciales HID.",
+                            409,
+                            null
+                        ));
+                    }
+                }
 
-                bool resultado = await _empresaClienteService.UpdateWithHID(empresa, model.Configuraciones, token.UsuarioId);
+                if (empresa.UsaCredencialesWallet == 1)
+                {
+                    if (configuracionesWallet == null || configuracionesWallet == "")
+                    {
+                        return StatusCode(409, new ApiResponse<string>(
+                            false,
+                            "Las configuraciones Wallet son obligatorias cuando la empresa utiliza credenciales Wallet.",
+                            409,
+                            null
+                        ));
+                    }
+                }
+
+                var clientCompany = _mapper.Map<EmpresaCliente>(model.Empresa);
+                clientCompany.Id = id;
+
+                bool resultado = await _empresaClienteService.UpdateWithSettingEncrypted(clientCompany, configuracionesHID, configuracionesWallet, token.UsuarioId);
                 if (!resultado)
                     return StatusCode(500, new ApiResponse<bool>(false, "No se pudo actualizar el registro.", 500, false));
 

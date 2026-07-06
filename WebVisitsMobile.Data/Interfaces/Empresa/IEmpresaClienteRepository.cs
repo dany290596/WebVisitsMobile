@@ -8,5 +8,6 @@ namespace WebVisitsMobile.Data.Interfaces.Empresa
     {
         Task<EmpresaCliente> GetCompanyClient(Expression<Func<EmpresaCliente, bool>> predicate);
         Task<CompanyClientWithSetting> GetCompanyClientWithSetting(Guid companyClientId);
+        Task<CompanyWithSettingEncrypted> GetCompanyWithSettingEncrypted(Guid companyClientId);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
+using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Models.Encriptacion;
 using WebVisitsMobile.Services.Interfaces.Encriptacion;
 
@@ -7,12 +8,8 @@ namespace WebVisitsMobile.Services.Services.Encriptacion
 {
     public class EncriptacionService : IEncriptacionService
     {
-        public EncriptacionService(
-
-            )
-        {
-
-        }
+        public EncriptacionService()
+        { }
 
         public async Task<DesebcriptarDTO> EncriptarCadena(string cadena)
         {
@@ -62,6 +59,26 @@ namespace WebVisitsMobile.Services.Services.Encriptacion
                 oEncriptador.LoadIV(datos.L2);
                 var cadena = oEncriptador.Desencriptar_String(datos.Cad);
                 ClaveRecuperacion objeto = JsonConvert.DeserializeObject<ClaveRecuperacion>(cadena);
+
+                return objeto;
+            }
+            catch (Exception ex)
+            {
+
+                return null;
+            }
+        }
+
+        public async Task<List<SettingsGroupTap>> DesencriptarCredential(DesebcriptarDTO datos)
+        {
+            try
+            {
+                EncriptadorAESService oEncriptador = new EncriptadorAESService();
+                oEncriptador.Configurar();
+                oEncriptador.LoadClave(datos.L1);
+                oEncriptador.LoadIV(datos.L2);
+                var cadena = oEncriptador.Desencriptar_String(datos.Cad);
+                List<SettingsGroupTap> objeto = JsonConvert.DeserializeObject<List<SettingsGroupTap>>(cadena);
 
                 return objeto;
             }
