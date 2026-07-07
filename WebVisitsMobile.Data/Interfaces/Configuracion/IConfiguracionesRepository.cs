@@ -9,7 +9,7 @@ namespace WebVisitsMobile.Data.Interfaces.Configuracion
         Task<IEnumerable<Configuraciones>> GetAllSetting();
         Task<Configuraciones> GetSetting(Expression<Func<Configuraciones, bool>> predicate);
         Task AddRangeSetting(IEnumerable<Configuraciones> settings);
-        Task<List<SettingsGroup>> GetGroupByCompany();
+        Task<IEnumerable<SettingsGroup>> GetGroupByCompany();
         Task<IEnumerable<SettingsGroupEncrypted>> GetGroupByCompanyEncrypted();
         Task<SettingAccountEmail> GetSettingOfAccountEmail();
         void DeleteRange(IEnumerable<Configuraciones> settings);

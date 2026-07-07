@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text.Json;
-using System.Threading.Tasks;
 using WebVisitsMobile.Data.Interfaces.Common;
 using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Domain.EntitiesCustom;
@@ -405,6 +404,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 Id = Guid.NewGuid(),
                 TipoConfiguracion = template.TipoConfiguracion,
                 NombreParametro = template.NombreParametro,
+                ValorGuid = template.ValorGuid,
                 Valor1 = template.Valor1,
                 Valor2 = template.Valor2,
                 Valor3 = template.Valor3,
@@ -440,6 +440,7 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 Id = Guid.NewGuid(),
                 TipoConfiguracion = c.TipoConfiguracion,
                 NombreParametro = c.NombreParametro,
+                ValorGuid = c.ValorGuid,
                 Valor1 = c.Valor1,
                 Valor2 = c.Valor2,
                 Valor3 = c.Valor3,
@@ -492,14 +493,85 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             });
         }
 
+        public Task<List<Configuraciones>> GetConfigurationHID()
+        {
+            return Task.FromResult(new List<Configuraciones>
+            {
+                // @CN01
+                new() { TipoConfiguracion = Guid.Parse("742CE98B-684B-4A76-BA0D-CF62621FC3E7"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Customer ID", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("BB617929-5F49-4FDC-8C28-62435505B600"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Client ID", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("29625587-4A45-495A-B728-203608694C44"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Client secret/Client certificate", Valor1 = "", editable = 1, lectura = 0 },
+
+                // @CN02
+                new() { TipoConfiguracion = Guid.Parse("60ADEBFE-01B5-497A-828B-CF3801F37495"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "IDP authentication URL", Valor1 = "https://api.cert.origo.hidglobal.com", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("9B02E35B-A069-4BF5-B9CA-337A59455347"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "API URL", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("82481E61-4BF5-44CE-B222-3283F7BC02F9"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Callback and Event URL", Valor1 = "", Valor2 = "If callback is implemented", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("84BA81E1-56C0-4BEE-A57F-D05C13BB544A"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Premium Report URL", Valor1 = "", Valor2 = "If premium reports API is used", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("5006A3E3-1E78-4341-9253-C2189A7C8974"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Credential Management URL", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("5F9327BE-42D6-46B9-BF0E-DB7176371A20"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Users URL", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Events URL", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("A90006CA-A3E8-4576-A8B0-25B1C5438D55"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Transaction URL", Valor1 = "", editable = 1, lectura = 0 },
+
+                // @CN03
+                new() { TipoConfiguracion = Guid.Parse("40E1A0B9-9144-490E-BF75-7663F3447118"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Content Type", Valor1 = "application/vnd.assaabloy.ma.credential-management-2.2+json", Valor2 = "Header requirement", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("4B6BCEFA-20CA-48B9-92FA-5396C7C94202"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Accept Type", Valor1 = "##MANDATORY##", Valor2 = "For .NET compatibility", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Application ID", Valor1 = "HID-CRCDEMEXICO-DEV", Valor2 = "Format: HID-PARTNERNAME-SOLUTIONNAME", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Application Version", Valor1 = "##MANDATORY##", Valor2 = "Versioning format", editable = 1, lectura = 0 },
+
+                // @CN04
+                new() { TipoConfiguracion = Guid.Parse("C98EE139-92FB-4E71-94B7-AE258DD1929A"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Part number field", Valor1 = "MID-SUB-CRD_FTPN_644745", Valor2 = "Replaces hardcoded value", editable = 1, lectura = 0 },
+
+                // @CN05
+                new() { TipoConfiguracion = Guid.Parse("D539FF01-17F0-4C29-9E17-668A5591ACE5"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Auto detect Part number", Valor1 = "4924_644745", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("18A0E41D-960E-4F52-9604-D0C773A87F9C"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Select Part number", Valor1 = "MID-SUB-CRD_FTPN_644745", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("32DC2E87-E6A4-48D7-AF0E-B967ED2BBF49"), ValorGuid = new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"), NombreParametro = "Manual entry Part number", Valor1 = "Enter value", Valor2 = "HID Origo compatible", editable = 1, lectura = 0 }
+            });
+        }
+
+        public Task<List<Configuraciones>> GetConfigurationWallet()
+        {
+            return Task.FromResult(new List<Configuraciones>
+            {
+                // @CN01
+                new() { TipoConfiguracion = Guid.Parse("742CE98B-684B-4A76-BA0D-CF62621FC3E7"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Customer ID", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("BB617929-5F49-4FDC-8C28-62435505B600"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Client ID", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("29625587-4A45-495A-B728-203608694C44"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Client secret/Client certificate", Valor1 = "", editable = 1, lectura = 0 },
+
+                // @CN02
+                new() { TipoConfiguracion = Guid.Parse("60ADEBFE-01B5-497A-828B-CF3801F37495"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "IDP authentication URL", Valor1 = "https://api.cert.origo.hidglobal.com", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("9B02E35B-A069-4BF5-B9CA-337A59455347"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "API URL", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("82481E61-4BF5-44CE-B222-3283F7BC02F9"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Callback and Event URL", Valor1 = "", Valor2 = "If callback is implemented", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("84BA81E1-56C0-4BEE-A57F-D05C13BB544A"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Premium Report URL", Valor1 = "", Valor2 = "If premium reports API is used", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("5006A3E3-1E78-4341-9253-C2189A7C8974"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Credential Management URL", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("5F9327BE-42D6-46B9-BF0E-DB7176371A20"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Users URL", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Events URL", Valor1 = "", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("A90006CA-A3E8-4576-A8B0-25B1C5438D55"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Transaction URL", Valor1 = "", editable = 1, lectura = 0 },
+
+                // @CN03
+                new() { TipoConfiguracion = Guid.Parse("40E1A0B9-9144-490E-BF75-7663F3447118"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Content Type", Valor1 = "application/vnd.assaabloy.ma.credential-management-2.2+json", Valor2 = "Header requirement", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("4B6BCEFA-20CA-48B9-92FA-5396C7C94202"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Accept Type", Valor1 = "##MANDATORY##", Valor2 = "For .NET compatibility", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Application ID", Valor1 = "HID-CRCDEMEXICO-DEV", Valor2 = "Format: HID-PARTNERNAME-SOLUTIONNAME", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Application Version", Valor1 = "##MANDATORY##", Valor2 = "Versioning format", editable = 1, lectura = 0 },
+
+                // @CN04
+                new() { TipoConfiguracion = Guid.Parse("C98EE139-92FB-4E71-94B7-AE258DD1929A"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Part number field", Valor1 = "MID-SUB-CRD_FTPN_644745", Valor2 = "Replaces hardcoded value", editable = 1, lectura = 0 },
+
+                // @CN05
+                new() { TipoConfiguracion = Guid.Parse("D539FF01-17F0-4C29-9E17-668A5591ACE5"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Auto detect Part number", Valor1 = "4924_644745", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("18A0E41D-960E-4F52-9604-D0C773A87F9C"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Select Part number", Valor1 = "MID-SUB-CRD_FTPN_644745", editable = 1, lectura = 0 },
+                new() { TipoConfiguracion = Guid.Parse("32DC2E87-E6A4-48D7-AF0E-B967ED2BBF49"), ValorGuid = new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"), NombreParametro = "Manual entry Part number", Valor1 = "Enter value", Valor2 = "HID Origo compatible", editable = 1, lectura = 0 }
+            });
+        }
+
         public async Task<List<SettingsGroupTap>> GetSettingsGroupedByType()
         {
             var templates = await GetConfigurationTemplates();
             var templateDict = templates.ToDictionary(t => t.TipoConfiguracion, t => new ConfigSetting
             {
+
                 TipoConfiguracion = t.TipoConfiguracion,
                 Nombre = t.NombreParametro,
-                Valor1 = t.Valor1
+                Valor1 = t.Valor1!
             });
 
             // Usar los GUIDs del template directamente
@@ -550,13 +622,13 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             };
         }
 
-
         public async Task<List<SettingsGroupTap>> GetSettingsForHID()
         {
-            var templates = await GetConfigurationTemplates();
+            var templates = await GetConfigurationHID();
             var templateDict = templates.ToDictionary(t => t.TipoConfiguracion, t => new ConfigSetting
             {
                 TipoConfiguracion = t.TipoConfiguracion,
+                ValorGuid = t.ValorGuid,
                 Nombre = t.NombreParametro,
                 Valor1 = t.Valor1!
             });
@@ -599,10 +671,11 @@ namespace WebVisitsMobile.Services.Services.Configuracion
 
         public async Task<List<SettingsGroupTap>> GetSettingsForWallet()
         {
-            var templates = await GetConfigurationTemplates();
+            var templates = await GetConfigurationWallet();
             var templateDict = templates.ToDictionary(t => t.TipoConfiguracion, t => new ConfigSetting
             {
                 TipoConfiguracion = t.TipoConfiguracion,
+                ValorGuid = t.ValorGuid,
                 Nombre = t.NombreParametro,
                 Valor1 = t.Valor1!
             });
@@ -704,12 +777,23 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             }
         }
 
-        public async Task<List<SettingsGroup>> GetGroupByCompany()
+        public async Task<PagedList<SettingsGroup>> GetGroupByCompany(SettingsGroupEncryptedQueryFilter filters)
         {
+            PagedList<SettingsGroup> pagedTask = null;
+
             try
             {
-                var settings = await _unitOfWork.ConfiguracionesRepository.GetGroupByCompany();
-                return settings.ToList();
+                filters.PageNumber = filters.PageNumber == 0 ? int.Parse(_paginationOptions.DefaultPageNumber) : filters.PageNumber;
+                filters.PageSize = filters.PageSize == 0 ? int.Parse(_paginationOptions.DefaultPageSize) : filters.PageSize;
+
+                var setting = await _unitOfWork.ConfiguracionesRepository.GetGroupByCompany();
+
+                if (filters.UsaCredencialesHID != 0) { setting = setting.Where(x => x.UsaCredencialesHID == filters.UsaCredencialesHID); }
+                if (filters.UsaCredencialesWallet != 0) { setting = setting.Where(x => x.UsaCredencialesWallet == filters.UsaCredencialesWallet); }
+
+                if (filters.EmpresaClienteId != Guid.Empty) { setting = setting.Where(x => x.EmpresaClienteId == filters.EmpresaClienteId); }
+
+                return pagedTask = PagedList<SettingsGroup>.Create(setting, filters.PageNumber, filters.PageSize);
             }
             catch (Exception ex)
             {

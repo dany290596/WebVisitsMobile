@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
+using WebVisitsMobile.Domain.Entities.HID;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.HID.LicenciaHID;
 using WebVisitsMobile.Services.Interfaces.HID;
@@ -12,7 +13,6 @@ using WebVisitsMobile.Services.Responses;
 
 namespace WebVisitsMobile.Controllers.HID
 {
-    [Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     [ApiController]
@@ -181,6 +181,29 @@ namespace WebVisitsMobile.Controllers.HID
             var response = new ApiResponse<bool>(true, "El registro se reactivó correctamente.", 200, result);
 
             return StatusCode(200, response);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(LicenciaHIDReqDTO data)
+        {
+            var licenseHID = _mapper.Map<LicenciaHID>(data);
+            bool insert = await _licenciaHIDService.Create(licenseHID, new Guid("739B4C8F-4DB1-4475-84D4-7644DCE00620"));
+            if (insert)
+            {
+                LicenciaHIDRespDTO licenciaHIDDTO = _mapper.Map<LicenciaHIDRespDTO>(licenseHID);
+                var response = new ApiResponse<LicenciaHIDRespDTO>(
+                    true,
+                    "La licencia HID fue creada exitosamente.",
+                    200,
+                    licenciaHIDDTO
+                    );
+
+                return StatusCode(200, response);
+            }
+            else
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "Se produjo un error interno al procesar la solicitud.", 500, null));
+            }
         }
     }
 }

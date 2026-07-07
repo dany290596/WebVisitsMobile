@@ -1,13 +1,13 @@
-﻿namespace WebVisitsMobile.Domain.Entities.Configuracion
+﻿namespace WebVisitsMobile.Models.Empresa.EmpresaCliente
 {
-    public class SettingsGroupTap
+    public class SettingsGroupTapDTO
     {
         public string Key { get; set; }
         public string Label { get; set; }
-        public List<ConfigSetting> Items { get; set; }
+        public List<ConfigSettingDTO> Items { get; set; }
     }
 
-    public class ConfigSetting
+    public class ConfigSettingDTO
     {
         public Guid TipoConfiguracion { get; set; }
         public Guid? ValorGuid { get; set; }

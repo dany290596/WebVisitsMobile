@@ -4,6 +4,10 @@
     {
         public Guid EmpresaClienteId { get; set; }
         public string EmpresaClienteNombre { get; set; }
-        public AppSetting Settings { get; set; }
+        public byte UsaCredencialesHID { get; set; }
+        public byte UsaCredencialesWallet { get; set; }
+
+        public AppSetting? CredencialesHID { get; set; }
+        public AppSetting? CredencialesWallet { get; set; }
     }
 }

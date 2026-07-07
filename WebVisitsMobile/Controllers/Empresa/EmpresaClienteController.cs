@@ -418,7 +418,7 @@ namespace WebVisitsMobile.Controllers.Empresa
             {
                 if (empresa.UsaCredencialesHID == 1)
                 {
-                    if (configuracionesHID == null || configuracionesHID == "")
+                    if (configuracionesHID == null)
                     {
                         return StatusCode(409, new ApiResponse<string>(
                             false,
@@ -431,7 +431,7 @@ namespace WebVisitsMobile.Controllers.Empresa
 
                 if (empresa.UsaCredencialesWallet == 1)
                 {
-                    if (configuracionesWallet == null || configuracionesWallet == "")
+                    if (configuracionesWallet == null)
                     {
                         return StatusCode(409, new ApiResponse<string>(
                             false,
@@ -512,7 +512,7 @@ namespace WebVisitsMobile.Controllers.Empresa
                             null
                         ));
                     }
-                }                
+                }
 
                 string password = "oG@P~cS68d*";
                 string passwordHash = _passwordService.Hash(password);
@@ -587,7 +587,7 @@ namespace WebVisitsMobile.Controllers.Empresa
 
                 if (empresa.UsaCredencialesHID == 1)
                 {
-                    if (configuracionesHID == null || configuracionesHID == "")
+                    if (configuracionesHID == null)
                     {
                         return StatusCode(409, new ApiResponse<string>(
                             false,
@@ -600,7 +600,7 @@ namespace WebVisitsMobile.Controllers.Empresa
 
                 if (empresa.UsaCredencialesWallet == 1)
                 {
-                    if (configuracionesWallet == null || configuracionesWallet == "")
+                    if (configuracionesWallet == null)
                     {
                         return StatusCode(409, new ApiResponse<string>(
                             false,
