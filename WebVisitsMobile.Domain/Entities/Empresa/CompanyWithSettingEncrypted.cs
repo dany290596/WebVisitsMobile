@@ -1,4 +1,4 @@
-﻿using WebVisitsMobile.Domain.Entities.Encriptacion;
+﻿using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Domain.Entities.Ubicacion;
 
 namespace WebVisitsMobile.Domain.Entities.Empresa
@@ -21,7 +21,10 @@ namespace WebVisitsMobile.Domain.Entities.Empresa
         public Ciudad? Ciudad { get; set; }
 
 
-        public key? CredencialesHID { get; set; }
-        public key? CredencialesWallet { get; set; }
+        //public key? CredencialesHID { get; set; }
+        //public key? CredencialesWallet { get; set; }
+
+        public List<SettingsGroupTap>? CredencialesHID { get; set; }
+        public List<SettingsGroupTap>? CredencialesWallet { get; set; }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using WebVisitsMobile.Data.Interfaces.Common;
 using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.Configuracion;
@@ -10,7 +12,7 @@ using WebVisitsMobile.Domain.Entities.Parametrizacion;
 using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Domain.Options;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
-using WebVisitsMobile.Models.Encriptacion;
+using WebVisitsMobile.Models.Empresa.EmpresaCliente;
 using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
@@ -28,7 +30,6 @@ namespace WebVisitsMobile.Services.Services.Empresa
         private readonly IUsuarioService _usuarioService;
         private readonly ICorreoEnviarService _correoEnviarService;
         private readonly IEncriptacionService _encriptacionService;
-        //private readonly ITareaService _tareaService;
 
         public EmpresaClienteService(
             IUnitOfWork unitOfWork,
@@ -281,7 +282,7 @@ namespace WebVisitsMobile.Services.Services.Empresa
             return booOk;
         }
 
-        public async Task<bool> CreateWithSettingEncrypted(EmpresaCliente clientCompany, string? settingHIDEncrypted, string? settingWalletEncrypted, string password, string passwordHash, Guid currentUserId)
+        public async Task<bool> CreateWithSettingEncrypted(EmpresaCliente clientCompany, List<SettingsGroupTapDTO>? settingHIDEncrypted, List<SettingsGroupTapDTO>? settingWalletEncrypted, string password, string passwordHash, Guid currentUserId)
         {
             bool booOk = false;
 
@@ -299,35 +300,135 @@ namespace WebVisitsMobile.Services.Services.Empresa
 
                 if (clientCompany.UsaCredencialesHID == 1)
                 {
-                    if (settingHIDEncrypted != null && settingHIDEncrypted != "")
+                    if (settingHIDEncrypted != null)
                     {
-                        var datos_encriptados = await _encriptacionService.EncriptarCadena(settingHIDEncrypted);
-                        var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
-                        List<ConfiguracionesReqDTO> settingHID = new List<ConfiguracionesReqDTO>()
+                        var settingHID = settingHIDEncrypted
+                            .Where(grupo => grupo.Items != null)
+                            .SelectMany(grupo => grupo.Items)
+                            .Select(item => new ConfiguracionesReqDTO()
+                            {
+                                NombreParametro = item.Nombre,
+                                ValorGuid = item.ValorGuid,
+                                Valor1 = item.Valor1,
+                                Valor2 = "",
+                                Valor3 = "",
+                                editable = 1,
+                                lectura = 1,
+                                EmpresaClienteId = clientCompany.Id,
+                                TipoConfiguracion = item.TipoConfiguracion,
+                                UsuarioCreadorId = currentUserId
+                            })
+                            .ToList();
+
+                        if (settingHID.Count() != 0)
                         {
-                            new ConfiguracionesReqDTO(){ NombreParametro = "Usa credenciales HID", ValorGuid = null, Valor1 = datos_encriptados_cadena, Valor2 = "", Valor3 = "", editable = 1, lectura = 1, EmpresaClienteId = clientCompany.Id, TipoConfiguracion = new Guid("BB164E4E-F6F3-4C6A-9CE4-0B646B2A0433"), UsuarioCreadorId = currentUserId}
-                        };
-                        await _configuracionService.CreateSettingsForCompany(settingHID, clientCompany.Id, currentUserId);
+                            await _configuracionService.CreateSettingsForCompany(settingHID, clientCompany.Id, currentUserId);
+
+                            var jsonOptions = new JsonSerializerOptions
+                            {
+                                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                                WriteIndented = false,
+                                ReferenceHandler = ReferenceHandler.IgnoreCycles
+                            };
+                            var task = new TestConnectionDTO()
+                            {
+                                CustomerId = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("742CE98B-684B-4A76-BA0D-CF62621FC3E7"))?.Valor1,
+                                ClientId = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("BB617929-5F49-4FDC-8C28-62435505B600"))?.Valor1,
+                                ClientSecretOrCertificate = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("29625587-4A45-495A-B728-203608694C44"))?.Valor1,
+                                IdpAuthenticationUrl = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("60ADEBFE-01B5-497A-828B-CF3801F37495"))?.Valor1,
+                                ApiUrl = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("9B02E35B-A069-4BF5-B9CA-337A59455347"))?.Valor1,
+                                ApplicationId = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"))?.Valor1,
+                                ApplicationVersion = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6"))?.Valor1,
+                                EmpresaClienteId = clientCompany.Id
+                            };
+                            var taskNew = new Tarea
+                            {
+                                Id = Guid.NewGuid(),
+                                TipoTareaId = new Guid("D333E531-6DAE-49B5-AA40-3301FE4EE2E9"),
+                                Fecha = DateTime.Now,
+                                Pendiente = 1,
+                                Status = 1,
+                                Estado = 1,
+                                Marca = 1,
+                                ValorEnvio = System.Text.Json.JsonSerializer.Serialize(task, jsonOptions),
+                                ValorRetorno = "",
+                                FechaCreacion = DateTime.Now,
+                                UsuarioCreadorId = currentUserId,
+                                EmpresaClienteId = clientCompany.Id
+                            };
+                            await _unitOfWork.TareaRepository.Add(taskNew);
+                            await _unitOfWork.SaveChangesAsync();
+                        }
                     }
                 }
                 if (clientCompany.UsaCredencialesWallet == 1)
                 {
-                    if (settingWalletEncrypted != null && settingWalletEncrypted != "")
+                    if (settingWalletEncrypted != null)
                     {
-                        var datos_encriptados = await _encriptacionService.EncriptarCadena(settingWalletEncrypted);
-                        var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
-                        List<ConfiguracionesReqDTO> settingWallet = new List<ConfiguracionesReqDTO>()
+                        var settingWallet = settingWalletEncrypted
+                            .Where(grupo => grupo.Items != null)
+                            .SelectMany(grupo => grupo.Items)
+                            .Select(item => new ConfiguracionesReqDTO()
+                            {
+                                NombreParametro = item.Nombre,
+                                ValorGuid = item.ValorGuid,
+                                Valor1 = item.Valor1,
+                                Valor2 = "",
+                                Valor3 = "",
+                                editable = 1,
+                                lectura = 1,
+                                EmpresaClienteId = clientCompany.Id,
+                                TipoConfiguracion = item.TipoConfiguracion,
+                                UsuarioCreadorId = currentUserId
+                            })
+                            .ToList();
+
+                        if (settingWallet.Count() != 0)
                         {
-                            new ConfiguracionesReqDTO(){ NombreParametro = "Usa credenciales Wallet", ValorGuid = null, Valor1 = datos_encriptados_cadena, Valor2 = "", Valor3 = "", editable = 1, lectura = 1, EmpresaClienteId = clientCompany.Id, TipoConfiguracion = new Guid("10058B5D-8B95-4C27-9ED1-0426762154FD"), UsuarioCreadorId = currentUserId}
-                        };
-                        await _configuracionService.CreateSettingsForCompany(settingWallet, clientCompany.Id, currentUserId);
+                            await _configuracionService.CreateSettingsForCompany(settingWallet, clientCompany.Id, currentUserId);
+
+                            var jsonOptions = new JsonSerializerOptions
+                            {
+                                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                                WriteIndented = false,
+                                ReferenceHandler = ReferenceHandler.IgnoreCycles
+                            };
+                            var task = new TestConnectionDTO()
+                            {
+                                CustomerId = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("742CE98B-684B-4A76-BA0D-CF62621FC3E7"))?.Valor1,
+                                ClientId = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("BB617929-5F49-4FDC-8C28-62435505B600"))?.Valor1,
+                                ClientSecretOrCertificate = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("29625587-4A45-495A-B728-203608694C44"))?.Valor1,
+                                IdpAuthenticationUrl = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("60ADEBFE-01B5-497A-828B-CF3801F37495"))?.Valor1,
+                                ApiUrl = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("9B02E35B-A069-4BF5-B9CA-337A59455347"))?.Valor1,
+                                ApplicationId = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"))?.Valor1,
+                                ApplicationVersion = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6"))?.Valor1,
+                                EmpresaClienteId = clientCompany.Id
+                            };
+                            var taskNew = new Tarea
+                            {
+                                Id = Guid.NewGuid(),
+                                TipoTareaId = new Guid("DD909EF0-E527-47FB-A0A3-204794A81F12"),
+                                Fecha = DateTime.Now,
+                                Pendiente = 1,
+                                Status = 1,
+                                Estado = 1,
+                                Marca = 1,
+                                ValorEnvio = System.Text.Json.JsonSerializer.Serialize(task, jsonOptions),
+                                ValorRetorno = "",
+                                FechaCreacion = DateTime.Now,
+                                UsuarioCreadorId = currentUserId,
+                                EmpresaClienteId = clientCompany.Id
+                            };
+                            await _unitOfWork.TareaRepository.Add(taskNew);
+                            await _unitOfWork.SaveChangesAsync();
+                        }
                     }
                 }
 
                 List<ConfiguracionesReqDTO> settingCommon = new List<ConfiguracionesReqDTO>()
                 {
-                    new ConfiguracionesReqDTO(){ NombreParametro = "Plantilla correo HID", ValorGuid = null, Valor1 = "<!DOCTYPE html>\r\n<html lang=\"es\">\r\n<head>\r\n  <meta charset=\"UTF-8\" />\r\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\r\n  <title>Código de Acceso - Plataforma HID</title>\r\n  <style>\r\n    /* -- Reset básico compatible con clientes de correo -- */\r\n    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }\r\n    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }\r\n    img { -ms-interpolation-mode: bicubic; border: 0; }\r\n    body { margin: 0; padding: 0; background-color: #f4f6f9; font-family: Arial, sans-serif; }\r\n\r\n    /* -- Layout -- */\r\n    .email-outer  { width: 100%; background-color: #f4f6f9; padding: 32px 0; }\r\n    .email-inner  { max-width: 600px; margin: 0 auto; background: #ffffff;\r\n                    border-radius: 8px; overflow: hidden;\r\n                    box-shadow: 0 2px 8px rgba(0,0,0,.08); }\r\n\r\n    /* -- Header -- */\r\n    .email-header { \r\n      background: #002366;\r\n      text-align: center;\r\n      padding: 14px;\r\n    }\r\n    .email-logo   { \r\n      display: inline-block;\r\n      background: white;\r\n      border-radius: 4px;\r\n      padding: 3px 12px;\r\n      font-size: 11px;\r\n      font-weight: 700;\r\n      color: #002366;\r\n    }\r\n\r\n    /* -- Body -- */\r\n    .email-body   { \r\n      padding: 16px 18px;\r\n\r\n      h2 {\r\n          font-size: 13px;\r\n          color: #002366;\r\n          margin: 0 0 6px;\r\n\r\n          em {\r\n              font-style: normal;\r\n              color: #FF6F00;\r\n          }\r\n      }\r\n\r\n      p {\r\n          font-size: 11px;\r\n          color: #444;\r\n          line-height: 1.5;\r\n          margin: 0 0 6px;\r\n      }\r\n    }\r\n\r\n    /* -- Secciones / pasos -- */\r\n    .ewt-email-section {\r\n      margin: 10px 0;\r\n      padding: 9px 11px;\r\n      background: #FFF4E6;\r\n      border-left: 4px solid #FF6F00;\r\n\r\n      h3 {\r\n        font-size: 11px;\r\n        font-weight: 700;\r\n        color: #002366;\r\n        margin: 0 0 4px;\r\n      }\r\n\r\n      p {\r\n          font-size: 11px;\r\n          color: #555;\r\n          margin: 0;\r\n      }\r\n    };\r\n    .step-block   { margin: 24px 0; padding: 20px 24px;\r\n                    border-left: 4px solid #0d6efd; background: #f8faff;\r\n                    border-radius: 0 6px 6px 0; }\r\n    .step-block h3 { margin: 0 0 8px; font-size: 16px; color: #1a3a5c; }\r\n    .step-block p  { margin: 0; font-size: 14px; color: #555; }\r\n\r\n    /* -- Botones tiendas -- */\r\n    .store-row    { margin-top: 14px; }\r\n    .store-btn    { display: inline-block; margin-right: 10px; padding: 8px 18px;\r\n                    background: #1a3a5c; color: #ffffff; border-radius: 20px;\r\n                    font-size: 13px; text-decoration: none; }\r\n\r\n    /* -- QR -- */\r\n    .qr-wrapper   { text-align: center; margin: 16px 0; }\r\n    .qr-wrapper img { width: 130px; height: 130px; }\r\n    .qr-caption   { text-align: center; font-size: 13px; color: #888; margin-top: 6px; }\r\n\r\n    /* -- Código de invitación -- */\r\n    .invite-code  { text-align: center; font-size: 28px; font-weight: 700;\r\n                    letter-spacing: 4px; color: #002366;\r\n                    background: #eef4ff; border: 2px dashed #002366;\r\n                    border-radius: 8px; padding: 16px; margin: 16px 0; }\r\n\r\n    /* -- Contacto -- */\r\n    .contact-box  { \r\n      background: #F8F9FF;\r\n      padding: 9px;\r\n      border: 2px solid #002366;\r\n      border-radius: 4px;\r\n      margin: 10px 0;\r\n      font-size: 10px;\r\n      color: #002366;\r\n      line-height: 1.8;\r\n      text-align: center;\r\n    }\r\n\r\n    /* -- Footer -- */\r\n    .email-footer { \r\n      background: #002366;\r\n      color: white;\r\n      padding: 10px;\r\n      text-align: center;\r\n      font-size: 9px;\r\n      line-height: 1.6;\r\n    }\r\n  </style>\r\n</head>\r\n<body>\r\n  <div class=\"email-outer\">\r\n    <div class=\"email-inner\">\r\n\r\n      <!-- Encabezado -->\r\n      <div class=\"email-header\">\r\n        <div class=\"email-logo\">CRC de México®, S.A. de C.V.</div>\r\n      </div>\r\n\r\n      <!-- Cuerpo -->\r\n      <div class=\"email-body\">\r\n        <h2>Estimado(a): <em>{{destinatario}}</em>,</h2>\r\n        <p>Gracias por utilizar nuestros servicios. Aquí están los detalles de su acceso:</p>\r\n\r\n        <!-- Paso 1 -->\r\n        <div class=\"ewt-email-section\">\r\n          <h3>Paso 1. Descarga nuestra App</h3>\r\n          <p>Accede fácilmente desde tu dispositivo móvil descargando la aplicación.</p>\r\n          <div class=\"store-row\">\r\n            <a href=\"#\" class=\"store-btn\">&#9654; Google Play</a>\r\n            <a href=\"#\" class=\"store-btn\">&#9654; App Store</a>\r\n          </div>\r\n        </div>\r\n\r\n        <!-- Paso 2 -->\r\n        <div class=\"ewt-email-section\">\r\n          <h3>Paso 2. Para acceder</h3>\r\n          <p>Abre la app, selecciona 'Continuar como invitado', presiona el ícono de QR y escanea el código.</p>\r\n          <div class=\"qr-wrapper\">\r\n            <img src=\"data:image/svg+xml;base64,{{qrBase64}}\" alt=\"Código QR de acceso\" />\r\n          </div>\r\n          <p class=\"qr-caption\">Escanea este código QR para validar tu acceso.</p>\r\n        </div>\r\n\r\n        <!-- Paso 3 -->\r\n        <div class=\"ewt-email-section\">\r\n          <h3>Paso 3. Alternativa - Código manual</h3>\r\n          <p>Copia el código, pégalo en 'Canjear código' y presiona 'Canjear'. Mantén la app en vista de credenciales frente al lector.</p>\r\n          <div class=\"invite-code\">{{codigoInvitacion}}</div>\r\n          <p style=\"font-size:13px;color:#888;text-align:center;\">\r\n            Válido hasta: {{fechaExpiracion}}\r\n          </p>\r\n        </div>\r\n\r\n        <!-- Datos de contacto -->\r\n        <div class=\"contact-box\">\r\n          &#128222; <strong>Tel:</strong> +52 (443) 340 0992<br/>\r\n          &#128231; <strong>Email:</strong> omorales@crcdemexico.com.mx<br/>\r\n          &#128205; <strong>Dirección:</strong> Lic. Antonio del Moral 45, Nueva Chapultepec, 58280 Morelia, Mich.\r\n        </div>\r\n      </div>\r\n\r\n      <!-- Pie -->\r\n      <div class=\"email-footer\">\r\n        &copy; 2026 CRC de México®, S.A. de C.V.. Todos los derechos reservados.<br/>\r\n        Este es un mensaje automático, por favor no responda a este correo.\r\n      </div>\r\n\r\n    </div>\r\n  </div>\r\n</body>\r\n</html>", Valor2 = "", Valor3 = "", editable = 1, lectura = 1, EmpresaClienteId = clientCompany.Id, TipoConfiguracion = new Guid("E1A2B3C4-D5E6-7F89-A0B1-C2D3E4F50001"), UsuarioCreadorId = currentUserId},
-                    new ConfiguracionesReqDTO(){ NombreParametro = "Plantilla correo Wallet", ValorGuid = null, Valor1 = "<!DOCTYPE html>\r\n<html lang=\"es\">\r\n<head>\r\n  <meta charset=\"UTF-8\" />\r\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\r\n  <title>Código de Acceso - Plataforma HID</title>\r\n  <style>\r\n    /* -- Reset básico compatible con clientes de correo -- */\r\n    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }\r\n    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }\r\n    img { -ms-interpolation-mode: bicubic; border: 0; }\r\n    body { margin: 0; padding: 0; background-color: #f4f6f9; font-family: Arial, sans-serif; }\r\n\r\n    /* -- Layout -- */\r\n    .email-outer  { width: 100%; background-color: #f4f6f9; padding: 32px 0; }\r\n    .email-inner  { max-width: 600px; margin: 0 auto; background: #ffffff;\r\n                    border-radius: 8px; overflow: hidden;\r\n                    box-shadow: 0 2px 8px rgba(0,0,0,.08); }\r\n\r\n    /* -- Header -- */\r\n    .email-header { \r\n      background: #002366;\r\n      text-align: center;\r\n      padding: 14px;\r\n    }\r\n    .email-logo   { \r\n      display: inline-block;\r\n      background: white;\r\n      border-radius: 4px;\r\n      padding: 3px 12px;\r\n      font-size: 11px;\r\n      font-weight: 700;\r\n      color: #002366;\r\n    }\r\n\r\n    /* -- Body -- */\r\n    .email-body   { \r\n      padding: 16px 18px;\r\n\r\n      h2 {\r\n          font-size: 13px;\r\n          color: #002366;\r\n          margin: 0 0 6px;\r\n\r\n          em {\r\n              font-style: normal;\r\n              color: #FF6F00;\r\n          }\r\n      }\r\n\r\n      p {\r\n          font-size: 11px;\r\n          color: #444;\r\n          line-height: 1.5;\r\n          margin: 0 0 6px;\r\n      }\r\n    }\r\n\r\n    /* -- Secciones / pasos -- */\r\n    .ewt-email-section {\r\n      margin: 10px 0;\r\n      padding: 9px 11px;\r\n      background: #FFF4E6;\r\n      border-left: 4px solid #FF6F00;\r\n\r\n      h3 {\r\n        font-size: 11px;\r\n        font-weight: 700;\r\n        color: #002366;\r\n        margin: 0 0 4px;\r\n      }\r\n\r\n      p {\r\n          font-size: 11px;\r\n          color: #555;\r\n          margin: 0;\r\n      }\r\n    };\r\n    .step-block   { margin: 24px 0; padding: 20px 24px;\r\n                    border-left: 4px solid #0d6efd; background: #f8faff;\r\n                    border-radius: 0 6px 6px 0; }\r\n    .step-block h3 { margin: 0 0 8px; font-size: 16px; color: #1a3a5c; }\r\n    .step-block p  { margin: 0; font-size: 14px; color: #555; }\r\n\r\n    /* -- Botones tiendas -- */\r\n    .store-row    { margin-top: 14px; }\r\n    .store-btn    { display: inline-block; margin-right: 10px; padding: 8px 18px;\r\n                    background: #1a3a5c; color: #ffffff; border-radius: 20px;\r\n                    font-size: 13px; text-decoration: none; }\r\n\r\n    /* -- QR -- */\r\n    .qr-wrapper   { text-align: center; margin: 16px 0; }\r\n    .qr-wrapper img { width: 130px; height: 130px; }\r\n    .qr-caption   { text-align: center; font-size: 13px; color: #888; margin-top: 6px; }\r\n\r\n    /* -- Código de invitación -- */\r\n    .invite-code  { text-align: center; font-size: 28px; font-weight: 700;\r\n                    letter-spacing: 4px; color: #002366;\r\n                    background: #eef4ff; border: 2px dashed #002366;\r\n                    border-radius: 8px; padding: 16px; margin: 16px 0; }\r\n\r\n    /* -- Contacto -- */\r\n    .contact-box  { \r\n      background: #F8F9FF;\r\n      padding: 9px;\r\n      border: 2px solid #002366;\r\n      border-radius: 4px;\r\n      margin: 10px 0;\r\n      font-size: 10px;\r\n      color: #002366;\r\n      line-height: 1.8;\r\n      text-align: center;\r\n    }\r\n\r\n    /* -- Footer -- */\r\n    .email-footer { \r\n      background: #002366;\r\n      color: white;\r\n      padding: 10px;\r\n      text-align: center;\r\n      font-size: 9px;\r\n      line-height: 1.6;\r\n    }\r\n  </style>\r\n</head>\r\n<body>\r\n  <div class=\"email-outer\">\r\n    <div class=\"email-inner\">\r\n\r\n      <!-- Encabezado -->\r\n      <div class=\"email-header\">\r\n        <div class=\"email-logo\">CRC de México®, S.A. de C.V.</div>\r\n      </div>\r\n\r\n      <!-- Cuerpo -->\r\n      <div class=\"email-body\">\r\n        <h2>Estimado(a): <em>{{destinatario}}</em>,</h2>\r\n        <p>Gracias por utilizar nuestros servicios. Aquí están los detalles de su acceso:</p>\r\n\r\n        <!-- Paso 1 -->\r\n        <div class=\"ewt-email-section\">\r\n          <h3>Paso 1. Descarga nuestra App</h3>\r\n          <p>Accede fácilmente desde tu dispositivo móvil descargando la aplicación.</p>\r\n          <div class=\"store-row\">\r\n            <a href=\"#\" class=\"store-btn\">&#9654; Google Play</a>\r\n            <a href=\"#\" class=\"store-btn\">&#9654; App Store</a>\r\n          </div>\r\n        </div>\r\n\r\n        <!-- Paso 2 -->\r\n        <div class=\"ewt-email-section\">\r\n          <h3>Paso 2. Para acceder</h3>\r\n          <p>Abre la app, selecciona 'Continuar como invitado', presiona el ícono de QR y escanea el código.</p>\r\n          <div class=\"qr-wrapper\">\r\n            <img src=\"data:image/svg+xml;base64,{{qrBase64}}\" alt=\"Código QR de acceso\" />\r\n          </div>\r\n          <p class=\"qr-caption\">Escanea este código QR para validar tu acceso.</p>\r\n        </div>\r\n\r\n        <!-- Paso 3 -->\r\n        <div class=\"ewt-email-section\">\r\n          <h3>Paso 3. Alternativa - Código manual</h3>\r\n          <p>Copia el código, pégalo en 'Canjear código' y presiona 'Canjear'. Mantén la app en vista de credenciales frente al lector.</p>\r\n          <div class=\"invite-code\">{{codigoInvitacion}}</div>\r\n          <p style=\"font-size:13px;color:#888;text-align:center;\">\r\n            Válido hasta: {{fechaExpiracion}}\r\n          </p>\r\n        </div>\r\n\r\n        <!-- Datos de contacto -->\r\n        <div class=\"contact-box\">\r\n          &#128222; <strong>Tel:</strong> +52 (443) 340 0992<br/>\r\n          &#128231; <strong>Email:</strong> omorales@crcdemexico.com.mx<br/>\r\n          &#128205; <strong>Dirección:</strong> Lic. Antonio del Moral 45, Nueva Chapultepec, 58280 Morelia, Mich.\r\n        </div>\r\n      </div>\r\n\r\n      <!-- Pie -->\r\n      <div class=\"email-footer\">\r\n        &copy; 2026 CRC de México®, S.A. de C.V.. Todos los derechos reservados.<br/>\r\n        Este es un mensaje automático, por favor no responda a este correo.\r\n      </div>\r\n\r\n    </div>\r\n  </div>\r\n</body>\r\n</html>", Valor2 = "", Valor3 = "", editable = 1, lectura = 1, EmpresaClienteId = clientCompany.Id, TipoConfiguracion = new Guid("0078A82D-44C5-4EA9-9AD7-61FF6578BACF"), UsuarioCreadorId = currentUserId}
+                    new ConfiguracionesReqDTO(){ NombreParametro = "Plantilla correo HID", ValorGuid = null, Valor1 = "...", Valor2 = "", Valor3 = "", editable = 1, lectura = 1, EmpresaClienteId = clientCompany.Id, TipoConfiguracion = new Guid("E1A2B3C4-D5E6-7F89-A0B1-C2D3E4F50001"), UsuarioCreadorId = currentUserId},
+                    new ConfiguracionesReqDTO(){ NombreParametro = "Plantilla correo Wallet", ValorGuid = null, Valor1 = "...", Valor2 = "", Valor3 = "", editable = 1, lectura = 1, EmpresaClienteId = clientCompany.Id, TipoConfiguracion = new Guid("0078A82D-44C5-4EA9-9AD7-61FF6578BACF"), UsuarioCreadorId = currentUserId}
                 };
                 if (settingCommon.Count() != 0)
                 {
@@ -357,41 +458,18 @@ namespace WebVisitsMobile.Services.Services.Empresa
 
                     await _correoEnviarService.SendUserEmail(email, currentUserId, clientCompany.Id);
                 }
-
-                /*
-                var jsonOptions = new JsonSerializerOptions
-                {
-                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                    WriteIndented = false,
-                    ReferenceHandler = ReferenceHandler.IgnoreCycles
-                };
-                var task = new TestConnectionDTO()
-                {
-                    EmpresaClienteId = clientCompany.Id
-                };
-                var taskNew = new Tarea
-                {
-                    TipoTareaId = new Guid("D333E531-6DAE-49B5-AA40-3301FE4EE2E9"),
-                    Fecha = DateTime.Now,
-                    Pendiente = 1,
-                    Status = 1,
-                    Marca = 1,
-                    ValorEnvio = System.Text.Json.JsonSerializer.Serialize(task, jsonOptions),
-                    ValorRetorno = "",
-                    EmpresaClienteId = clientCompany.Id
-                };
-                var tareaCreada = await _tareaService.Create(taskNew, currentUserId);
-                */
             }
             catch (Exception ex)
             {
+                // TODO: reemplaza por tu logger real (ej. _logger.LogError(ex, "Error en CreateWithSettingEncrypted"))
+                Console.WriteLine(ex.ToString());
                 return false;
             }
 
             return true;
         }
 
-        public async Task<bool> UpdateWithSettingEncrypted(EmpresaCliente clientCompany, string? settingHIDEncrypted, string? settingWalletEncrypted, Guid currentUserId)
+        public async Task<bool> UpdateWithSettingEncrypted(EmpresaCliente clientCompany, List<SettingsGroupTapDTO>? settingHIDEncrypted, List<SettingsGroupTapDTO>? settingWalletEncrypted, Guid currentUserId)
         {
             try
             {
@@ -426,28 +504,147 @@ namespace WebVisitsMobile.Services.Services.Empresa
                 {
                     if (clientCompany.UsaCredencialesHID == 1)
                     {
-                        if (settingHIDEncrypted != null && settingHIDEncrypted != "")
+                        if (settingHIDEncrypted != null)
                         {
-                            var datos_encriptados = await _encriptacionService.EncriptarCadena(settingHIDEncrypted);
-                            var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
-                            List<ConfiguracionesReqDTO> settingHID = new List<ConfiguracionesReqDTO>()
+                            //var datos_encriptados = await _encriptacionService.EncriptarCadena(settingHIDEncrypted);
+                            //var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
+                            //List<ConfiguracionesReqDTO> settingHID = new List<ConfiguracionesReqDTO>()
+                            //{
+                            //    new ConfiguracionesReqDTO(){ NombreParametro = "Usa credenciales HID", ValorGuid = null, Valor1 = datos_encriptados_cadena, Valor2 = "", Valor3 = "", editable = 1, lectura = 1, EmpresaClienteId = clientCompany.Id, TipoConfiguracion = new Guid("BB164E4E-F6F3-4C6A-9CE4-0B646B2A0433"), UsuarioCreadorId = currentUserId}
+                            //};
+                            //await _configuracionService.CreateSettingsForCompany(settingHID, clientCompany.Id, currentUserId);
+
+                            var settingHID = settingHIDEncrypted
+                            .Where(grupo => grupo.Items != null)
+                            .SelectMany(grupo => grupo.Items)
+                            .Select(item => new ConfiguracionesReqDTO()
                             {
-                                new ConfiguracionesReqDTO(){ NombreParametro = "Usa credenciales HID", ValorGuid = null, Valor1 = datos_encriptados_cadena, Valor2 = "", Valor3 = "", editable = 1, lectura = 1, EmpresaClienteId = clientCompany.Id, TipoConfiguracion = new Guid("BB164E4E-F6F3-4C6A-9CE4-0B646B2A0433"), UsuarioCreadorId = currentUserId}
-                            };
-                            await _configuracionService.CreateSettingsForCompany(settingHID, clientCompany.Id, currentUserId);
+                                NombreParametro = item.Nombre,
+                                ValorGuid = item.ValorGuid,
+                                Valor1 = item.Valor1,
+                                Valor2 = "",
+                                Valor3 = "",
+                                editable = 1,
+                                lectura = 1,
+                                EmpresaClienteId = clientCompany.Id,
+                                TipoConfiguracion = item.TipoConfiguracion,
+                                UsuarioCreadorId = currentUserId
+                            })
+                            .ToList();
+
+                            if (settingHID.Count() != 0)
+                            {
+                                await _configuracionService.CreateSettingsForCompany(settingHID, clientCompany.Id, currentUserId);
+
+                                var jsonOptions = new JsonSerializerOptions
+                                {
+                                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                                    WriteIndented = false,
+                                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                                };
+                                var task = new TestConnectionDTO()
+                                {
+                                    CustomerId = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("742CE98B-684B-4A76-BA0D-CF62621FC3E7"))?.Valor1,
+                                    ClientId = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("BB617929-5F49-4FDC-8C28-62435505B600"))?.Valor1,
+                                    ClientSecretOrCertificate = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("29625587-4A45-495A-B728-203608694C44"))?.Valor1,
+                                    IdpAuthenticationUrl = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("60ADEBFE-01B5-497A-828B-CF3801F37495"))?.Valor1,
+                                    ApiUrl = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("9B02E35B-A069-4BF5-B9CA-337A59455347"))?.Valor1,
+                                    ApplicationId = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"))?.Valor1,
+                                    ApplicationVersion = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6"))?.Valor1,
+                                    EmpresaClienteId = clientCompany.Id
+                                };
+                                var taskNew = new Tarea
+                                {
+                                    Id = Guid.NewGuid(),
+                                    TipoTareaId = new Guid("D333E531-6DAE-49B5-AA40-3301FE4EE2E9"),
+                                    Fecha = DateTime.Now,
+                                    Pendiente = 1,
+                                    Status = 1,
+                                    Estado = 1,
+                                    Marca = 1,
+                                    ValorEnvio = System.Text.Json.JsonSerializer.Serialize(task, jsonOptions),
+                                    ValorRetorno = "",
+                                    FechaCreacion = DateTime.Now,
+                                    UsuarioCreadorId = currentUserId,
+                                    EmpresaClienteId = clientCompany.Id
+                                };
+                                await _unitOfWork.TareaRepository.Add(taskNew);
+                                await _unitOfWork.SaveChangesAsync();
+                            }
                         }
                     }
                     if (clientCompany.UsaCredencialesWallet == 1)
                     {
-                        if (settingWalletEncrypted != null && settingWalletEncrypted != "")
+                        //if (settingWalletEncrypted != null)
+                        //{
+                        //    var datos_encriptados = await _encriptacionService.EncriptarCadena(settingWalletEncrypted);
+                        //    var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
+                        //    List<ConfiguracionesReqDTO> settingWallet = new List<ConfiguracionesReqDTO>()
+                        //{
+                        //    new ConfiguracionesReqDTO(){ NombreParametro = "Usa credenciales Wallet", ValorGuid = null, Valor1 = datos_encriptados_cadena, Valor2 = "", Valor3 = "", editable = 1, lectura = 1, EmpresaClienteId = clientCompany.Id, TipoConfiguracion = new Guid("10058B5D-8B95-4C27-9ED1-0426762154FD"), UsuarioCreadorId = currentUserId}
+                        //};
+                        //    await _configuracionService.CreateSettingsForCompany(settingWallet, clientCompany.Id, currentUserId);
+                        //}
+
+                        if (settingWalletEncrypted != null)
                         {
-                            var datos_encriptados = await _encriptacionService.EncriptarCadena(settingWalletEncrypted);
-                            var datos_encriptados_cadena = JsonConvert.SerializeObject(datos_encriptados);
-                            List<ConfiguracionesReqDTO> settingWallet = new List<ConfiguracionesReqDTO>()
-                        {
-                            new ConfiguracionesReqDTO(){ NombreParametro = "Usa credenciales Wallet", ValorGuid = null, Valor1 = datos_encriptados_cadena, Valor2 = "", Valor3 = "", editable = 1, lectura = 1, EmpresaClienteId = clientCompany.Id, TipoConfiguracion = new Guid("10058B5D-8B95-4C27-9ED1-0426762154FD"), UsuarioCreadorId = currentUserId}
-                        };
-                            await _configuracionService.CreateSettingsForCompany(settingWallet, clientCompany.Id, currentUserId);
+                            var settingWallet = settingWalletEncrypted
+                                .Where(grupo => grupo.Items != null)
+                                .SelectMany(grupo => grupo.Items)
+                                .Select(item => new ConfiguracionesReqDTO()
+                                {
+                                    NombreParametro = item.Nombre,
+                                    ValorGuid = item.ValorGuid,
+                                    Valor1 = item.Valor1,
+                                    Valor2 = "",
+                                    Valor3 = "",
+                                    editable = 1,
+                                    lectura = 1,
+                                    EmpresaClienteId = clientCompany.Id,
+                                    TipoConfiguracion = item.TipoConfiguracion,
+                                    UsuarioCreadorId = currentUserId
+                                })
+                                .ToList();
+
+                            if (settingWallet.Count() != 0)
+                            {
+                                await _configuracionService.CreateSettingsForCompany(settingWallet, clientCompany.Id, currentUserId);
+
+                                var jsonOptions = new JsonSerializerOptions
+                                {
+                                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                                    WriteIndented = false,
+                                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                                };
+                                var task = new TestConnectionDTO()
+                                {
+                                    CustomerId = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("742CE98B-684B-4A76-BA0D-CF62621FC3E7"))?.Valor1,
+                                    ClientId = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("BB617929-5F49-4FDC-8C28-62435505B600"))?.Valor1,
+                                    ClientSecretOrCertificate = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("29625587-4A45-495A-B728-203608694C44"))?.Valor1,
+                                    IdpAuthenticationUrl = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("60ADEBFE-01B5-497A-828B-CF3801F37495"))?.Valor1,
+                                    ApiUrl = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("9B02E35B-A069-4BF5-B9CA-337A59455347"))?.Valor1,
+                                    ApplicationId = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"))?.Valor1,
+                                    ApplicationVersion = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6"))?.Valor1,
+                                    EmpresaClienteId = clientCompany.Id
+                                };
+                                var taskNew = new Tarea
+                                {
+                                    Id = Guid.NewGuid(),
+                                    TipoTareaId = new Guid("DD909EF0-E527-47FB-A0A3-204794A81F12"),
+                                    Fecha = DateTime.Now,
+                                    Pendiente = 1,
+                                    Status = 1,
+                                    Estado = 1,
+                                    Marca = 1,
+                                    ValorEnvio = System.Text.Json.JsonSerializer.Serialize(task, jsonOptions),
+                                    ValorRetorno = "",
+                                    FechaCreacion = DateTime.Now,
+                                    UsuarioCreadorId = currentUserId,
+                                    EmpresaClienteId = clientCompany.Id
+                                };
+                                await _unitOfWork.TareaRepository.Add(taskNew);
+                                await _unitOfWork.SaveChangesAsync();
+                            }
                         }
                     }
 
@@ -640,7 +837,6 @@ namespace WebVisitsMobile.Services.Services.Empresa
             try
             {
                 var data = await _unitOfWork.EmpresaClienteRepository.GetCompanyWithSettingEncrypted(companyClientId);
-
                 if (data == null)
                     return null;
 
@@ -656,34 +852,11 @@ namespace WebVisitsMobile.Services.Services.Empresa
                     UsaCredencialesWallet = data.UsaCredencialesWallet,
                     Pais = data.Pais,
                     PaisEstado = data.PaisEstado,
-                    Ciudad = data.Ciudad
+                    Ciudad = data.Ciudad,
+
+                    CredencialesHID = data.CredencialesHID,
+                    CredencialesWallet = data.CredencialesWallet
                 };
-
-                if (data.UsaCredencialesHID == 1 && data.CredencialesHID != null)
-                {
-                    var decryptHID = await _encriptacionService.DesencriptarCredential(
-                        new DesebcriptarDTO
-                        {
-                            L1 = data.CredencialesHID.L1,
-                            L2 = data.CredencialesHID.L2,
-                            Cad = data.CredencialesHID.Cad
-                        });
-
-                    result.CredencialesHID = decryptHID;
-                }
-
-                if (data.UsaCredencialesWallet == 1 && data.CredencialesWallet != null)
-                {
-                    var decryptWallet = await _encriptacionService.DesencriptarCredential(
-                        new DesebcriptarDTO
-                        {
-                            L1 = data.CredencialesWallet.L1,
-                            L2 = data.CredencialesWallet.L2,
-                            Cad = data.CredencialesWallet.Cad
-                        });
-
-                    result.CredencialesWallet = decryptWallet;
-                }
 
                 return result;
             }

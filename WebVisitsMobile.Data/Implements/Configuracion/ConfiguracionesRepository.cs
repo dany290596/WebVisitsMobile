@@ -33,7 +33,7 @@ namespace WebVisitsMobile.Data.Implements.Configuracion
             await _context.Configuraciones.AddRangeAsync(settings);
         }
 
-        public async Task<List<SettingsGroup>> GetGroupByCompany()
+        public async Task<IEnumerable<SettingsGroup>> GetGroupByCompany()
         {
             var settings = await _context.Configuraciones
                 .Where(c => c.Estado == 1 && c.EmpresaCliente.Estado == 1)
@@ -62,66 +62,72 @@ namespace WebVisitsMobile.Data.Implements.Configuracion
             var result = new List<SettingsGroup>();
 
             var grouped = settings
-                .GroupBy(c => new { c.EmpresaClienteId, c.EmpresaCliente.RazonSocial });
+                .GroupBy(c => new { c.EmpresaClienteId, c.EmpresaCliente.RazonSocial, c.EmpresaCliente.UsaCredencialesHID, c.EmpresaCliente.UsaCredencialesWallet });
 
             foreach (var group in grouped)
             {
-                var stringKeySettings = group
-                    .Where(x => x.TipoConfiguracion != Guid.Empty)
+                var stringKeySettingHID = group
+                    .Where(x => x.TipoConfiguracion != Guid.Empty && x.ValorGuid == new Guid("C009A517-0EE1-4C91-8373-3DE0A296BFC4"))
                     .GroupBy(x => x.TipoConfiguracion)
                     .ToDictionary(
                         g => g.Key.ToString().ToUpper(),
                         g => g.First().Valor1 ?? string.Empty
                     );
 
-                // ✅ VALIDAR QUE EXISTAN TODAS LAS CLAVES OBLIGATORIAS
-                bool isValid = requiredKeys.All(k =>
-                    stringKeySettings.ContainsKey(k) &&
-                    !string.IsNullOrWhiteSpace(stringKeySettings[k]));
-
-                if (!isValid)
-                    continue; // ❌ Empresa incompleta → la saltamos
-
-                var appSetting = new AppSetting
-                {
-                    CustomerId = stringKeySettings["742CE98B-684B-4A76-BA0D-CF62621FC3E7"],
-                    ClientId = stringKeySettings["BB617929-5F49-4FDC-8C28-62435505B600"],
-                    ClientSecretOrCertificate = stringKeySettings["29625587-4A45-495A-B728-203608694C44"],
-
-                    IdpAuthenticationUrl = stringKeySettings["60ADEBFE-01B5-497A-828B-CF3801F37495"],
-                    ApiUrl = stringKeySettings["9B02E35B-A069-4BF5-B9CA-337A59455347"],
-                    CallbackAndEventUrl = stringKeySettings["82481E61-4BF5-44CE-B222-3283F7BC02F9"],
-                    PremiumReportUrl = stringKeySettings.GetValueOrDefault("84BA81E1-56C0-4BEE-A57F-D05C13BB544A"),
-                    CredentialManagementURL = stringKeySettings["5006A3E3-1E78-4341-9253-C2189A7C8974"],
-                    UsersURL = stringKeySettings["5F9327BE-42D6-46B9-BF0E-DB7176371A20"],
-                    EventsURL = stringKeySettings["9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9"],
-                    TransactionURL = stringKeySettings["A90006CA-A3E8-4576-A8B0-25B1C5438D55"],
-
-                    ContentType = stringKeySettings["40E1A0B9-9144-490E-BF75-7663F3447118"],
-                    AcceptType = stringKeySettings.GetValueOrDefault("4B6BCEFA-20CA-48B9-92FA-5396C7C94202"),
-                    ApplicationId = stringKeySettings["788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"],
-                    ApplicationVersion = stringKeySettings["FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6"],
-
-
-                    PartNumberField = stringKeySettings["C98EE139-92FB-4E71-94B7-AE258DD1929A"],
-
-                    AutoDetectPartNumber = stringKeySettings.GetValueOrDefault("D539FF01-17F0-4C29-9E17-668A5591ACE5"),
-                    SelectPartNumber = stringKeySettings.GetValueOrDefault("18A0E41D-960E-4F52-9604-D0C773A87F9C"),
-                    ManualEntryPartNumber = stringKeySettings.GetValueOrDefault("32DC2E87-E6A4-48D7-AF0E-B967ED2BBF49")
-                };
-
-                if (!IsValidFormat(appSetting))
-                    continue;
+                var stringKeySettingWallet = group
+                    .Where(x => x.TipoConfiguracion != Guid.Empty && x.ValorGuid == new Guid("2001F198-3E4E-4FBD-9413-9F0DCE29EF10"))
+                    .GroupBy(x => x.TipoConfiguracion)
+                    .ToDictionary(
+                        g => g.Key.ToString().ToUpper(),
+                        g => g.First().Valor1 ?? string.Empty
+                    );
 
                 result.Add(new SettingsGroup
                 {
                     EmpresaClienteId = group.Key.EmpresaClienteId,
                     EmpresaClienteNombre = group.Key.RazonSocial,
-                    Settings = appSetting
+                    UsaCredencialesHID = group.Key.UsaCredencialesHID,
+                    UsaCredencialesWallet = group.Key.UsaCredencialesWallet,
+
+                    CredencialesHID = MapAppSetting(stringKeySettingHID),
+                    CredencialesWallet = MapAppSetting(stringKeySettingWallet)
                 });
             }
 
             return result;
+        }
+
+        private static AppSetting? MapAppSetting(Dictionary<string, string> keys)
+        {
+            if (keys.Count == 0)
+                return null;
+
+            return new AppSetting
+            {
+                CustomerId = keys.GetValueOrDefault("742CE98B-684B-4A76-BA0D-CF62621FC3E7", string.Empty),
+                ClientId = keys.GetValueOrDefault("BB617929-5F49-4FDC-8C28-62435505B600", string.Empty),
+                ClientSecretOrCertificate = keys.GetValueOrDefault("29625587-4A45-495A-B728-203608694C44", string.Empty),
+
+                IdpAuthenticationUrl = keys.GetValueOrDefault("60ADEBFE-01B5-497A-828B-CF3801F37495", string.Empty),
+                ApiUrl = keys.GetValueOrDefault("9B02E35B-A069-4BF5-B9CA-337A59455347", string.Empty),
+                CallbackAndEventUrl = keys.GetValueOrDefault("82481E61-4BF5-44CE-B222-3283F7BC02F9", string.Empty),
+                PremiumReportUrl = keys.GetValueOrDefault("84BA81E1-56C0-4BEE-A57F-D05C13BB544A"),
+                CredentialManagementURL = keys.GetValueOrDefault("5006A3E3-1E78-4341-9253-C2189A7C8974"),
+                UsersURL = keys.GetValueOrDefault("5F9327BE-42D6-46B9-BF0E-DB7176371A20"),
+                EventsURL = keys.GetValueOrDefault("9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9"),
+                TransactionURL = keys.GetValueOrDefault("A90006CA-A3E8-4576-A8B0-25B1C5438D55"),
+
+                ContentType = keys.GetValueOrDefault("40E1A0B9-9144-490E-BF75-7663F3447118", string.Empty),
+                AcceptType = keys.GetValueOrDefault("4B6BCEFA-20CA-48B9-92FA-5396C7C94202"),
+                ApplicationId = keys.GetValueOrDefault("788F90F3-0CE3-4E96-B4BA-38DA1CFE105B", string.Empty),
+                ApplicationVersion = keys.GetValueOrDefault("FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6", string.Empty),
+
+                PartNumberField = keys.GetValueOrDefault("C98EE139-92FB-4E71-94B7-AE258DD1929A", string.Empty),
+
+                AutoDetectPartNumber = keys.GetValueOrDefault("D539FF01-17F0-4C29-9E17-668A5591ACE5"),
+                SelectPartNumber = keys.GetValueOrDefault("18A0E41D-960E-4F52-9604-D0C773A87F9C"),
+                ManualEntryPartNumber = keys.GetValueOrDefault("32DC2E87-E6A4-48D7-AF0E-B967ED2BBF49")
+            };
         }
 
         public async Task<IEnumerable<SettingsGroupEncrypted>> GetGroupByCompanyEncrypted()

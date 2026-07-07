@@ -1,6 +1,7 @@
 ﻿using WebVisitsMobile.Domain.Entities.Empresa;
 using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
+using WebVisitsMobile.Models.Empresa.EmpresaCliente;
 using WebVisitsMobile.Services.QueryFilters.Empresa;
 
 namespace WebVisitsMobile.Services.Interfaces.Empresa
@@ -13,8 +14,8 @@ namespace WebVisitsMobile.Services.Interfaces.Empresa
         Task<bool> Inactivate(Guid id, Guid currentUserId);
         Task<bool> Reactivate(Guid id, Guid currentUserId);
         Task<bool> CreateWithHID(EmpresaCliente clientCompany, List<ConfiguracionesReqDTO>? settings, string password, string passwordHash, Guid usuarioActualId);
-        Task<bool> CreateWithSettingEncrypted(EmpresaCliente clientCompany, string? settingHIDEncrypted, string? settingWalletEncrypted, string password, string passwordHash, Guid currentUserId);
-        Task<bool> UpdateWithSettingEncrypted(EmpresaCliente clientCompany, string? settingHIDEncrypted, string? settingWalletEncrypted, Guid currentUserId);
+        Task<bool> CreateWithSettingEncrypted(EmpresaCliente clientCompany, List<SettingsGroupTapDTO>? settingHIDEncrypted, List<SettingsGroupTapDTO>? settingWalletEncrypted, string password, string passwordHash, Guid currentUserId);
+        Task<bool> UpdateWithSettingEncrypted(EmpresaCliente clientCompany, List<SettingsGroupTapDTO>? settingHIDEncrypted, List<SettingsGroupTapDTO>? settingWalletEncrypted, Guid currentUserId);
         Task<bool> Update(EmpresaCliente clientCompany, Guid usuarioActualId);
         Task<bool> UpdateWithHID(EmpresaCliente clientCompany, List<ConfiguracionesReqDTO>? settings, Guid usuarioActualId);
         Task<EmpresaCliente?> GetByRFC(string rfc);

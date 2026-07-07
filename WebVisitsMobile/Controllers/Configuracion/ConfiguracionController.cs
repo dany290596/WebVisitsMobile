@@ -5,13 +5,15 @@ using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
+<<<<<<< HEAD
 using WebVisitsMobile.Models.Configuracion.CorreoEmpresa;
 using WebVisitsMobile.Models.HID.TipoCredencial;
+=======
+>>>>>>> 8e62f13254195fae05c06ecb094b8f651e81ac30
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
 using WebVisitsMobile.Services.QueryFilters.Configuracion;
 using WebVisitsMobile.Services.Responses;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebVisitsMobile.Controllers.Configuracion
 {
@@ -156,11 +158,16 @@ namespace WebVisitsMobile.Controllers.Configuracion
 
 
         [HttpGet("GroupByCompany", Name = "GetGroupByCompany")]
-        public async Task<IActionResult> GetGroupByCompany()
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(ApiResponse<IEnumerable<SettingsGroup>>))]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> GetGroupByCompany([FromQuery] SettingsGroupEncryptedQueryFilter filters)
         {
             try
             {
-                var setting = await _configuracionService.GetGroupByCompany();
+                string strUriPreviousPage = _uriService.GetCompanyEncryptedUri(filters, Url.RouteUrl(nameof(GetGroupByCompanyEncrypted))).ToString();
+                string strUriNextPage = _uriService.GetCompanyEncryptedUri(filters, Url.RouteUrl(nameof(GetGroupByCompanyEncrypted))).ToString();
+
+                var setting = await _configuracionService.GetGroupByCompany(filters);
                 if (setting == null)
                 {
                     return StatusCode(503, new ApiResponse<string>(
@@ -181,6 +188,9 @@ namespace WebVisitsMobile.Controllers.Configuracion
                 }
 
                 var response = new ApiResponse<List<SettingsGroup>>(true, "La operación se completó exitosamente.", 200, setting);
+                response.CargarMetaData(setting.TotalCount, setting.PageSize, setting.CurrentPage, setting.TotalPages,
+                                        setting.HasNextPage, setting.HasPreviousPage, strUriNextPage, strUriPreviousPage);
+
                 return StatusCode(200, response);
             }
             catch (Exception ex)
