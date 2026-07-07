@@ -396,68 +396,6 @@ namespace WebVisitsMobile.Controllers.Empresa
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateWithSettingEncrypted(Guid id, [FromBody] EmpresaClienteEncryptedReqDTO model)
-        {
-            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
-                return BadRequest("El header de la empresa es inválido.");
-
-            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
-            if (empresaExiste == null)
-                return BadRequest($"La empresa con el ID {empresaId} no existe.");
-
-            Token token = _accesorService.GetTokenData();
-            if (token == null)
-                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
-
-            var empresa = model.Empresa;
-            var configuracionesHID = model.SettingEncryptedHID;
-            var configuracionesWallet = model.SettingEncryptedWallet;
-
-            try
-            {
-                if (empresa.UsaCredencialesHID == 1)
-                {
-                    if (configuracionesHID == null)
-                    {
-                        return StatusCode(409, new ApiResponse<string>(
-                            false,
-                            "Las configuraciones HID son obligatorias cuando la empresa utiliza credenciales HID.",
-                            409,
-                            null
-                        ));
-                    }
-                }
-
-                if (empresa.UsaCredencialesWallet == 1)
-                {
-                    if (configuracionesWallet == null)
-                    {
-                        return StatusCode(409, new ApiResponse<string>(
-                            false,
-                            "Las configuraciones Wallet son obligatorias cuando la empresa utiliza credenciales Wallet.",
-                            409,
-                            null
-                        ));
-                    }
-                }
-
-                var clientCompany = _mapper.Map<EmpresaCliente>(model.Empresa);
-                clientCompany.Id = id;
-
-                bool resultado = await _empresaClienteService.UpdateWithSettingEncrypted(clientCompany, configuracionesHID, configuracionesWallet, token.UsuarioId);
-                if (!resultado)
-                    return StatusCode(500, new ApiResponse<bool>(false, "No se pudo actualizar el registro.", 500, false));
-
-                var response = new ApiResponse<bool>(true, "La empresa se actualizó correctamente.", 200, true);
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new ApiResponse<string>(false, "Error interno del servidor.", 500, null));
-            }
-        }
-
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] EmpresaClienteConfiguracionReqDTO model)
         {
@@ -632,6 +570,68 @@ namespace WebVisitsMobile.Controllers.Empresa
                 var response = new ApiResponse<EmpresaClienteRespDTO>(true, "La empresa se registró correctamente.", 200, empresaRespDTO);
 
                 return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "Error interno del servidor.", 500, null));
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateWithSettingEncrypted(Guid id, [FromBody] EmpresaClienteEncryptedReqDTO model)
+        {
+            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+                return BadRequest("El header de la empresa es inválido.");
+
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null)
+                return BadRequest($"La empresa con el ID {empresaId} no existe.");
+
+            Token token = _accesorService.GetTokenData();
+            if (token == null)
+                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+
+            var empresa = model.Empresa;
+            var configuracionesHID = model.SettingEncryptedHID;
+            var configuracionesWallet = model.SettingEncryptedWallet;
+
+            try
+            {
+                if (empresa.UsaCredencialesHID == 1)
+                {
+                    if (configuracionesHID == null)
+                    {
+                        return StatusCode(409, new ApiResponse<string>(
+                            false,
+                            "Las configuraciones HID son obligatorias cuando la empresa utiliza credenciales HID.",
+                            409,
+                            null
+                        ));
+                    }
+                }
+
+                if (empresa.UsaCredencialesWallet == 1)
+                {
+                    if (configuracionesWallet == null)
+                    {
+                        return StatusCode(409, new ApiResponse<string>(
+                            false,
+                            "Las configuraciones Wallet son obligatorias cuando la empresa utiliza credenciales Wallet.",
+                            409,
+                            null
+                        ));
+                    }
+                }
+
+                var clientCompany = _mapper.Map<EmpresaCliente>(model.Empresa);
+                clientCompany.Id = id;
+
+                bool resultado = await _empresaClienteService.UpdateWithSettingEncrypted(clientCompany, configuracionesHID, configuracionesWallet, token.UsuarioId);
+                if (!resultado)
+                    return StatusCode(500, new ApiResponse<bool>(false, "No se pudo actualizar el registro.", 500, false));
+
+                var response = new ApiResponse<bool>(true, "La empresa se actualizó correctamente.", 200, true);
+                return Ok(response);
             }
             catch (Exception ex)
             {

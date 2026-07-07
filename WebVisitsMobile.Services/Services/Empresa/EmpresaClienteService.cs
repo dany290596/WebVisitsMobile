@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -14,7 +13,6 @@ using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Domain.Options;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
 using WebVisitsMobile.Models.Empresa.EmpresaCliente;
-using WebVisitsMobile.Models.Encriptacion;
 using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
@@ -32,7 +30,6 @@ namespace WebVisitsMobile.Services.Services.Empresa
         private readonly IUsuarioService _usuarioService;
         private readonly ICorreoEnviarService _correoEnviarService;
         private readonly IEncriptacionService _encriptacionService;
-        //private readonly ITareaService _tareaService;
 
         public EmpresaClienteService(
             IUnitOfWork unitOfWork,
@@ -516,6 +513,64 @@ namespace WebVisitsMobile.Services.Services.Empresa
                             //    new ConfiguracionesReqDTO(){ NombreParametro = "Usa credenciales HID", ValorGuid = null, Valor1 = datos_encriptados_cadena, Valor2 = "", Valor3 = "", editable = 1, lectura = 1, EmpresaClienteId = clientCompany.Id, TipoConfiguracion = new Guid("BB164E4E-F6F3-4C6A-9CE4-0B646B2A0433"), UsuarioCreadorId = currentUserId}
                             //};
                             //await _configuracionService.CreateSettingsForCompany(settingHID, clientCompany.Id, currentUserId);
+
+                            var settingHID = settingHIDEncrypted
+                            .Where(grupo => grupo.Items != null)
+                            .SelectMany(grupo => grupo.Items)
+                            .Select(item => new ConfiguracionesReqDTO()
+                            {
+                                NombreParametro = item.Nombre,
+                                ValorGuid = item.ValorGuid,
+                                Valor1 = item.Valor1,
+                                Valor2 = "",
+                                Valor3 = "",
+                                editable = 1,
+                                lectura = 1,
+                                EmpresaClienteId = clientCompany.Id,
+                                TipoConfiguracion = item.TipoConfiguracion,
+                                UsuarioCreadorId = currentUserId
+                            })
+                            .ToList();
+
+                            if (settingHID.Count() != 0)
+                            {
+                                await _configuracionService.CreateSettingsForCompany(settingHID, clientCompany.Id, currentUserId);
+
+                                var jsonOptions = new JsonSerializerOptions
+                                {
+                                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                                    WriteIndented = false,
+                                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                                };
+                                var task = new TestConnectionDTO()
+                                {
+                                    CustomerId = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("742CE98B-684B-4A76-BA0D-CF62621FC3E7"))?.Valor1,
+                                    ClientId = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("BB617929-5F49-4FDC-8C28-62435505B600"))?.Valor1,
+                                    ClientSecretOrCertificate = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("29625587-4A45-495A-B728-203608694C44"))?.Valor1,
+                                    IdpAuthenticationUrl = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("60ADEBFE-01B5-497A-828B-CF3801F37495"))?.Valor1,
+                                    ApiUrl = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("9B02E35B-A069-4BF5-B9CA-337A59455347"))?.Valor1,
+                                    ApplicationId = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"))?.Valor1,
+                                    ApplicationVersion = settingHID.FirstOrDefault(x => x.TipoConfiguracion == new Guid("FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6"))?.Valor1,
+                                    EmpresaClienteId = clientCompany.Id
+                                };
+                                var taskNew = new Tarea
+                                {
+                                    Id = Guid.NewGuid(),
+                                    TipoTareaId = new Guid("D333E531-6DAE-49B5-AA40-3301FE4EE2E9"),
+                                    Fecha = DateTime.Now,
+                                    Pendiente = 1,
+                                    Status = 1,
+                                    Estado = 1,
+                                    Marca = 1,
+                                    ValorEnvio = System.Text.Json.JsonSerializer.Serialize(task, jsonOptions),
+                                    ValorRetorno = "",
+                                    FechaCreacion = DateTime.Now,
+                                    UsuarioCreadorId = currentUserId,
+                                    EmpresaClienteId = clientCompany.Id
+                                };
+                                await _unitOfWork.TareaRepository.Add(taskNew);
+                                await _unitOfWork.SaveChangesAsync();
+                            }
                         }
                     }
                     if (clientCompany.UsaCredencialesWallet == 1)
@@ -530,6 +585,67 @@ namespace WebVisitsMobile.Services.Services.Empresa
                         //};
                         //    await _configuracionService.CreateSettingsForCompany(settingWallet, clientCompany.Id, currentUserId);
                         //}
+
+                        if (settingWalletEncrypted != null)
+                        {
+                            var settingWallet = settingWalletEncrypted
+                                .Where(grupo => grupo.Items != null)
+                                .SelectMany(grupo => grupo.Items)
+                                .Select(item => new ConfiguracionesReqDTO()
+                                {
+                                    NombreParametro = item.Nombre,
+                                    ValorGuid = item.ValorGuid,
+                                    Valor1 = item.Valor1,
+                                    Valor2 = "",
+                                    Valor3 = "",
+                                    editable = 1,
+                                    lectura = 1,
+                                    EmpresaClienteId = clientCompany.Id,
+                                    TipoConfiguracion = item.TipoConfiguracion,
+                                    UsuarioCreadorId = currentUserId
+                                })
+                                .ToList();
+
+                            if (settingWallet.Count() != 0)
+                            {
+                                await _configuracionService.CreateSettingsForCompany(settingWallet, clientCompany.Id, currentUserId);
+
+                                var jsonOptions = new JsonSerializerOptions
+                                {
+                                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                                    WriteIndented = false,
+                                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                                };
+                                var task = new TestConnectionDTO()
+                                {
+                                    CustomerId = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("742CE98B-684B-4A76-BA0D-CF62621FC3E7"))?.Valor1,
+                                    ClientId = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("BB617929-5F49-4FDC-8C28-62435505B600"))?.Valor1,
+                                    ClientSecretOrCertificate = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("29625587-4A45-495A-B728-203608694C44"))?.Valor1,
+                                    IdpAuthenticationUrl = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("60ADEBFE-01B5-497A-828B-CF3801F37495"))?.Valor1,
+                                    ApiUrl = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("9B02E35B-A069-4BF5-B9CA-337A59455347"))?.Valor1,
+                                    ApplicationId = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("788F90F3-0CE3-4E96-B4BA-38DA1CFE105B"))?.Valor1,
+                                    ApplicationVersion = settingWallet.FirstOrDefault(x => x.TipoConfiguracion == new Guid("FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6"))?.Valor1,
+                                    EmpresaClienteId = clientCompany.Id
+                                };
+                                var taskNew = new Tarea
+                                {
+                                    Id = Guid.NewGuid(),
+                                    TipoTareaId = new Guid("DD909EF0-E527-47FB-A0A3-204794A81F12"),
+                                    Fecha = DateTime.Now,
+                                    Pendiente = 1,
+                                    Status = 1,
+                                    Estado = 1,
+                                    Marca = 1,
+                                    ValorEnvio = System.Text.Json.JsonSerializer.Serialize(task, jsonOptions),
+                                    ValorRetorno = "",
+                                    FechaCreacion = DateTime.Now,
+                                    UsuarioCreadorId = currentUserId,
+                                    EmpresaClienteId = clientCompany.Id
+                                };
+                                await _unitOfWork.TareaRepository.Add(taskNew);
+                                await _unitOfWork.SaveChangesAsync();
+                            }
+                        }
                     }
 
                     List<ConfiguracionesReqDTO> settingCommon = new List<ConfiguracionesReqDTO>()
@@ -721,7 +837,6 @@ namespace WebVisitsMobile.Services.Services.Empresa
             try
             {
                 var data = await _unitOfWork.EmpresaClienteRepository.GetCompanyWithSettingEncrypted(companyClientId);
-
                 if (data == null)
                     return null;
 
@@ -737,34 +852,11 @@ namespace WebVisitsMobile.Services.Services.Empresa
                     UsaCredencialesWallet = data.UsaCredencialesWallet,
                     Pais = data.Pais,
                     PaisEstado = data.PaisEstado,
-                    Ciudad = data.Ciudad
+                    Ciudad = data.Ciudad,
+
+                    CredencialesHID = data.CredencialesHID,
+                    CredencialesWallet = data.CredencialesWallet
                 };
-
-                if (data.UsaCredencialesHID == 1 && data.CredencialesHID != null)
-                {
-                    var decryptHID = await _encriptacionService.DesencriptarCredential(
-                        new DesebcriptarDTO
-                        {
-                            L1 = data.CredencialesHID.L1,
-                            L2 = data.CredencialesHID.L2,
-                            Cad = data.CredencialesHID.Cad
-                        });
-
-                    result.CredencialesHID = decryptHID;
-                }
-
-                if (data.UsaCredencialesWallet == 1 && data.CredencialesWallet != null)
-                {
-                    var decryptWallet = await _encriptacionService.DesencriptarCredential(
-                        new DesebcriptarDTO
-                        {
-                            L1 = data.CredencialesWallet.L1,
-                            L2 = data.CredencialesWallet.L2,
-                            Cad = data.CredencialesWallet.Cad
-                        });
-
-                    result.CredencialesWallet = decryptWallet;
-                }
 
                 return result;
             }

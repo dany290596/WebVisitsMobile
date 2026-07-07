@@ -1,12 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using System.Text.Json;
 using WebVisitsMobile.Data.Context;
 using WebVisitsMobile.Data.Implements.Common;
 using WebVisitsMobile.Data.Interfaces.Empresa;
 using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Domain.Entities.Empresa;
-using WebVisitsMobile.Domain.Entities.Encriptacion;
 
 namespace WebVisitsMobile.Data.Implements.Empresa
 {
@@ -153,8 +151,8 @@ namespace WebVisitsMobile.Data.Implements.Empresa
 
         public async Task<CompanyWithSettingEncrypted?> GetCompanyWithSettingEncrypted(Guid companyClientId)
         {
-            var hidGuid = Guid.Parse("BB164E4E-F6F3-4C6A-9CE4-0B646B2A0433");
-            var walletGuid = Guid.Parse("10058B5D-8B95-4C27-9ED1-0426762154FD");
+            var hidValorGuid = Guid.Parse("C009A517-0EE1-4C91-8373-3DE0A296BFC4");
+            var walletValorGuid = Guid.Parse("2001F198-3E4E-4FBD-9413-9F0DCE29EF10");
 
             var empresa = await _context.EmpresaCliente
                 .Include(x => x.Pais)
@@ -180,62 +178,90 @@ namespace WebVisitsMobile.Data.Implements.Empresa
                 Ciudad = empresa.Ciudad!
             };
 
-            var settingIds = new List<Guid>();
-
-            if (empresa.UsaCredencialesHID == 1)
-                settingIds.Add(hidGuid);
-
-            if (empresa.UsaCredencialesWallet == 1)
-                settingIds.Add(walletGuid);
-
-            if (!settingIds.Any())
+            if (empresa.UsaCredencialesHID != 1 && empresa.UsaCredencialesWallet != 1)
                 return result;
 
+            // Trae TODA la configuración activa de la empresa en una sola consulta
             var settings = await _context.Configuraciones
-                .Where(c =>
-                    c.EmpresaClienteId == companyClientId &&
-                    c.Estado == 1 &&
-                    settingIds.Contains(c.TipoConfiguracion))
-                .ToDictionaryAsync(c => c.TipoConfiguracion);
+                .Where(c => c.EmpresaClienteId == companyClientId && c.Estado == 1)
+                .AsNoTracking()
+                .ToListAsync();
 
-            bool TryDeserialize(Guid tipoConfiguracion, out key? credential)
+            if (empresa.UsaCredencialesHID == 1)
             {
-                credential = null;
+                var settingHID = settings
+                    .Where(c => c.ValorGuid == hidValorGuid)
+                    .ToDictionary(c => c.TipoConfiguracion);
 
-                if (!settings.TryGetValue(tipoConfiguracion, out var setting))
-                    return false;
-
-                if (string.IsNullOrWhiteSpace(setting.Valor1))
-                    return false;
-
-                try
-                {
-                    credential = JsonSerializer.Deserialize<key>(setting.Valor1);
-                }
-                catch (JsonException)
-                {
-                    return false;
-                }
-
-                return credential != null &&
-                       credential.L1 > 0 &&
-                       credential.L2 > 0 &&
-                       !string.IsNullOrWhiteSpace(credential.Cad);
+                result.CredencialesHID = BuildGroupTaps(settingHID);
             }
 
-            if (empresa.UsaCredencialesHID == 1 &&
-                TryDeserialize(hidGuid, out var hidCredential))
+            if (empresa.UsaCredencialesWallet == 1)
             {
-                result.CredencialesHID = hidCredential;
-            }
+                var settingWallet = settings
+                    .Where(c => c.ValorGuid == walletValorGuid)
+                    .ToDictionary(c => c.TipoConfiguracion);
 
-            if (empresa.UsaCredencialesWallet == 1 &&
-                TryDeserialize(walletGuid, out var walletCredential))
-            {
-                result.CredencialesWallet = walletCredential;
+                result.CredencialesWallet = BuildGroupTaps(settingWallet);
             }
 
             return result;
+        }
+
+        private static List<SettingsGroupTap> BuildGroupTaps(Dictionary<Guid, Configuraciones> settingsByTipo)
+        {
+            ConfigSetting? Map(string tipoConfiguracionGuid)
+            {
+                var guid = Guid.Parse(tipoConfiguracionGuid);
+                return settingsByTipo.TryGetValue(guid, out var c)
+                    ? new ConfigSetting
+                    {
+                        TipoConfiguracion = c.TipoConfiguracion,
+                        ValorGuid = c.ValorGuid,
+                        Nombre = c.NombreParametro,
+                        Valor1 = c.Valor1 ?? string.Empty
+                    }
+                    : null;
+            }
+
+            List<ConfigSetting> MapMany(string[] guids) =>
+                guids.Select(Map).Where(x => x != null).Select(x => x!).ToList();
+
+            var cn01 = MapMany(new[]
+            {
+                "742CE98B-684B-4A76-BA0D-CF62621FC3E7",
+                "BB617929-5F49-4FDC-8C28-62435505B600",
+                "29625587-4A45-495A-B728-203608694C44"
+            });
+
+            var cn02 = MapMany(new[]
+            {
+                "60ADEBFE-01B5-497A-828B-CF3801F37495",
+                "9B02E35B-A069-4BF5-B9CA-337A59455347",
+                "82481E61-4BF5-44CE-B222-3283F7BC02F9",
+                "84BA81E1-56C0-4BEE-A57F-D05C13BB544A",
+                "5006A3E3-1E78-4341-9253-C2189A7C8974",
+                "5F9327BE-42D6-46B9-BF0E-DB7176371A20",
+                "9914DCB1-B370-4FC5-8CA3-D5ADD1605AF9",
+                "A90006CA-A3E8-4576-A8B0-25B1C5438D55"
+            });
+
+            var cn03 = MapMany(new[]
+            {
+                "40E1A0B9-9144-490E-BF75-7663F3447118",
+                "4B6BCEFA-20CA-48B9-92FA-5396C7C94202",
+                "788F90F3-0CE3-4E96-B4BA-38DA1CFE105B",
+                "FF5E7D45-FCED-4169-B4EB-BA70B43F7BB6"
+            });
+
+            var cn04 = MapMany(new[] { "C98EE139-92FB-4E71-94B7-AE258DD1929A" });
+            return new List<SettingsGroupTap>
+            {
+                new() { Key = "authParams", Label = "Parámetros de autenticación", Items = cn01 },
+                new() { Key = "urlConfig",  Label = "Configuración de URLS",       Items = cn02 },
+                new() { Key = "apiParams",  Label = "Parámetros de API",           Items = cn03 },
+                new() { Key = "productKey", Label = "Clave de producto",           Items = cn04 }
+            };
         }
     }
 }
