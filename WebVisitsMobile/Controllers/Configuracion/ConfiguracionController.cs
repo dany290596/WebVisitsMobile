@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
+using WebVisitsMobile.Models.Configuracion.CorreoEmpresa;
 using WebVisitsMobile.Models.HID.TipoCredencial;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
@@ -282,6 +284,88 @@ namespace WebVisitsMobile.Controllers.Configuracion
                 return StatusCode(404, new ApiResponse<SettingsGroupTap>(false, "No se encontraron configuraciones.", 404, null));
 
             return StatusCode(200, new ApiResponse<List<SettingsGroupTap>>(true, "Configuración obtenida correctamente.", 200, result));
+        }
+
+        [HttpPost("Correo")]
+        public async Task<IActionResult> CreateCorreoEmpresa(CorreoEmpresaReqDTO data)
+        {
+            if (data == null)
+            {
+                return BadRequest(new ApiResponse<string>(false, "El cuerpo de la petición es requerido.", 400, null));
+            }
+
+            var empresaExiste = await _plataformaService.ExistsCompany(data.EmpresaId);
+            if (empresaExiste == null)
+            {
+                return StatusCode(404, new ApiResponse<string>(false, $"La empresa con el ID {data.EmpresaId} no existe.", 404, null));
+            }
+
+            Token token = _accesorService.GetTokenData();
+            var currentUserId = token?.UsuarioId ?? Guid.Empty;
+
+            var result = await _configuracionService.CreateCorreoEmpresa(data, currentUserId);
+            if (!result.Success)
+            {
+                return StatusCode(409, new ApiResponse<string>(false, result.ErrorMessage, 409, null));
+            }
+
+            return StatusCode(200, new ApiResponse<CorreoEmpresaRespDTO>(true, "La configuración de correo se creó correctamente.", 200, result.Value));
+        }
+
+        [HttpGet("Correo")]
+        public async Task<IActionResult> GetAllCorreoEmpresa()
+        {
+            var result = await _configuracionService.GetAllCorreoEmpresa();
+            if (result == null || !result.Any())
+            {
+                return StatusCode(200, new ApiResponse<List<CorreoEmpresaRespDTO>>(true, "No se encontraron configuraciones de correo registradas.", 200, new List<CorreoEmpresaRespDTO>()));
+            }
+
+            return StatusCode(200, new ApiResponse<List<CorreoEmpresaRespDTO>>(true, "La operación se completó exitosamente.", 200, result));
+        }
+
+        [HttpGet("Correo/{empresaId}")]
+        public async Task<IActionResult> GetCorreoEmpresa(Guid empresaId)
+        {
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null)
+            {
+                return StatusCode(404, new ApiResponse<string>(false, $"La empresa con el ID {empresaId} no existe.", 404, null));
+            }
+
+            var result = await _configuracionService.GetCorreoEmpresa(empresaId);
+            if (!result.Success)
+            {
+                return StatusCode(404, new ApiResponse<string>(false, result.ErrorMessage, 404, null));
+            }
+
+            return StatusCode(200, new ApiResponse<CorreoEmpresaRespDTO>(true, "La configuración fue obtenida correctamente.", 200, result.Value));
+        }
+
+        [HttpPut("Correo")]
+        public async Task<IActionResult> UpdateCorreoEmpresa(CorreoEmpresaUpdateReqDTO data)
+        {
+            if (data == null)
+            {
+                return BadRequest(new ApiResponse<string>(false, "El cuerpo de la petición es requerido.", 400, null));
+            }
+
+            var empresaExiste = await _plataformaService.ExistsCompany(data.EmpresaId);
+            if (empresaExiste == null)
+            {
+                return StatusCode(404, new ApiResponse<string>(false, $"La empresa con el ID {data.EmpresaId} no existe.", 404, null));
+            }
+
+            Token token = _accesorService.GetTokenData();
+            var currentUserId = token?.UsuarioId ?? Guid.Empty;
+
+            var result = await _configuracionService.UpdateCorreoEmpresa(data, currentUserId);
+            if (!result.Success)
+            {
+                return StatusCode(400, new ApiResponse<string>(false, result.ErrorMessage, 400, null));
+            }
+
+            return StatusCode(200, new ApiResponse<CorreoEmpresaRespDTO>(true, "La configuración se actualizó correctamente.", 200, result.Value));
         }
 
         [HttpGet("SettingsDecrypt")]

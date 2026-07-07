@@ -10,6 +10,7 @@ using WebVisitsMobile.Domain.Options;
 using WebVisitsMobile.Models.Administracion.Seguridad.AlgoritmoAES;
 using WebVisitsMobile.Models.Common;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
+using WebVisitsMobile.Models.Configuracion.CorreoEmpresa;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.QueryFilters.Configuracion;
 using WebVisitsMobile.Services.Services.Encriptacion;
@@ -842,6 +843,243 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 // _logger.LogError(ex, "Error inesperado en GetSettingsDecrypt para {CompanyId}/{TypeId}", companyId, typeSettingId);
                 return new List<SettingsGroupTap>();
             }
+        }
+
+        public async Task<ResultDTO<CorreoEmpresaRespDTO>> CreateCorreoEmpresa(CorreoEmpresaReqDTO data, Guid currentUserId)
+        {
+            if (data == null || data.EmpresaId == Guid.Empty)
+                return ResultDTO<CorreoEmpresaRespDTO>.Fail("La empresa es requerida.");
+
+            var tipo = NormalizarTipoAutenticacionCorreo(data.TipoAutenticacion);
+            if (tipo == null)
+                return ResultDTO<CorreoEmpresaRespDTO>.Fail("El tipo de autenticación debe ser 'SMTP' u 'OAuth'.");
+
+            var yaExiste = await _unitOfWork.ConfiguracionesRepository
+                .GetAllSettingQueryable()
+                .AnyAsync(c => c.EmpresaClienteId == data.EmpresaId
+                            && c.Estado == 1
+                            && ConfiguracionCorreoEmpresaKeys.Todas.Contains(c.TipoConfiguracion));
+
+            if (yaExiste)
+                return ResultDTO<CorreoEmpresaRespDTO>.Fail("La empresa ya cuenta con una configuración de correo registrada.");
+
+            var now = DateTime.Now;
+            var valores = ConstruirValoresCorreoEmpresa(tipo, data.Smtp, data.OAuth);
+
+            var nuevos = valores.Select(v => new Configuraciones
+            {
+                Id = Guid.NewGuid(),
+                TipoConfiguracion = v.Key,
+                NombreParametro = ConfiguracionCorreoEmpresaKeys.Nombres[v.Key],
+                Valor1 = v.Value,
+                EmpresaClienteId = data.EmpresaId,
+                UsuarioCreadorId = currentUserId,
+                FechaCreacion = now,
+                Estado = 1
+            }).ToList();
+
+            await _unitOfWork.ConfiguracionesRepository.AddRangeSetting(nuevos);
+            await _unitOfWork.SaveChangesAsync();
+
+            return ResultDTO<CorreoEmpresaRespDTO>.Ok(MapearCorreoEmpresa(data.EmpresaId, nuevos));
+        }
+
+        public async Task<ResultDTO<CorreoEmpresaRespDTO>> GetCorreoEmpresa(Guid empresaId)
+        {
+            var registros = await _unitOfWork.ConfiguracionesRepository
+                .GetAllSettingQueryable()
+                .Where(c => c.EmpresaClienteId == empresaId
+                         && c.Estado == 1
+                         && ConfiguracionCorreoEmpresaKeys.Todas.Contains(c.TipoConfiguracion))
+                .ToListAsync();
+
+            var tieneTipo = registros.Any(r => r.TipoConfiguracion == ConfiguracionCorreoEmpresaKeys.TipoAutenticacion);
+            if (!tieneTipo)
+                return ResultDTO<CorreoEmpresaRespDTO>.Fail("La empresa no cuenta con una configuración de correo registrada.");
+
+            return ResultDTO<CorreoEmpresaRespDTO>.Ok(MapearCorreoEmpresa(empresaId, registros));
+        }
+
+        public async Task<ResultDTO<CorreoEmpresaRespDTO>> UpdateCorreoEmpresa(CorreoEmpresaUpdateReqDTO data, Guid currentUserId)
+        {
+            if (data == null || data.EmpresaId == Guid.Empty)
+                return ResultDTO<CorreoEmpresaRespDTO>.Fail("La empresa es requerida.");
+
+            var registros = await _unitOfWork.ConfiguracionesRepository
+                .GetAllSettingQueryable()
+                .Where(c => c.EmpresaClienteId == data.EmpresaId
+                         && c.Estado == 1
+                         && ConfiguracionCorreoEmpresaKeys.Todas.Contains(c.TipoConfiguracion))
+                .ToListAsync();
+
+            var tieneTipo = registros.Any(r => r.TipoConfiguracion == ConfiguracionCorreoEmpresaKeys.TipoAutenticacion);
+            if (!tieneTipo)
+                return ResultDTO<CorreoEmpresaRespDTO>.Fail("La empresa no cuenta con una configuración de correo registrada. Debe crearla primero.");
+
+            string? nuevoTipo = null;
+            if (!string.IsNullOrWhiteSpace(data.TipoAutenticacion))
+            {
+                nuevoTipo = NormalizarTipoAutenticacionCorreo(data.TipoAutenticacion);
+                if (nuevoTipo == null)
+                    return ResultDTO<CorreoEmpresaRespDTO>.Fail("El tipo de autenticación debe ser 'SMTP' u 'OAuth'.");
+            }
+
+            var valoresAActualizar = new Dictionary<Guid, string>();
+
+            if (nuevoTipo != null)
+                valoresAActualizar[ConfiguracionCorreoEmpresaKeys.TipoAutenticacion] = nuevoTipo;
+
+            if (data.Smtp != null)
+            {
+                if (data.Smtp.Correo != null) valoresAActualizar[ConfiguracionCorreoEmpresaKeys.SmtpCorreo] = data.Smtp.Correo;
+                if (data.Smtp.Servidor != null) valoresAActualizar[ConfiguracionCorreoEmpresaKeys.SmtpServidor] = data.Smtp.Servidor;
+                if (data.Smtp.Puerto.HasValue) valoresAActualizar[ConfiguracionCorreoEmpresaKeys.SmtpPuerto] = data.Smtp.Puerto.Value.ToString();
+                if (data.Smtp.Usuario != null) valoresAActualizar[ConfiguracionCorreoEmpresaKeys.SmtpUsuario] = data.Smtp.Usuario;
+                if (data.Smtp.Password != null) valoresAActualizar[ConfiguracionCorreoEmpresaKeys.SmtpPassword] = data.Smtp.Password;
+                if (data.Smtp.Ssl.HasValue) valoresAActualizar[ConfiguracionCorreoEmpresaKeys.SmtpSsl] = BoolACorreoFlag(data.Smtp.Ssl);
+                if (data.Smtp.Tls12.HasValue) valoresAActualizar[ConfiguracionCorreoEmpresaKeys.SmtpTls12] = BoolACorreoFlag(data.Smtp.Tls12);
+                if (data.Smtp.Tls13.HasValue) valoresAActualizar[ConfiguracionCorreoEmpresaKeys.SmtpTls13] = BoolACorreoFlag(data.Smtp.Tls13);
+            }
+
+            if (data.OAuth != null)
+            {
+                if (data.OAuth.Tenant != null) valoresAActualizar[ConfiguracionCorreoEmpresaKeys.OAuthTenant] = data.OAuth.Tenant;
+                if (data.OAuth.Client != null) valoresAActualizar[ConfiguracionCorreoEmpresaKeys.OAuthClient] = data.OAuth.Client;
+                if (data.OAuth.ClientSecret != null) valoresAActualizar[ConfiguracionCorreoEmpresaKeys.OAuthClientSecret] = data.OAuth.ClientSecret;
+                if (data.OAuth.Correo != null) valoresAActualizar[ConfiguracionCorreoEmpresaKeys.OAuthCorreo] = data.OAuth.Correo;
+            }
+
+            if (valoresAActualizar.Count == 0)
+                return ResultDTO<CorreoEmpresaRespDTO>.Fail("No se proporcionaron valores para actualizar.");
+
+            var now = DateTime.Now;
+            var nuevos = new List<Configuraciones>();
+
+            foreach (var (clave, valor) in valoresAActualizar)
+            {
+                var registro = registros.FirstOrDefault(r => r.TipoConfiguracion == clave);
+                if (registro != null)
+                {
+                    registro.Valor1 = valor;
+                    registro.FechaModificacion = now;
+                    registro.UsuarioModificadorId = currentUserId;
+                    _unitOfWork.ConfiguracionesRepository.Update(registro);
+                }
+                else
+                {
+                    var nuevo = new Configuraciones
+                    {
+                        Id = Guid.NewGuid(),
+                        TipoConfiguracion = clave,
+                        NombreParametro = ConfiguracionCorreoEmpresaKeys.Nombres[clave],
+                        Valor1 = valor,
+                        EmpresaClienteId = data.EmpresaId,
+                        UsuarioCreadorId = currentUserId,
+                        FechaCreacion = now,
+                        Estado = 1
+                    };
+                    nuevos.Add(nuevo);
+                    registros.Add(nuevo);
+                }
+            }
+
+            if (nuevos.Any())
+                await _unitOfWork.ConfiguracionesRepository.AddRangeSetting(nuevos);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return ResultDTO<CorreoEmpresaRespDTO>.Ok(MapearCorreoEmpresa(data.EmpresaId, registros));
+        }
+
+        public async Task<List<CorreoEmpresaRespDTO>> GetAllCorreoEmpresa()
+        {
+            var registros = await _unitOfWork.ConfiguracionesRepository
+                .GetAllSettingQueryable()
+                .Where(c => ConfiguracionCorreoEmpresaKeys.Todas.Contains(c.TipoConfiguracion))
+                .ToListAsync();
+
+            return registros
+                .GroupBy(r => r.EmpresaClienteId)
+                .Select(g => MapearCorreoEmpresa(g.Key, g.ToList()))
+                .ToList();
+        }
+
+        private static string? NormalizarTipoAutenticacionCorreo(string? tipo)
+        {
+            if (string.Equals(tipo, ConfiguracionCorreoEmpresaKeys.TipoSmtp, StringComparison.OrdinalIgnoreCase))
+                return ConfiguracionCorreoEmpresaKeys.TipoSmtp;
+            if (string.Equals(tipo, ConfiguracionCorreoEmpresaKeys.TipoOAuth, StringComparison.OrdinalIgnoreCase))
+                return ConfiguracionCorreoEmpresaKeys.TipoOAuth;
+            return null;
+        }
+
+        private static string BoolACorreoFlag(bool? valor) => valor == true ? "1" : "2";
+
+        private static bool? CorreoFlagABool(string? valor) => valor switch
+        {
+            "1" => true,
+            "2" => false,
+            _ => null
+        };
+
+        private static Dictionary<Guid, string> ConstruirValoresCorreoEmpresa(string tipo, CorreoEmpresaSmtpDTO? smtp, CorreoEmpresaOAuthDTO? oauth)
+        {
+            var valores = new Dictionary<Guid, string>
+            {
+                [ConfiguracionCorreoEmpresaKeys.TipoAutenticacion] = tipo
+            };
+
+            if (tipo == ConfiguracionCorreoEmpresaKeys.TipoSmtp)
+            {
+                smtp ??= new CorreoEmpresaSmtpDTO();
+                valores[ConfiguracionCorreoEmpresaKeys.SmtpCorreo] = smtp.Correo ?? string.Empty;
+                valores[ConfiguracionCorreoEmpresaKeys.SmtpServidor] = smtp.Servidor ?? string.Empty;
+                valores[ConfiguracionCorreoEmpresaKeys.SmtpPuerto] = smtp.Puerto?.ToString() ?? string.Empty;
+                valores[ConfiguracionCorreoEmpresaKeys.SmtpUsuario] = smtp.Usuario ?? string.Empty;
+                valores[ConfiguracionCorreoEmpresaKeys.SmtpPassword] = smtp.Password ?? string.Empty;
+                valores[ConfiguracionCorreoEmpresaKeys.SmtpSsl] = BoolACorreoFlag(smtp.Ssl);
+                valores[ConfiguracionCorreoEmpresaKeys.SmtpTls12] = BoolACorreoFlag(smtp.Tls12);
+                valores[ConfiguracionCorreoEmpresaKeys.SmtpTls13] = BoolACorreoFlag(smtp.Tls13);
+            }
+            else
+            {
+                oauth ??= new CorreoEmpresaOAuthDTO();
+                valores[ConfiguracionCorreoEmpresaKeys.OAuthTenant] = oauth.Tenant ?? string.Empty;
+                valores[ConfiguracionCorreoEmpresaKeys.OAuthClient] = oauth.Client ?? string.Empty;
+                valores[ConfiguracionCorreoEmpresaKeys.OAuthClientSecret] = oauth.ClientSecret ?? string.Empty;
+                valores[ConfiguracionCorreoEmpresaKeys.OAuthCorreo] = oauth.Correo ?? string.Empty;
+            }
+
+            return valores;
+        }
+
+        private static CorreoEmpresaRespDTO MapearCorreoEmpresa(Guid empresaId, IEnumerable<Configuraciones> registros)
+        {
+            var valores = registros.ToDictionary(r => r.TipoConfiguracion, r => r.Valor1);
+
+            return new CorreoEmpresaRespDTO
+            {
+                EmpresaId = empresaId,
+                TipoAutenticacion = valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.TipoAutenticacion),
+                Smtp = new CorreoEmpresaSmtpDTO
+                {
+                    Correo = valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.SmtpCorreo),
+                    Servidor = valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.SmtpServidor),
+                    Puerto = int.TryParse(valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.SmtpPuerto), out var puerto) ? puerto : null,
+                    Usuario = valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.SmtpUsuario),
+                    Password = valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.SmtpPassword),
+                    Ssl = CorreoFlagABool(valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.SmtpSsl)),
+                    Tls12 = CorreoFlagABool(valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.SmtpTls12)),
+                    Tls13 = CorreoFlagABool(valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.SmtpTls13))
+                },
+                OAuth = new CorreoEmpresaOAuthDTO
+                {
+                    Tenant = valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.OAuthTenant),
+                    Client = valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.OAuthClient),
+                    ClientSecret = valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.OAuthClientSecret),
+                    Correo = valores.GetValueOrDefault(ConfiguracionCorreoEmpresaKeys.OAuthCorreo)
+                }
+            };
         }
 
         private bool IsValidJson(string json)

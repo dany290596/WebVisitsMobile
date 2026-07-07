@@ -1,12 +1,18 @@
 ﻿using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Domain.EntitiesCustom;
+using WebVisitsMobile.Models.Common;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
+using WebVisitsMobile.Models.Configuracion.CorreoEmpresa;
 using WebVisitsMobile.Services.QueryFilters.Configuracion;
 
 namespace WebVisitsMobile.Services.Interfaces.Configuracion
 {
     public interface IConfiguracionService
     {
+        Task<ResultDTO<CorreoEmpresaRespDTO>> CreateCorreoEmpresa(CorreoEmpresaReqDTO data, Guid currentUserId);
+        Task<ResultDTO<CorreoEmpresaRespDTO>> GetCorreoEmpresa(Guid empresaId);
+        Task<ResultDTO<CorreoEmpresaRespDTO>> UpdateCorreoEmpresa(CorreoEmpresaUpdateReqDTO data, Guid currentUserId);
+        Task<List<CorreoEmpresaRespDTO>> GetAllCorreoEmpresa();
         Task<bool> Create(Configuraciones setting, Guid currentUserId);
         Task<bool> Update(Configuraciones setting, Guid currentUserId, Guid clientCompanyId);
         Task<bool> Reactivate(Guid id, Guid currentUserId);
