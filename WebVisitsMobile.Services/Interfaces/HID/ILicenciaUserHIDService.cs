@@ -16,11 +16,12 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<bool> UpdateWithAttributes(LicenciaHidUser licenseUserHID, Guid clientCompanyId, Guid currentUserId);
         Task<bool> UpdateStatus(Guid userHIDId, string newInvitationActivity, int newStatus, Guid currentUserId);
         Task<bool> UpdateStatus(Guid userId, int status);
+        Task<bool> UpdateStatus(Guid id, int statusUser, string statusInvitation, Guid currentUserId);
         Task<bool> UpdateStatusByIntId(int userId, int status);
         Task<bool> Reactivate(Guid id, Guid currentUserId);
         Task<bool> Inactivate(Guid id, Guid currentUserId);
         Task<bool> InactivateById(Guid id, Guid userLowId);
-        Task<bool> InactivateWithHIDAndTask(Guid id, Guid currentUserId, Guid clientCompanyId);
+        Task<bool> InactivateWithHIDAndTask(Guid id, Guid currentUserId);
         Task<bool> InactivateWithWalletAndTask(Guid id, Guid currentUserId, Guid clientCompanyId);
         Task<bool> ReactivateWithWalletAndTask(Guid id, Guid currentUserId, Guid clientCompanyId);
         Task<bool> InactivateWithHID(Guid id, Guid clientCompanyId, Guid currentUserId);

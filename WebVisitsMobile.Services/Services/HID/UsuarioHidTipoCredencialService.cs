@@ -126,6 +126,19 @@ namespace WebVisitsMobile.Services.Services.HID
             }
         }
 
+        public async Task<UsuarioHidTipoCredencial> GetUserHidTypeCredentialByUserId(Guid dataId)
+        {
+            try
+            {
+                UsuarioHidTipoCredencial data = await _unitOfWork.UsuarioHidTipoCredencialRepository.GetUserHidTypeCredential(u => u.LicenciaHidUserId == dataId);
+                return data;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task<UsuarioHidTipoCredencial?> Create(UsuarioHidTipoCredencial data, Guid currentUserId)
         {
             try
@@ -178,6 +191,10 @@ namespace WebVisitsMobile.Services.Services.HID
             try
             {
                 UsuarioHidTipoCredencial data = await _unitOfWork.UsuarioHidTipoCredencialRepository.GetById(id);
+                if (data == null)
+                {
+                    return false;
+                }
                 data.FechaBaja = DateTime.Now;
                 data.UsuarioBajaId = currentUserId;
                 data.Estado = 2;

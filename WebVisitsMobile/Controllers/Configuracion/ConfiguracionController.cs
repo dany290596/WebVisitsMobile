@@ -5,11 +5,7 @@ using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
-<<<<<<< HEAD
 using WebVisitsMobile.Models.Configuracion.CorreoEmpresa;
-using WebVisitsMobile.Models.HID.TipoCredencial;
-=======
->>>>>>> 8e62f13254195fae05c06ecb094b8f651e81ac30
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
 using WebVisitsMobile.Services.QueryFilters.Configuracion;
