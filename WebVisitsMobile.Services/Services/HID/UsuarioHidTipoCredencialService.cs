@@ -39,6 +39,8 @@ namespace WebVisitsMobile.Services.Services.HID
                 else
                 {
                     data = await _unitOfWork.UsuarioHidTipoCredencialRepository.GetAllUserHidTypeCredential();
+
+                    if (filters.EmpresaClienteId != null && filters.EmpresaClienteId != Guid.Empty) { data = data.Where(x => x.LicenciaHidUser.EmpresaClienteId == filters.EmpresaClienteId); }
                 }
 
                 if (filters.LicenciaHidUserId != null && filters.LicenciaHidUserId != Guid.Empty) { data = data.Where(x => x.LicenciaHidUserId == filters.LicenciaHidUserId); }
@@ -75,6 +77,8 @@ namespace WebVisitsMobile.Services.Services.HID
                         x.LicenciaHidUser.Telefono.ToLower().Contains(filters.Telefono.ToLower())
                     );
                 }
+
+                
 
                 if (filters.UsuarioCreadorId != null && filters.UsuarioCreadorId != Guid.Empty) { data = data.Where(x => x.UsuarioCreadorId == filters.UsuarioCreadorId); }
                 if (filters.UsuarioModificadorId != null && filters.UsuarioModificadorId != Guid.Empty) { data = data.Where(x => x.UsuarioModificadorId == filters.UsuarioModificadorId); }
