@@ -37,6 +37,8 @@ namespace WebVisitsMobile.Data.Interfaces.Common
         IPaisEstadoRepository PaisEstadoRepository { get; }
         ICiudadRepository CiudadRepository { get; }
         ICorreoEnviarRepository CorreoEnviarRepository { get; }
+        ITipoPlantillaNotificacionRepository TipoPlantillaNotificacionRepository { get; }
+        IPlantillaNotificacionRepository PlantillaNotificacionRepository { get; }
 
         void SaveChanges();
         Task SaveChangesAsync();

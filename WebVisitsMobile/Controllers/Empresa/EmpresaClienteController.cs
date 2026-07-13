@@ -294,9 +294,9 @@ namespace WebVisitsMobile.Controllers.Empresa
         public async Task TaskUpdates(Guid id)
         {
             Response.ContentType = "text/event-stream";
-            Response.Headers.Add("Cache-Control", "no-cache");
-            Response.Headers.Add("Connection", "keep-alive");
-            Response.Headers.Add("X-Accel-Buffering", "no");
+            Response?.Headers?.Add("Cache-Control", "no-cache");
+            Response?.Headers?.Add("Connection", "keep-alive");
+            Response?.Headers?.Add("X-Accel-Buffering", "no");
 
             try
             {

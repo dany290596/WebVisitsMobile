@@ -17,6 +17,8 @@ using WebVisitsMobile.Models.Administracion.Seccion.Seccion;
 using WebVisitsMobile.Models.Administracion.Sesion.TipoUsuario;
 using WebVisitsMobile.Models.Administracion.Sesion.Usuario;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
+using WebVisitsMobile.Models.Configuracion.PlantillaNotificacion;
+using WebVisitsMobile.Models.Configuracion.TipoPlantillaNotificacion;
 using WebVisitsMobile.Models.Empresa.EmpresaCliente;
 using WebVisitsMobile.Models.HID.CredencialHID;
 using WebVisitsMobile.Models.HID.DipositivosHID;
@@ -121,6 +123,12 @@ namespace WebVisitsMobile.Infrastructure.Mappings
 
             CreateMap<Ciudad, CiudadRespDTO>().ReverseMap();
             CreateMap<Ciudad, CiudadReqDTO>().ReverseMap();
+
+            CreateMap<TipoPlantillaNotificacion, TipoPlantillaNotificacionRespDTO>().ReverseMap();
+            CreateMap<TipoPlantillaNotificacion, TipoPlantillaNotificacionReqDTO>().ReverseMap();
+
+            CreateMap<PlantillaNotificacion, PlantillaNotificacionRespDTO>().ReverseMap();
+            CreateMap<PlantillaNotificacion, PlantillaNotificacionReqDTO>().ReverseMap();
         }
     }
 }

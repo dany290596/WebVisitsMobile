@@ -65,9 +65,6 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
                     return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso", 401, null));
                 }
 
-                var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-                if (validarSesion == null) { return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta", tipoError = 3 }); }
-
                 var data = await _usuarioService.GetAll(filters, empresaId);
                 var dataDTO = _mapper.Map<IEnumerable<UsuarioRespDTO>>(data);
 
@@ -118,12 +115,6 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
                 return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso", 401, null));
             }
 
-            var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-            if (validarSesion == null)
-            {
-                return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta", tipoError = 3 });
-            }
-
             var result = await _usuarioService.Inactivate(id, token.UsuarioId);
             if (!result)
             {
@@ -149,9 +140,6 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
             {
                 return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso", 401, null));
             }
-
-            var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-            if (validarSesion == null) { return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta", tipoError = 3 }); }
 
             var result = await _usuarioService.Reactivate(id, token.UsuarioId);
             if (!result)
@@ -194,9 +182,6 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
                 return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso", 401, null));
             }
 
-            var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-            if (validarSesion == null) { return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta", tipoError = 3 }); }
-
             var mapper = _mapper.Map<Usuario>(data);
             string password = mapper.Contrasena;
             mapper.Contrasena = _passwordService.Hash(mapper.Contrasena);
@@ -236,9 +221,6 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
                 return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
             }
 
-            var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-            if (validarSesion == null) { return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesion activa con tu cuenta", tipoError = 3 }); }
-
             var mapper = _mapper.Map<Usuario>(data);
             mapper.Id = id;
             if (!string.IsNullOrWhiteSpace(data.Contrasena))
@@ -249,7 +231,6 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
             if (!result)
             {
                 return StatusCode(500, new ApiResponse<string>(false, "ocurrió un error.", 500, null));
-
             }
             var response = new ApiResponse<bool>(true, "Se actualizó correctamente.", 200, result);
 
