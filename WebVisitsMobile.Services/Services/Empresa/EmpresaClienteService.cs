@@ -448,18 +448,6 @@ namespace WebVisitsMobile.Services.Services.Empresa
                     EmpresaClienteId = clientCompany.Id,
                     Clave = null
                 };
-                var userResponse = await _usuarioService.Create(user, password, currentUserId, clientCompany.Id);
-                if (userResponse == true)
-                {
-                    var email = new CorreoEnviarUsuario()
-                    {
-                        Nombre = "Sin nombre",
-                        Correo = clientCompany.CorreoElectronico,
-                        Contrasena = password
-                    };
-
-                    await _correoEnviarService.SendUserEmail(email, currentUserId, clientCompany.Id);
-                }
 
                 var notificationTemplate = new PlantillaNotificacion()
                 {
@@ -473,6 +461,19 @@ namespace WebVisitsMobile.Services.Services.Empresa
                 };
 
                 await _plantillaNotificacionService.Create(notificationTemplate, currentUserId, clientCompany.Id);
+
+                var userResponse = await _usuarioService.Create(user, password, currentUserId, clientCompany.Id);
+                if (userResponse == true)
+                {
+                    var email = new CorreoEnviarUsuario()
+                    {
+                        Nombre = "Sin nombre",
+                        Correo = clientCompany.CorreoElectronico,
+                        Contrasena = password
+                    };
+
+                    await _correoEnviarService.SendUserEmail(email, currentUserId, clientCompany.Id);
+                }                
             }
             catch (Exception ex)
             {
