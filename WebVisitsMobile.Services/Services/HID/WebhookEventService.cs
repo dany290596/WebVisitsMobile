@@ -186,5 +186,49 @@ namespace WebVisitsMobile.Services.Services.HID
 
             return true;
         }
+
+        public async Task<bool> CreateOrUpdateDeviceFromEndpoint(int userHIDId, EndpointSeriDTO endpoint, Guid companyId, Guid userCreatorId)
+        {
+            var getUser = await _licenciaUserHIDService.GetByUserHIDId(userHIDId);
+            if (getUser == null) return false;
+
+            var filters = new DipositivosHIDQueryFilter
+            {
+                UsuarioId = getUser.Id,
+                EndpointId = endpoint.EndpointId,
+                PageNumber = 1,
+                PageSize = 100
+            };
+
+            var existentes = await _dipositivosHIDService.GetAll(filters, companyId);
+            var existente = existentes?.FirstOrDefault(d => d.EndpointId == endpoint.EndpointId);
+
+            if (existente != null)
+            {
+                existente.SistemaOperativo = endpoint.OsVersion;
+                existente.NombreDispositivo = endpoint.EndpointModel;
+                existente.SdkVersion = endpoint.ApplicationVersion;
+                existente.DeviceInfoLastUpdated = DateTime.Now;
+
+                return await _dipositivosHIDService.Update(existente, userCreatorId);
+            }
+
+            var dipositivoHIDRequest = new DipositivosHid
+            {
+                UsuarioId = getUser.Id,
+                SistemaOperativo = endpoint.OsVersion,
+                NombreDispositivo = endpoint.EndpointModel,
+                CodigoInvitacion = endpoint.InvitationCode,
+                EndpointId = endpoint.EndpointId,
+                SdkVersion = endpoint.ApplicationVersion,
+                EmpresaClienteId = companyId,
+                DeviceInfoLastUpdated = DateTime.Now,
+                Status = 1,
+                UsuarioCreadorId = userCreatorId
+            };
+
+            var resultado = await _dipositivosHIDService.Create(dipositivoHIDRequest, userCreatorId);
+            return resultado != null;
+        }
     }
 }

@@ -141,6 +141,21 @@ namespace WebVisitsMobile.Services.Services.HID
             }
         }
 
+        public async Task<LicenciaHID?> GetByEmpresaClienteId(Guid empresaClienteId)
+        {
+            try
+            {
+                var licenciaHID = _unitOfWork.LicenciaHIDRepository.GetAll()
+                    .FirstOrDefault(x => x.EmpresaClienteId == empresaClienteId);
+
+                return licenciaHID;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
         public async Task<bool> Create(LicenciaHID licenciaHID, Guid currentUserId)
         {
             bool booOk = false;

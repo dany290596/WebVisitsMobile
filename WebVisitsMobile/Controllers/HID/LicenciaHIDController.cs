@@ -122,6 +122,27 @@ namespace WebVisitsMobile.Controllers.HID
             }
         }
 
+        [HttpGet("EmpresaCliente/{empresaClienteId}")]
+        public async Task<IActionResult> GetByEmpresaClienteId(Guid empresaClienteId)
+        {
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaClienteId);
+            if (empresaExiste == null)
+            {
+                return StatusCode(404, new ApiResponse<string>(false, $"La empresa con el ID {empresaClienteId} no existe.", 404, null));
+            }
+
+            var data = await _licenciaHIDService.GetByEmpresaClienteId(empresaClienteId);
+            if (data == null)
+            {
+                return StatusCode(404, new ApiResponse<string>(false, "No se encontró una licencia HID vinculada a la empresa especificada.", 404, null));
+            }
+
+            var dataDTO = _mapper.Map<LicenciaHIDRespDTO>(data);
+            var response = new ApiResponse<LicenciaHIDRespDTO>(true, "Consulta ejecutada", 200, dataDTO);
+
+            return StatusCode(200, response);
+        }
+
         [HttpPatch("Inactivate/{id}")]
         public async Task<IActionResult> Inactivate([Required] Guid id)
         {

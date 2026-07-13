@@ -42,5 +42,7 @@ namespace WebVisitsMobile.Data.Context
         public virtual DbSet<PaisEstado> PaisEstado { get; set; }
 
         public virtual DbSet<CorreoEnviar> CorreoEnviar { get; set; }
+
+        public virtual DbSet<Sucursal> Sucursal { get; set; }
     }
 }

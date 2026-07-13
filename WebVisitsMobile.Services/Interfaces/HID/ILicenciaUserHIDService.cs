@@ -43,5 +43,7 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<bool> TieneCredencialWallet(Guid licenciaHidUserId);
         Task<string?> GetCredencialWalletMasReciente(Guid licenciaHidUserId);
         Task<string?> GetCredencialWalletMasRecienteWatch(Guid licenciaHidUserId);
+        Task<bool> TieneCredencialOrigo(Guid licenciaHidUserId);
+        Task<string?> GetCredencialOrigoMasReciente(Guid licenciaHidUserId);
     }
 }

@@ -52,6 +52,7 @@ namespace WebVisitsMobile.Data.Implements.Common
         private readonly IPaisEstadoRepository _paisEstadoRepository;
         private readonly ICiudadRepository _ciudadRepository;
         private readonly ICorreoEnviarRepository _correoEnviarRepository;
+        private readonly ISucursalRepository _sucursalRepository;
 
         public UnitOfWork(WebVisitsMobileContext context)
         {
@@ -81,6 +82,7 @@ namespace WebVisitsMobile.Data.Implements.Common
         public IPaisEstadoRepository PaisEstadoRepository => _paisEstadoRepository ?? new PaisEstadoRepository(_context);
         public ICiudadRepository CiudadRepository => _ciudadRepository ?? new CiudadRepository(_context);
         public ICorreoEnviarRepository CorreoEnviarRepository => _correoEnviarRepository ?? new CorreoEnviarRepository(_context);
+        public ISucursalRepository SucursalRepository => _sucursalRepository ?? new SucursalRepository(_context);
         public void Dispose()
         {
             if (_context != null)

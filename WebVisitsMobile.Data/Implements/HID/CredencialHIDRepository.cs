@@ -39,6 +39,17 @@ namespace WebVisitsMobile.Data.Implements.HID
             return credencial?.CredencialValor;
         }
 
+        public async Task<string?> GetCredencialOrigoMasReciente(Guid licenciaHidUserId)
+        {
+            var credencial = await _context.CredencialHid
+                .Where(c => c.Usuarioid == licenciaHidUserId)
+                .OrderByDescending(c => c.FechaCreacion)
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            return credencial?.CredencialValor;
+        }
+
         public async Task<CredencialHid> GetCredentialHIDExternalId(Guid id)
         {
             return await _context.CredencialHid

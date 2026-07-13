@@ -15,6 +15,7 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<bool> Inactivate(Guid id, Guid currentUserId);
         Task<PagedList<LicenciaHID>> GetAll(LicenciaHIDQueryFilter filters, Guid clientCompanyId);
         Task<LicenciaHID> GetById(Guid licenseHIDId, Guid clientCompanyId);
+        Task<LicenciaHID?> GetByEmpresaClienteId(Guid empresaClienteId);
         IEnumerable<LicenciaHID> GetAllList(LicenciaHIDQueryFilter filters);
     }
 }

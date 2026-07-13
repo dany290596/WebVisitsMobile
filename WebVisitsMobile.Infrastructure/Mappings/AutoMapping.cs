@@ -18,6 +18,7 @@ using WebVisitsMobile.Models.Administracion.Sesion.TipoUsuario;
 using WebVisitsMobile.Models.Administracion.Sesion.Usuario;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
 using WebVisitsMobile.Models.Empresa.EmpresaCliente;
+using WebVisitsMobile.Models.Empresa.Sucursal;
 using WebVisitsMobile.Models.HID.CredencialHID;
 using WebVisitsMobile.Models.HID.DipositivosHID;
 using WebVisitsMobile.Models.HID.LicenciaHID;
@@ -121,6 +122,10 @@ namespace WebVisitsMobile.Infrastructure.Mappings
 
             CreateMap<Ciudad, CiudadRespDTO>().ReverseMap();
             CreateMap<Ciudad, CiudadReqDTO>().ReverseMap();
+
+            CreateMap<Sucursal, SucursalRespDTO>().ReverseMap();
+            CreateMap<Sucursal, SucursalReqDTO>().ReverseMap();
+            CreateMap<Sucursal, SucursalBulkReqDTO>().ReverseMap();
         }
     }
 }

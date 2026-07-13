@@ -1857,6 +1857,35 @@ namespace WebVisitsMobile.Services.Services.HID
             }
         }
 
+        public async Task<bool> TieneCredencialOrigo(Guid licenciaHidUserId)
+        {
+            try
+            {
+                var credencial = await _unitOfWork.UsuarioHidTipoCredencialRepository
+                    .GetUserHidTypeCredential(x =>
+                        x.LicenciaHidUserId == licenciaHidUserId &&
+                        x.TipoCredencialId == CREDENCIAL_HID &&
+                        x.Estado == 1);
+
+                return credencial != null;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<string?> GetCredencialOrigoMasReciente(Guid licenciaHidUserId)
+        {
+            try
+            {
+                return await _unitOfWork.CredencialHIDRepository.GetCredencialOrigoMasReciente(licenciaHidUserId);
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
 
     }
 

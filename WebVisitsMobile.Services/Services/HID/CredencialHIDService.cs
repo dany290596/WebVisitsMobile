@@ -117,6 +117,7 @@ namespace WebVisitsMobile.Services.Services.HID
                 credentialHID.UsuarioCreadorId = currentUserId;
                 credentialHID.FechaCreacion = DateTime.Now;
                 credentialHID.Estado = 1;
+                credentialHID.EmpresaClienteId = credentialHID.EmpresaClienteId;
 
                 await _unitOfWork.CredencialHIDRepository.Add(credentialHID);
                 await _unitOfWork.SaveChangesAsync();
