@@ -19,6 +19,7 @@ using WebVisitsMobile.Services.Interfaces.Empresa;
 using WebVisitsMobile.Services.Interfaces.Encriptacion;
 using WebVisitsMobile.Services.Interfaces.Parametrizacion;
 using WebVisitsMobile.Services.QueryFilters.Empresa;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebVisitsMobile.Services.Services.Empresa
 {
@@ -30,6 +31,7 @@ namespace WebVisitsMobile.Services.Services.Empresa
         private readonly IUsuarioService _usuarioService;
         private readonly ICorreoEnviarService _correoEnviarService;
         private readonly IEncriptacionService _encriptacionService;
+        private readonly IPlantillaNotificacionService _plantillaNotificacionService;
 
         public EmpresaClienteService(
             IUnitOfWork unitOfWork,
@@ -37,7 +39,8 @@ namespace WebVisitsMobile.Services.Services.Empresa
             IConfiguracionService configuracionService,
             IUsuarioService usuarioService,
             ICorreoEnviarService correoEnviarService,
-            IEncriptacionService encriptacionService
+            IEncriptacionService encriptacionService,
+            IPlantillaNotificacionService plantillaNotificacionService
             )
         {
             _unitOfWork = unitOfWork;
@@ -46,6 +49,7 @@ namespace WebVisitsMobile.Services.Services.Empresa
             _usuarioService = usuarioService;
             _correoEnviarService = correoEnviarService;
             _encriptacionService = encriptacionService;
+            _plantillaNotificacionService = plantillaNotificacionService;
         }
 
         public async Task<PagedList<EmpresaCliente>> GetAll(EmpresaClienteQueryFilter filters)
@@ -284,8 +288,6 @@ namespace WebVisitsMobile.Services.Services.Empresa
 
         public async Task<bool> CreateWithSettingEncrypted(EmpresaCliente clientCompany, List<SettingsGroupTapDTO>? settingHIDEncrypted, List<SettingsGroupTapDTO>? settingWalletEncrypted, string password, string passwordHash, Guid currentUserId)
         {
-            bool booOk = false;
-
             try
             {
                 if (currentUserId == Guid.Empty) { return false; }
@@ -446,6 +448,20 @@ namespace WebVisitsMobile.Services.Services.Empresa
                     EmpresaClienteId = clientCompany.Id,
                     Clave = null
                 };
+
+                var notificationTemplate = new PlantillaNotificacion()
+                {
+                    Nombre = "Plantilla de notificación de alta de usuario",
+                    CuerpoPlantilla = "Hola,\r\n\r\n    ¡Bienvenido(a) al Portal WebVisitsMobile!\r\n\r\n    Nos alegra tenerte con nosotros. A continuación, encontrarás tus credenciales para acceder al portal:\r\n\r\n    Usuario: #Usuario\r\n    Contraseña: #Contrasena\r\n    Link: \r\n\r\n    Recuerda cambiar tu contraseña después de iniciar sesión por primera vez para mantener tu cuenta segura.\r\n\r\n    Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos.\r\n\r\n    Saludos cordiales.\r\n",
+                    NotificarEmail = 2,
+                    NotificarTeams = 2,
+                    Identificador = null,
+                    TipoPlantillaNotificacionId = new Guid("00EBBDAB-B1F6-4A5E-90DE-4333BA36F18B"),
+                    EmpresaClienteId = clientCompany.Id
+                };
+
+                await _plantillaNotificacionService.Create(notificationTemplate, currentUserId, clientCompany.Id);
+
                 var userResponse = await _usuarioService.Create(user, password, currentUserId, clientCompany.Id);
                 if (userResponse == true)
                 {
@@ -457,11 +473,10 @@ namespace WebVisitsMobile.Services.Services.Empresa
                     };
 
                     await _correoEnviarService.SendUserEmail(email, currentUserId, clientCompany.Id);
-                }
+                }                
             }
             catch (Exception ex)
             {
-                // TODO: reemplaza por tu logger real (ej. _logger.LogError(ex, "Error en CreateWithSettingEncrypted"))
                 Console.WriteLine(ex.ToString());
                 return false;
             }

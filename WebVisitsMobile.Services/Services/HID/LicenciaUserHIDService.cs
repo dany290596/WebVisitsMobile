@@ -1004,7 +1004,7 @@ namespace WebVisitsMobile.Services.Services.HID
             return booOk;
         }
 
-        public async Task<bool> InactivateWithHIDAndTask(Guid id, Guid currentUserId, Guid clientCompanyId)
+        public async Task<bool> InactivateWithHIDAndTask(Guid id, Guid currentUserId)
         {
             if (id == Guid.Empty || currentUserId == Guid.Empty)
                 return false;

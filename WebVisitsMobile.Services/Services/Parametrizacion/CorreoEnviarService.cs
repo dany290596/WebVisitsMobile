@@ -2,6 +2,7 @@
 using WebVisitsMobile.Data.Interfaces.Common;
 using WebVisitsMobile.Domain.Entities.Parametrizacion;
 using WebVisitsMobile.Domain.Options;
+using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Parametrizacion;
 
 namespace WebVisitsMobile.Services.Services.Parametrizacion
@@ -10,13 +11,17 @@ namespace WebVisitsMobile.Services.Services.Parametrizacion
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly PaginationOption paginationOption;
+        private readonly IPlantillaNotificacionService _plantillaNotificacionService;
+
         public CorreoEnviarService(
             IUnitOfWork unitOfWork,
-            IOptions<PaginationOption> options
+            IOptions<PaginationOption> options,
+            IPlantillaNotificacionService plantillaNotificacionService
             )
         {
             this.unitOfWork = unitOfWork;
             paginationOption = options.Value;
+            _plantillaNotificacionService = plantillaNotificacionService;
         }
 
         //public async Task<PagedList<CorreoEnviar>> GetAllCorreoEnviar(CorreoEnviarQueryFilter filters, Guid EmpresaId)
@@ -783,10 +788,25 @@ namespace WebVisitsMobile.Services.Services.Parametrizacion
         public async Task<bool> SendUserEmail(CorreoEnviarUsuario data, Guid currentUserId, Guid companyId)
         {
             bool booOk = false;
+            string mensaje = "";
 
             try
             {
-                string mensaje = GetTemplateBody();
+                var template = await _plantillaNotificacionService.GetByNotificationTemplate(new Guid("00EBBDAB-B1F6-4A5E-90DE-4333BA36F18B"), companyId);
+                if (template != null)
+                {
+                    if (template.CuerpoPlantilla == null)
+                    {
+                        mensaje = GetTemplateBody();
+                    }
+                    else
+                    {
+                        mensaje = template.CuerpoPlantilla;
+                    }
+                }
+                else {
+                    mensaje = GetTemplateBody();
+                }
 
                 mensaje = mensaje.Replace("#Nombre", data.Nombre);
                 mensaje = mensaje.Replace("#Usuario", data.Correo);

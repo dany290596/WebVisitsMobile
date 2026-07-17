@@ -42,10 +42,12 @@ namespace WebVisitsMobile.Infrastructure.Services
 
                 var CorreoElectronico = _accesor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type.EndsWith("Correo"))?.Value;
                 var PerfilId = _accesor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type.EndsWith("PerfilId"))?.Value;
+                var PerfilName = _accesor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type.EndsWith("PerfilName"))?.Value;
                 var EmpresaId = _accesor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type.EndsWith("EmpresaId"))?.Value;
                 var SesionId = _accesor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type.EndsWith("SesionId"))?.Value;
                 var AsociadoId = _accesor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type.EndsWith("AsociadoId"))?.Value;
                 var TipoUsuarioId = _accesor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type.EndsWith("TipoUsuarioId"))?.Value;
+                var TipoUsuarioName = _accesor?.HttpContext?.User?.Claims.FirstOrDefault(c => c.Type.EndsWith("TipoUsuarioName"))?.Value;
 
                 // Crear la instancia de TokenData
                 Token tokenData = new Token();
@@ -54,10 +56,12 @@ namespace WebVisitsMobile.Infrastructure.Services
                 tokenData.UsuarioId = UsuarioId != null ? new Guid(UsuarioId) : Guid.Empty;
                 tokenData.Email = CorreoElectronico ?? string.Empty;
                 tokenData.PerfilId = PerfilId != null ? new Guid(PerfilId) : Guid.Empty;
+                tokenData.PerfilName = PerfilName ?? string.Empty;
                 tokenData.EmpresaId = EmpresaId != null ? new Guid(EmpresaId) : Guid.Empty;
                 tokenData.SesionId = SesionId != null ? new Guid(SesionId) : Guid.Empty;
                 tokenData.AsociadoId = AsociadoId != null ? new Guid(AsociadoId) : Guid.Empty;
                 tokenData.TipoUsuarioId = TipoUsuarioId != null ? new Guid(TipoUsuarioId) : Guid.Empty;
+                tokenData.TipoUsuarioName = TipoUsuarioName ?? string.Empty;
 
                 return tokenData;
             }

@@ -97,6 +97,8 @@ namespace WebVisitsMobile.Infrastructure.Extensions
             services.AddTransient<ICorreoEnviarService, CorreoEnviarService>();
             services.AddTransient<IEncriptacionService, EncriptacionService>();
             services.AddTransient<IAccountService, AccountService>();
+            services.AddTransient<IPlantillaNotificacionService, PlantillaNotificacionService>();
+            services.AddTransient<ITipoPlantillaNotificacionService, TipoPlantillaNotificacionService>();
 
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddTransient<IUnitOfWork, UnitOfWork>();
@@ -209,9 +211,9 @@ namespace WebVisitsMobile.Infrastructure.Extensions
 
         public static void AddApplicationError(this HttpResponse response, string message)
         {
-            response.Headers.Add("Application-Error", message);
-            response.Headers.Add("Acccess-Control-Expose-Headers", "Application-Error");
-            response.Headers.Add("Acccess-Control-Allow-Origin", "*");
+            response?.Headers?.Add("Application-Error", message);
+            response?.Headers?.Add("Acccess-Control-Expose-Headers", "Application-Error");
+            response?.Headers?.Add("Acccess-Control-Allow-Origin", "*");
         }
     }
 }

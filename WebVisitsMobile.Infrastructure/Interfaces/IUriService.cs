@@ -36,5 +36,7 @@ namespace WebVisitsMobile.Infrastructure.Interfaces
         Uri GetCountryUri(PaisQueryFilter filter, string actionUrl);
         Uri GetStateUri(PaisEstadoQueryFilter filter, string actionUrl);
         Uri GetCompanyEncryptedUri(SettingsGroupEncryptedQueryFilter filter, string actionUrl);
+        Uri GetNotificationTemplateUri(PlantillaNotificacionQueryFilter filter, string actionUrl);
+        Uri GetNotificationTemplateTypeUri(TipoPlantillaNotificacionQueryFilter filter, string actionUrl);
     }
 }

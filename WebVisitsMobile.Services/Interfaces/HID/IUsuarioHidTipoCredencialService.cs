@@ -14,5 +14,6 @@ namespace WebVisitsMobile.Services.Interfaces.HID
         Task<UsuarioHidTipoCredencial> GetById(Guid dataId);
         Task<UsuarioHidTipoCredencial> GetUserHidTypeCredential(Guid dataId);
         Task<UsuarioHidTipoCredencial> GetByLicenciaHidUserId(Guid licenciaHidUserId);
+        Task<UsuarioHidTipoCredencial> GetUserHidTypeCredentialByUserId(Guid dataId);
     }
 }

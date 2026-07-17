@@ -19,7 +19,6 @@ using WebVisitsMobile.Services.Responses;
 
 namespace WebVisitsMobile.Controllers.Empresa
 {
-    [Authorize]
     [Produces("application/json")]
     [Route("api/[controller]")]
     [ApiController]
@@ -234,14 +233,6 @@ namespace WebVisitsMobile.Controllers.Empresa
             if (empresaExiste == null)
                 return BadRequest($"La empresa con el ID {empresaId} no existe.");
 
-            Token token = _accesorService.GetTokenData();
-            if (token == null)
-                return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
-
-            var validarSesion = await _plataformaService.SessionValidate(token.SesionId);
-            if (validarSesion == null)
-                return Unauthorized(new { Ok = false, Code = 401, msg = "Ya existe una sesión activa con tu cuenta.", tipoError = 3 });
-
             try
             {
                 // Verificar tipo de tarea (ID fijo como en el antiguo)
@@ -270,7 +261,7 @@ namespace WebVisitsMobile.Controllers.Empresa
                     EmpresaClienteId = empresaId   // Asignamos la empresa del header
                 };
 
-                var tareaCreada = await _tareaService.Create(nuevaTarea, token.UsuarioId);
+                var tareaCreada = await _tareaService.Create(nuevaTarea, new Guid("739B4C8F-4DB1-4475-84D4-7644DCE00620"));
                 if (tareaCreada == null)
                     return StatusCode(500, new ApiResponse<bool>(false, "No se pudo crear la tarea.", 500, false));
 
@@ -303,9 +294,9 @@ namespace WebVisitsMobile.Controllers.Empresa
         public async Task TaskUpdates(Guid id)
         {
             Response.ContentType = "text/event-stream";
-            Response.Headers.Add("Cache-Control", "no-cache");
-            Response.Headers.Add("Connection", "keep-alive");
-            Response.Headers.Add("X-Accel-Buffering", "no");
+            Response?.Headers?.Add("Cache-Control", "no-cache");
+            Response?.Headers?.Add("Connection", "keep-alive");
+            Response?.Headers?.Add("X-Accel-Buffering", "no");
 
             try
             {

@@ -39,6 +39,8 @@ namespace WebVisitsMobile.Services.Services.HID
                 else
                 {
                     data = await _unitOfWork.UsuarioHidTipoCredencialRepository.GetAllUserHidTypeCredential();
+
+                    if (filters.EmpresaClienteId != null && filters.EmpresaClienteId != Guid.Empty) { data = data.Where(x => x.LicenciaHidUser.EmpresaClienteId == filters.EmpresaClienteId); }
                 }
 
                 if (filters.LicenciaHidUserId != null && filters.LicenciaHidUserId != Guid.Empty) { data = data.Where(x => x.LicenciaHidUserId == filters.LicenciaHidUserId); }
@@ -75,6 +77,8 @@ namespace WebVisitsMobile.Services.Services.HID
                         x.LicenciaHidUser.Telefono.ToLower().Contains(filters.Telefono.ToLower())
                     );
                 }
+
+                
 
                 if (filters.UsuarioCreadorId != null && filters.UsuarioCreadorId != Guid.Empty) { data = data.Where(x => x.UsuarioCreadorId == filters.UsuarioCreadorId); }
                 if (filters.UsuarioModificadorId != null && filters.UsuarioModificadorId != Guid.Empty) { data = data.Where(x => x.UsuarioModificadorId == filters.UsuarioModificadorId); }
@@ -132,6 +136,22 @@ namespace WebVisitsMobile.Services.Services.HID
             {
                 UsuarioHidTipoCredencial data = await _unitOfWork.UsuarioHidTipoCredencialRepository
                     .GetUserHidTypeCredential(u => u.LicenciaHidUserId == licenciaHidUserId && u.Estado == 1);
+                return data;
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
+
+        public async Task<UsuarioHidTipoCredencial> GetUserHidTypeCredentialByUserId(Guid dataId)
+        {
+            try
+            {
+                UsuarioHidTipoCredencial data = await _unitOfWork.UsuarioHidTipoCredencialRepository.GetUserHidTypeCredential(u => u.LicenciaHidUserId == dataId);
                 return data;
             }
             catch (Exception)
@@ -192,6 +212,10 @@ namespace WebVisitsMobile.Services.Services.HID
             try
             {
                 UsuarioHidTipoCredencial data = await _unitOfWork.UsuarioHidTipoCredencialRepository.GetById(id);
+                if (data == null)
+                {
+                    return false;
+                }
                 data.FechaBaja = DateTime.Now;
                 data.UsuarioBajaId = currentUserId;
                 data.Estado = 2;

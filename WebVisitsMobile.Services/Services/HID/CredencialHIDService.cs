@@ -9,6 +9,7 @@ using WebVisitsMobile.Domain.EntitiesCustom;
 using WebVisitsMobile.Domain.Options;
 using WebVisitsMobile.Services.Interfaces.HID;
 using WebVisitsMobile.Services.QueryFilters.HID;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WebVisitsMobile.Services.Services.HID
 {
@@ -69,6 +70,7 @@ namespace WebVisitsMobile.Services.Services.HID
                 if (filters.Validity != null) { credentialHID = credentialHID.Where(x => x.Validity.ToLower().Contains(filters.Validity.ToLower())); }
                 if (filters.EmpresaClienteId != null && filters.EmpresaClienteId != Guid.Empty) { credentialHID = credentialHID.Where(x => x.EmpresaClienteId == filters.EmpresaClienteId); }
 
+                if (filters.Id != null && filters.Id != Guid.Empty) { credentialHID = credentialHID.Where(x => x.Id == filters.Id); }
                 if (filters.UsuarioCreadorId != null && filters.UsuarioCreadorId != Guid.Empty) { credentialHID = credentialHID.Where(x => x.UsuarioCreadorId == filters.UsuarioCreadorId); }
                 if (filters.UsuarioModificadorId != null && filters.UsuarioModificadorId != Guid.Empty) { credentialHID = credentialHID.Where(x => x.UsuarioModificadorId == filters.UsuarioModificadorId); }
                 if (filters.UsuarioBajaId != null && filters.UsuarioBajaId != Guid.Empty) { credentialHID = credentialHID.Where(x => x.UsuarioBajaId == filters.UsuarioBajaId); }

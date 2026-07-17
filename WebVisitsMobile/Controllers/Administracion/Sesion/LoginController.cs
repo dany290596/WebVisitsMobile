@@ -253,10 +253,12 @@ namespace WebVisitsMobile.Controllers.Administracion.Sesion
             {
                 new Claim("Correo", usuario.Correo),
                 new Claim("PerfilId", usuario.PerfilId.ToString()),
+                new Claim("PerfilName", usuario.Perfil.Nombre.ToString()),
                 new Claim("UsuarioId", usuario.Id.ToString()),
                 new Claim("EmpresaId", usuario.EmpresaClienteId.ToString()!),
                 new Claim("AsociadoId", usuario.IdAsociado.ToString()),
                 new Claim("TipoUsuarioId", usuario.TipoUsuarioId.ToString()),
+                new Claim("TipoUsuarioName", usuario.TipoUsuario.Nombre.ToString()),
                 new Claim("SesionId", sesionId.ToString())
             };
 

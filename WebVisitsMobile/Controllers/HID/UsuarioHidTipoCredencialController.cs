@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using WebVisitsMobile.Infrastructure.Interfaces;
-using WebVisitsMobile.Models.HID.UserHID;
 using WebVisitsMobile.Models.HID.UsuarioHidTipoCredencial;
 using WebVisitsMobile.Services.Interfaces.HID;
 using WebVisitsMobile.Services.QueryFilters.HID;
