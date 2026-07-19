@@ -5,5 +5,6 @@ namespace WebVisitsMobile.Data.Interfaces.HID
 {
     public interface IPlantillaCredencialRepository : IRepository<PlantillaCredencial>
     {
+        Task<IEnumerable<PlantillaCredencial>> GetAllCredentialTemplate();
     }
 }

@@ -110,11 +110,11 @@ namespace WebVisitsMobile.Services.Services.Configuracion
             }
         }
 
-        public async Task<Configuraciones?> GetByTypeSettingAndCompanyId(Guid typeSetting, Guid clientCompanyId)
+        public async Task<Configuraciones?> GetByTypeSettingAndCompanyId(Guid typeSettingId, Guid clientCompanyId)
         {
             try
             {
-                Configuraciones setting = await _unitOfWork.ConfiguracionesRepository.GetSetting(s => s.TipoConfiguracion == typeSetting && s.EmpresaClienteId == clientCompanyId);
+                Configuraciones setting = await _unitOfWork.ConfiguracionesRepository.GetSetting(s => s.TipoConfiguracion == typeSettingId && s.EmpresaClienteId == clientCompanyId);
                 if (setting == null)
                 {
                     return null;
@@ -165,6 +165,62 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                 settingUpdate.Valor3 = setting.Valor3;
                 settingUpdate.editable = setting.editable;
                 settingUpdate.lectura = setting.lectura;
+                //settingUpdate.EmpresaClienteId = clientCompanyId;
+                settingUpdate.FechaModificacion = DateTime.Now;
+                settingUpdate.UsuarioModificadorId = currentUserId;
+
+                _unitOfWork.ConfiguracionesRepository.Update(settingUpdate);
+                await _unitOfWork.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateByTypeSetting(Configuraciones setting, Guid typeSettingId, Guid currentUserId, Guid clientCompanyId)
+        {
+            try
+            {
+                if (typeSettingId == Guid.Empty) { return false; }
+                if (currentUserId == Guid.Empty) { return false; }
+                if (clientCompanyId == Guid.Empty) { return false; }
+                Configuraciones settingUpdate = await _unitOfWork.ConfiguracionesRepository.GetSetting(s => s.TipoConfiguracion == typeSettingId && s.EmpresaClienteId == clientCompanyId);
+                if (settingUpdate == null)
+                {
+                    var settingCreate = new Configuraciones()
+                    {
+                        NombreParametro = setting.NombreParametro,
+                        ValorGuid = setting.ValorGuid,
+                        Valor1 = setting.Valor1,
+                        Valor2 = setting.Valor2,
+                        Valor3 = setting.Valor3,
+                        editable = setting.editable,
+                        lectura = setting.lectura,
+                        EmpresaClienteId = clientCompanyId,
+                        TipoConfiguracion = typeSettingId,
+
+                        Id = Guid.NewGuid(),
+                        UsuarioCreadorId = currentUserId,
+                        FechaCreacion = DateTime.Now,
+                        Estado = 1
+                    };
+
+                    await _unitOfWork.ConfiguracionesRepository.Add(settingCreate);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    return true;
+                }
+
+                //settingUpdate.NombreParametro = setting.NombreParametro;
+                //settingUpdate.ValorGuid = setting.ValorGuid;
+                settingUpdate.Valor1 = setting.Valor1;
+                //settingUpdate.Valor2 = setting.Valor2;
+                //settingUpdate.Valor3 = setting.Valor3;
+                //settingUpdate.editable = setting.editable;
+                //settingUpdate.lectura = setting.lectura;
                 //settingUpdate.EmpresaClienteId = clientCompanyId;
                 settingUpdate.FechaModificacion = DateTime.Now;
                 settingUpdate.UsuarioModificadorId = currentUserId;

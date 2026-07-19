@@ -9,6 +9,7 @@ namespace WebVisitsMobile.Services.QueryFilters.HID
         public string? ExtensionImagenFondo { get; set; }
         public string? ImagenLogo { get; set; }
         public string? ExtensionImagenLogo { get; set; }
+        public Guid? EmpresaClienteId { get; set; }
 
         public Guid? BackgroundExternalId { get; set; }
         public Guid? LogoExternalId { get; set; }

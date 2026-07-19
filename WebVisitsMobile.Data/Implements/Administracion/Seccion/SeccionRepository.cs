@@ -13,9 +13,16 @@ namespace WebVisitsMobile.Data.Implements.Administracion.Seccion
 
         public async Task<IEnumerable<SeccionesPorModulo>> GetSectionsGroupedByModule(Guid? perfilId)
         {
+            var seccionesExcluidas = new[]
+            {
+                Guid.Parse("98ba1bd1-47c3-4533-88a0-b52992cc16fd"),
+                //Guid.Parse("88e9733e-1d92-4b7a-8368-2380b3ec463c")
+            };
+
             var query = _context.Seccion
                 .Include(s => s.Modulo)
                 .Include(s => s.PerfilPermisoSecciones)
+                .Where(s => !seccionesExcluidas.Contains(s.Id))
                 .AsQueryable();
 
             if (perfilId != null)
@@ -23,9 +30,9 @@ namespace WebVisitsMobile.Data.Implements.Administracion.Seccion
                 query = query.Where(s => s.PerfilPermisoSecciones.Any(p => p.PerfilId == perfilId));
             }
 
-            return await query
+            var resultado = await query
                 .GroupBy(s => new { s.Modulo.Id, s.Modulo.Nombre, s.Modulo.Imagen })
-                
+
                 .Select(g => new SeccionesPorModulo
                 {
                     ModuloId = g.Key.Id,
@@ -64,6 +71,7 @@ namespace WebVisitsMobile.Data.Implements.Administracion.Seccion
                 .OrderByDescending(u => u.ModuloNombre)
                 .ThenBy(u => u.ModuloNombre)
                 .ToListAsync();
+            return resultado.Where(m => m.Secciones.Any());
         }
 
         public async Task<IEnumerable<Domain.Entities.Administracion.Seccion.Seccion>> GetAllSection()

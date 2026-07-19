@@ -36,8 +36,16 @@ namespace WebVisitsMobile.Services.Services.HID
                 filters.PageNumber = filters.PageNumber == 0 ? int.Parse(_paginationOptions.DefaultPageNumber) : filters.PageNumber;
                 filters.PageSize = filters.PageSize == 0 ? int.Parse(_paginationOptions.DefaultPageSize) : filters.PageSize;
 
+                IEnumerable<LicenciaHID> licenseHID;
 
-                var licenseHID = _unitOfWork.LicenciaHIDRepository.GetAll();
+                if (filters.DatosCompletos == 0)
+                {
+                    licenseHID = _unitOfWork.LicenciaHIDRepository.GetAll();
+                }
+                else
+                {
+                    licenseHID = await _unitOfWork.LicenciaHIDRepository.GetAllLicense();
+                }
 
                 if (!string.IsNullOrWhiteSpace(filters.NumeroParte))
                 {

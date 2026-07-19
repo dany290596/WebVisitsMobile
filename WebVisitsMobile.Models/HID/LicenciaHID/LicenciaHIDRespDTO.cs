@@ -1,4 +1,5 @@
 ﻿using WebVisitsMobile.Models.Common;
+using WebVisitsMobile.Models.Empresa.EmpresaCliente;
 
 namespace WebVisitsMobile.Models.HID.LicenciaHID
 {
@@ -15,5 +16,7 @@ namespace WebVisitsMobile.Models.HID.LicenciaHID
         public string? EstadoLicencia { get; set; }
         public string? EstadoPeriodo { get; set; }
         public string? MensajeEstado { get; set; }
+
+        public virtual EmpresaClienteRespDTO? EmpresaCliente { get; set; }
     }
 }

@@ -60,7 +60,7 @@ namespace WebVisitsMobile.Controllers.HID
                     return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
                 }
 
-                var data = _plantillaCredencialService.GetAll(filters, empresaId);
+                var data = await _plantillaCredencialService.GetAll(filters, empresaId);
                 var dataDTO = _mapper.Map<IEnumerable<PlantillaCredencialRespDTO>>(data);
 
                 string strUriPreviousPage = _uriService.GetTemplateCredentialUri(filters, Url.RouteUrl(nameof(GetAll))).ToString();

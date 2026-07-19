@@ -32,6 +32,7 @@ namespace WebVisitsMobile.Data.Implements.Administracion.Sesion
             return await _context.Usuario.
                 Include(i => i.Perfil).
                 Include(i => i.TipoUsuario).
+                Include(i => i.EmpresaCliente).
                 FirstOrDefaultAsync(predicate);
         }
 

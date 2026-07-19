@@ -5,5 +5,6 @@ namespace WebVisitsMobile.Data.Interfaces.HID
 {
     public interface ILicenciaHIDRepository : IRepository<LicenciaHID>
     {
+        Task<IEnumerable<LicenciaHID>> GetAllLicense();
     }
 }

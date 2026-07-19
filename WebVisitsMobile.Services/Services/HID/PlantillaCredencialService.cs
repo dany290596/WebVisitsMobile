@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using WebVisitsMobile.Data.Interfaces.Common;
 using WebVisitsMobile.Domain.Entities.HID;
 using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
@@ -30,24 +31,6 @@ namespace WebVisitsMobile.Services.Services.HID
             _paginationOptions = options.Value;
             _env = env;
         }
-
-        //public async Task<PlantillaCredencial?> GetById(Guid id, Guid empresaId)
-        //{
-        //    try
-        //    {
-        //        PlantillaCredencial perfil = await _unitOfWork.PlantillaCredencialRepository.GetById(id);
-        //        if (empresaId == Guid.Empty || perfil == null)
-        //        {
-        //            return null;
-        //        }
-
-        //        return perfil;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw;
-        //    }
-        //}
 
         public async Task<PlantillaCredencial?> GetById(Guid id, Guid empresaId)
         {
@@ -103,7 +86,7 @@ namespace WebVisitsMobile.Services.Services.HID
             return $"data:{mimeType};base64,{Convert.ToBase64String(imageBytes)}";
         }
 
-        public PagedList<PlantillaCredencial> GetAll(PlantillaCredencialQueryFilter filters, Guid empresaId)
+        public async Task<PagedList<PlantillaCredencial>> GetAll(PlantillaCredencialQueryFilter filters, Guid empresaId)
         {
             try
             {
@@ -118,7 +101,7 @@ namespace WebVisitsMobile.Services.Services.HID
                 }
                 else
                 {
-                    data = _unitOfWork.PlantillaCredencialRepository.GetAll();
+                    data = await _unitOfWork.PlantillaCredencialRepository.GetAllCredentialTemplate();
                 }
 
 
@@ -152,6 +135,8 @@ namespace WebVisitsMobile.Services.Services.HID
                         .Where(x => !string.IsNullOrWhiteSpace(x.ExtensionImagenLogo) &&
                                     x.ExtensionImagenLogo.Contains(filters.ExtensionImagenLogo, StringComparison.OrdinalIgnoreCase));
                 }
+
+                if (filters.EmpresaClienteId != null && filters.EmpresaClienteId != Guid.Empty) { data = data.Where(x => x.EmpresaClienteId == filters.EmpresaClienteId); }
 
                 if (filters.UsuarioCreadorId != null && filters.UsuarioCreadorId != Guid.Empty) { data = data.Where(x => x.UsuarioCreadorId == filters.UsuarioCreadorId); }
                 if (filters.UsuarioModificadorId != null && filters.UsuarioModificadorId != Guid.Empty) { data = data.Where(x => x.UsuarioModificadorId == filters.UsuarioModificadorId); }
@@ -187,8 +172,8 @@ namespace WebVisitsMobile.Services.Services.HID
                 if (data == null) { return false; }
 
                 // ── 2. Marcar el registro como inactivo (auditoría completa) ─────────────────
-                data.FechaBaja       = DateTime.Now;
-                data.Estado          = 2;
+                data.FechaBaja = DateTime.Now;
+                data.Estado = 2;
 
                 _unitOfWork.PlantillaCredencialRepository.Update(data);
 
@@ -199,32 +184,32 @@ namespace WebVisitsMobile.Services.Services.HID
                 if (data.ExternalId.HasValue && data.ExternalId.Value != Guid.Empty)
                 {
                     var tipoTareaId = new Guid("C8FC0425-E7C9-4CBD-9CD9-081FB72F549F");
-                    var typeTask    = await _unitOfWork.TipoTareaRepository.GetById(tipoTareaId);
+                    var typeTask = await _unitOfWork.TipoTareaRepository.GetById(tipoTareaId);
 
                     if (typeTask != null)
                     {
                         var jsonOptions = new JsonSerializerOptions
                         {
-                            Encoder          = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                            WriteIndented    = false,
+                            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                            WriteIndented = false,
                             ReferenceHandler = ReferenceHandler.IgnoreCycles
                         };
 
                         Tarea tareaInactivacion = new Tarea
                         {
-                            Id               = Guid.NewGuid(),
-                            TipoTareaId      = typeTask.Id,
-                            Fecha            = DateTime.Now,
-                            Pendiente        = 1,
-                            Status           = 1,
-                            ValorEnvio       = data.ExternalId.ToString(),
-                            ValorRetorno     = "",
-                            ReferenciaId     = data.Id,
+                            Id = Guid.NewGuid(),
+                            TipoTareaId = typeTask.Id,
+                            Fecha = DateTime.Now,
+                            Pendiente = 1,
+                            Status = 1,
+                            ValorEnvio = data.ExternalId.ToString(),
+                            ValorRetorno = "",
+                            ReferenciaId = data.Id,
                             EmpresaClienteId = data.EmpresaClienteId,
-                            Marca            = 0,
+                            Marca = 0,
                             UsuarioCreadorId = data.UsuarioCreadorId,
-                            FechaCreacion    = DateTime.Now,
-                            Estado           = 1
+                            FechaCreacion = DateTime.Now,
+                            Estado = 1
                         };
 
                         await _unitOfWork.TareaRepository.Add(tareaInactivacion);

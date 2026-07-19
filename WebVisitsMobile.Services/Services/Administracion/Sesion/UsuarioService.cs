@@ -162,7 +162,7 @@ namespace WebVisitsMobile.Services.Services.Administracion.Sesion
 
         public async Task<Usuario> GetById(Guid id)
         {
-            return await _unitOfWork.UsuarioRepository.GetById(id);
+            return await _unitOfWork.UsuarioRepository.GetFirstOrDefaultUser(i => i.Id == id);
         }
 
         public async Task<bool> Inactivate(Guid id, Guid currentUserId)

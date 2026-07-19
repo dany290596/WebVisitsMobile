@@ -12,6 +12,7 @@ namespace WebVisitsMobile.Services.Interfaces.Configuracion
         Task<ResultDTO<CorreoEmpresaRespDTO>> CreateCorreoEmpresa(CorreoEmpresaReqDTO data, Guid currentUserId);
         Task<ResultDTO<CorreoEmpresaRespDTO>> GetCorreoEmpresa(Guid empresaId);
         Task<ResultDTO<CorreoEmpresaRespDTO>> UpdateCorreoEmpresa(CorreoEmpresaUpdateReqDTO data, Guid currentUserId);
+        Task<bool> UpdateByTypeSetting(Configuraciones setting, Guid typeSettingId, Guid currentUserId, Guid clientCompanyId);
         Task<List<CorreoEmpresaRespDTO>> GetAllCorreoEmpresa();
         Task<bool> Create(Configuraciones setting, Guid currentUserId);
         Task<bool> Update(Configuraciones setting, Guid currentUserId, Guid clientCompanyId);

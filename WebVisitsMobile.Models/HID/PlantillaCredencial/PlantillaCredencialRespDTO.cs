@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using WebVisitsMobile.Models.Common;
+using WebVisitsMobile.Models.Empresa.EmpresaCliente;
 
 namespace WebVisitsMobile.Models.HID.PlantillaCredencial
 {
@@ -21,5 +22,7 @@ namespace WebVisitsMobile.Models.HID.PlantillaCredencial
 
         [NotMapped]
         public string? ImagenLogoBase64 { get; set; }
+
+        public virtual EmpresaClienteRespDTO? EmpresaCliente { get; set; } = null!;
     }
 }

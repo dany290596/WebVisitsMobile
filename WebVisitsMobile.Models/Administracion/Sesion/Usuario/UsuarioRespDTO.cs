@@ -1,6 +1,7 @@
 ﻿using WebVisitsMobile.Models.Administracion.Perfil.Perfil;
 using WebVisitsMobile.Models.Administracion.Sesion.TipoUsuario;
 using WebVisitsMobile.Models.Common;
+using WebVisitsMobile.Models.Empresa.EmpresaCliente;
 
 namespace WebVisitsMobile.Models.Administracion.Sesion.Usuario
 {
@@ -21,5 +22,6 @@ namespace WebVisitsMobile.Models.Administracion.Sesion.Usuario
 
         public virtual PerfilRespDTO Perfil { get; set; } = null!;
         public virtual TipoUsuarioRespDTO TipoUsuario { get; set; } = null!;
+        public virtual EmpresaClienteRespDTO? EmpresaCliente { get; set; }
     }
 }

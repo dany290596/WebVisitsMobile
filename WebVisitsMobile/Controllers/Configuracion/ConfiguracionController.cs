@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using WebVisitsMobile.Domain.Entities.Administracion.Sesion;
 using WebVisitsMobile.Domain.Entities.Configuracion;
 using WebVisitsMobile.Infrastructure.Interfaces;
 using WebVisitsMobile.Models.Configuracion.Configuraciones;
 using WebVisitsMobile.Models.Configuracion.CorreoEmpresa;
-using WebVisitsMobile.Models.HID.TipoCredencial;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
 using WebVisitsMobile.Services.QueryFilters.Configuracion;
@@ -383,6 +383,52 @@ namespace WebVisitsMobile.Controllers.Configuracion
                 return StatusCode(404, new ApiResponse<List<SettingsGroupTap>>(false, "No se encontraron configuraciones.", 404, new List<SettingsGroupTap>()));
 
             return StatusCode(200, new ApiResponse<List<SettingsGroupTap>>(true, "Configuración obtenida correctamente.", 200, result));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetByTypeSetting([Required] Guid typeSettingId, [Required] Guid clientCompanyId)
+        {
+            try
+            {
+                if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+                {
+                    return BadRequest("El header de la empresa es inválido.");
+                }
+                var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+                if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+                var data = await _configuracionService.GetByTypeSettingAndCompanyId(typeSettingId, clientCompanyId);
+                var dataDTO = _mapper.Map<ConfiguracionesRespDTO>(data);
+                var response = new ApiResponse<ConfiguracionesRespDTO>(true, "Consulta ejecutada", 200, dataDTO);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        [HttpPut("TypeSetting")]
+        public async Task<IActionResult> UpdateByTypeSetting(ConfiguracionesReqDTO data)
+        {
+            if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+            {
+                return BadRequest("El header de la empresa es inválido.");
+            }
+            var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+            if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+            var mapper = _mapper.Map<Configuraciones>(data);
+            var result = await _configuracionService.UpdateByTypeSetting(mapper, data.TipoConfiguracion, data.UsuarioCreadorId, empresaId);
+            if (!result)
+            {
+                return StatusCode(500, new ApiResponse<string>(false, "ocurrió un error.", 500, null));
+
+            }
+            var response = new ApiResponse<bool>(true, "Se actualizó correctamente.", 200, result);
+
+            return StatusCode(200, response);
         }
     }
 }
