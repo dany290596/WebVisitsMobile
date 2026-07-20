@@ -8,6 +8,7 @@ namespace WebVisitsMobile.Services.Interfaces.HID
     public interface IPlantillaCredencialService
     {
         Task<PlantillaCredencial?> GetById(Guid id, Guid clientCompanyId);
+        Task<PlantillaCredencial?> GetByCompany(Guid companyId);
         Task<PagedList<PlantillaCredencial>> GetAll(PlantillaCredencialQueryFilter filters, Guid clientCompanyId);
         Task<bool> Reactivate(Guid id, Guid currentUserId);
         Task<bool> Inactivate(Guid id);

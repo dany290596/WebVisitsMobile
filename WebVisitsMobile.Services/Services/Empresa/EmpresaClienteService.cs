@@ -17,6 +17,7 @@ using WebVisitsMobile.Services.Interfaces.Administracion.Sesion;
 using WebVisitsMobile.Services.Interfaces.Configuracion;
 using WebVisitsMobile.Services.Interfaces.Empresa;
 using WebVisitsMobile.Services.Interfaces.Encriptacion;
+using WebVisitsMobile.Services.Interfaces.HID;
 using WebVisitsMobile.Services.Interfaces.Parametrizacion;
 using WebVisitsMobile.Services.QueryFilters.Empresa;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -32,6 +33,7 @@ namespace WebVisitsMobile.Services.Services.Empresa
         private readonly ICorreoEnviarService _correoEnviarService;
         private readonly IEncriptacionService _encriptacionService;
         private readonly IPlantillaNotificacionService _plantillaNotificacionService;
+        private readonly IPlantillaCredencialService _plantillaCredencialService;
 
         public EmpresaClienteService(
             IUnitOfWork unitOfWork,
@@ -40,7 +42,8 @@ namespace WebVisitsMobile.Services.Services.Empresa
             IUsuarioService usuarioService,
             ICorreoEnviarService correoEnviarService,
             IEncriptacionService encriptacionService,
-            IPlantillaNotificacionService plantillaNotificacionService
+            IPlantillaNotificacionService plantillaNotificacionService,
+            IPlantillaCredencialService plantillaCredencialService
             )
         {
             _unitOfWork = unitOfWork;
@@ -50,6 +53,7 @@ namespace WebVisitsMobile.Services.Services.Empresa
             _correoEnviarService = correoEnviarService;
             _encriptacionService = encriptacionService;
             _plantillaNotificacionService = plantillaNotificacionService;
+            _plantillaCredencialService = plantillaCredencialService;
         }
 
         public async Task<PagedList<EmpresaCliente>> GetAll(EmpresaClienteQueryFilter filters)
@@ -473,7 +477,26 @@ namespace WebVisitsMobile.Services.Services.Empresa
                     };
 
                     await _correoEnviarService.SendUserEmail(email, currentUserId, clientCompany.Id);
-                }                
+                }
+
+                var template = new PlantillaCredencial()
+                {
+                    Nombre = $"Plantilla de credencial {DateTime.Now:dd/MM/yyyy hh:mm tt}",
+                    ImagenFondo = "",
+                    ExtensionImagenFondo = "",
+                    ImagenLogo = "",
+                    ExtensionImagenLogo = "",
+
+                    EmpresaClienteId = clientCompany.Id,
+
+                    BackgroundExternalId = null,
+                    LogoExternalId = null,
+                    ExternalId = null,
+                    AppleId = null,
+                    UsuarioCreadorId = currentUserId
+                };
+                await _plantillaCredencialService.Create(template, currentUserId, clientCompany.Id);
+
             }
             catch (Exception ex)
             {

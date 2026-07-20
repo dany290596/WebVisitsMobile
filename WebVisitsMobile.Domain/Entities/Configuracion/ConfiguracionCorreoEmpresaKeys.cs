@@ -51,5 +51,116 @@ namespace WebVisitsMobile.Domain.Entities.Configuracion
         };
 
         public static readonly IReadOnlyCollection<Guid> Todas = Nombres.Keys.ToArray();
+
+        public static List<Configuraciones> GetDefaultEmailConfiguration()
+        {
+            return new ()
+            {
+                new()
+                {
+                    TipoConfiguracion = TipoAutenticacion,
+                    NombreParametro = Nombres[TipoAutenticacion],
+                    Valor1 = TipoSmtp,
+                    editable = 1,
+                    lectura = 1
+                },
+                new()
+                {
+                    TipoConfiguracion = SmtpCorreo,
+                    NombreParametro = Nombres[SmtpCorreo],
+                    Valor1 = string.Empty,
+                    editable = 1,
+                    lectura = 1
+                },
+                new()
+                {
+                    TipoConfiguracion = SmtpServidor,
+                    NombreParametro = Nombres[SmtpServidor],
+                    Valor1 = string.Empty,
+                    editable = 1,
+                    lectura = 1
+                },
+                new()
+                {
+                    TipoConfiguracion = SmtpPuerto,
+                    NombreParametro = Nombres[SmtpPuerto],
+                    Valor1 = "587",
+                    editable = 1,
+                    lectura = 1
+                },
+                new()
+                {
+                    TipoConfiguracion = SmtpUsuario,
+                    NombreParametro = Nombres[SmtpUsuario],
+                    Valor1 = string.Empty,
+                    editable = 1,
+                    lectura = 1
+                },
+                new()
+                {
+                    TipoConfiguracion = SmtpPassword,
+                    NombreParametro = Nombres[SmtpPassword],
+                    Valor1 = string.Empty,
+                    editable = 1,
+                    lectura = 1
+                },
+                new()
+                {
+                    TipoConfiguracion = SmtpSsl,
+                    NombreParametro = Nombres[SmtpSsl],
+                    Valor1 = "false",
+                    editable = 1,
+                    lectura = 1
+                },
+                new()
+                {
+                    TipoConfiguracion = SmtpTls12,
+                    NombreParametro = Nombres[SmtpTls12],
+                    Valor1 = "true",
+                    editable = 1,
+                    lectura = 1
+                },
+                new()
+                {
+                    TipoConfiguracion = SmtpTls13,
+                    NombreParametro = Nombres[SmtpTls13],
+                    Valor1 = "false",
+                    editable = 1,
+                    lectura = 1
+                },
+                new()
+                {
+                    TipoConfiguracion = OAuthTenant,
+                    NombreParametro = Nombres[OAuthTenant],
+                    Valor1 = string.Empty,
+                    editable = 1,
+                    lectura = 1
+                },
+                new()
+                {
+                    TipoConfiguracion = OAuthClient,
+                    NombreParametro = Nombres[OAuthClient],
+                    Valor1 = string.Empty,
+                    editable = 1,
+                    lectura = 1
+                },
+                new()
+                {
+                    TipoConfiguracion = OAuthClientSecret,
+                    NombreParametro = Nombres[OAuthClientSecret],
+                    Valor1 = string.Empty,
+                    editable = 1,
+                    lectura = 1
+                },
+                new()
+                {
+                    TipoConfiguracion = OAuthCorreo,
+                    NombreParametro = Nombres[OAuthCorreo],
+                    Valor1 = string.Empty,
+                    editable = 1,
+                    lectura = 1
+                }
+            };
+        }
     }
 }

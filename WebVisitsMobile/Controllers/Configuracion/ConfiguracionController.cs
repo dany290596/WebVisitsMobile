@@ -343,10 +343,10 @@ namespace WebVisitsMobile.Controllers.Configuracion
             var result = await _configuracionService.GetCorreoEmpresa(empresaId);
             if (!result.Success)
             {
-                return StatusCode(404, new ApiResponse<string>(false, result.ErrorMessage, 404, null));
+                return StatusCode(200, new ApiResponse<string>(false, result.ErrorMessage, 404, null));
             }
 
-            return StatusCode(200, new ApiResponse<CorreoEmpresaRespDTO>(true, "La configuración fue obtenida correctamente.", 200, result.Value));
+            return StatusCode(200, new ApiResponse<CorreoEmpresaRespDTO>(true, "La configuración fue obtenida correctamente.", 200, result.Value!));
         }
 
         [HttpPut("Correo")]

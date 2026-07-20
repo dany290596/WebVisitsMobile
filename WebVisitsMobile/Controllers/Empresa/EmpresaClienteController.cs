@@ -387,6 +387,7 @@ namespace WebVisitsMobile.Controllers.Empresa
             }
         }
 
+        /*
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] EmpresaClienteConfiguracionReqDTO model)
         {
@@ -443,7 +444,7 @@ namespace WebVisitsMobile.Controllers.Empresa
                     }
                 }
 
-                string password = "oG@P~cS68d*";
+                string password = "$#123crc123CRC";
                 string passwordHash = _passwordService.Hash(password);
 
                 var clientCompany = _mapper.Map<EmpresaCliente>(empresa);
@@ -470,6 +471,7 @@ namespace WebVisitsMobile.Controllers.Empresa
                 return StatusCode(500, new ApiResponse<string>(false, "Error interno del servidor.", 500, null));
             }
         }
+        */
 
         [HttpPost("WithSettingEncrypted")]
         public async Task<IActionResult> CreateWithSettingEncrypted([FromBody] EmpresaClienteEncryptedReqDTO model)
@@ -540,7 +542,7 @@ namespace WebVisitsMobile.Controllers.Empresa
                     }
                 }
 
-                string password = "oG@P~cS68d*";
+                string password = "$#123crc123CRC";
                 string passwordHash = _passwordService.Hash(password);
 
                 var clientCompany = _mapper.Map<EmpresaCliente>(empresa);

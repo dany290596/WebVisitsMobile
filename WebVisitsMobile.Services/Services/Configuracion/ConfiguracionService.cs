@@ -1033,6 +1033,23 @@ namespace WebVisitsMobile.Services.Services.Configuracion
                          && ConfiguracionCorreoEmpresaKeys.Todas.Contains(c.TipoConfiguracion))
                 .ToListAsync();
 
+            //if (!registros.Any())
+            //{
+            //    var settings = ConfiguracionCorreoEmpresaKeys.GetDefaultEmailConfiguration();
+
+            //    await CreateSettingsForCompany(
+            //        settings,
+            //        empresaId,
+            //        _userContext.UserId); // Usuario actual
+
+            //    registros = await _unitOfWork.ConfiguracionesRepository
+            //        .GetAllSettingQueryable()
+            //        .Where(c => c.EmpresaClienteId == empresaId
+            //                 && c.Estado == 1
+            //                 && ConfiguracionCorreoEmpresaKeys.Todas.Contains(c.TipoConfiguracion))
+            //        .ToListAsync();
+            //}
+
             var tieneTipo = registros.Any(r => r.TipoConfiguracion == ConfiguracionCorreoEmpresaKeys.TipoAutenticacion);
             if (!tieneTipo)
                 return ResultDTO<CorreoEmpresaRespDTO>.Fail("La empresa no cuenta con una configuración de correo registrada.");

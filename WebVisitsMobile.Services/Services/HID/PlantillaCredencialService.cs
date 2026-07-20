@@ -3,7 +3,6 @@ using Microsoft.Extensions.Options;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using WebVisitsMobile.Data.Interfaces.Common;
 using WebVisitsMobile.Domain.Entities.HID;
 using WebVisitsMobile.Domain.Entities.Organizacion.Tarea;
@@ -38,6 +37,41 @@ namespace WebVisitsMobile.Services.Services.HID
             {
                 PlantillaCredencial perfil = await _unitOfWork.PlantillaCredencialRepository.GetById(id);
                 if (empresaId == Guid.Empty || perfil == null)
+                {
+                    return null;
+                }
+
+                // Cargar las imágenes en Base64 para preview
+                string baseFolder = Path.Combine(_env.ContentRootPath, "FOTOS_PLANTILLAS_CREDENCIALES");
+
+                // Imagen de fondo
+                if (!string.IsNullOrEmpty(perfil.ImagenFondo) && perfil.ImagenFondo != "Sin foto")
+                {
+                    string fondoPath = Path.Combine(baseFolder, perfil.ImagenFondo);
+                    perfil.ImagenFondoBase64 = await GetImageBase64(fondoPath);
+                }
+
+                // Imagen de logo
+                if (!string.IsNullOrEmpty(perfil.ImagenLogo) && perfil.ImagenLogo != "Sin foto")
+                {
+                    string logoPath = Path.Combine(baseFolder, perfil.ImagenLogo);
+                    perfil.ImagenLogoBase64 = await GetImageBase64(logoPath);
+                }
+
+                return perfil;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task<PlantillaCredencial?> GetByCompany(Guid companyId)
+        {
+            try
+            {
+                PlantillaCredencial perfil = await _unitOfWork.PlantillaCredencialRepository.GetCredentialTemplate(c => c.EmpresaClienteId == companyId && c.Estado == 1);
+                if (companyId == Guid.Empty || perfil == null)
                 {
                     return null;
                 }

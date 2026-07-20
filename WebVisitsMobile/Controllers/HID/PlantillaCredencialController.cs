@@ -108,6 +108,36 @@ namespace WebVisitsMobile.Controllers.HID
             }
         }
 
+        [HttpGet("ByCompany")]
+        public async Task<IActionResult> GetByIdForCompany([Required] Guid companyId)
+        {
+            try
+            {
+                if (!Guid.TryParse(Request.Headers["Empresa"], out var empresaId))
+                {
+                    return BadRequest("El header de la empresa es inválido.");
+                }
+                var empresaExiste = await _plataformaService.ExistsCompany(empresaId);
+                if (empresaExiste == null) { return BadRequest($"La empresa con el ID {empresaId} no existe."); }
+
+                Token token = _accesorService.GetTokenData();
+                if (token == null)
+                {
+                    return Unauthorized(new ApiResponse<string>(false, "No tiene permiso sobre este recurso.", 401, null));
+                }
+
+                var data = await _plantillaCredencialService.GetByCompany(companyId);
+                var dataDTO = _mapper.Map<PlantillaCredencialRespDTO>(data);
+                var response = new ApiResponse<PlantillaCredencialRespDTO>(true, "Consulta ejecutada", 200, dataDTO);
+
+                return StatusCode(200, response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         [HttpPatch("Inactivate")]
         public async Task<IActionResult> Inactivate([Required] Guid id)
         {
